@@ -85,7 +85,7 @@ def geocode(request):
     Search for specified address, returning candidates with lat/long
     """
     key = request.REQUEST.get('key')
-    address = request.REQUEST.get('address')
+    address = request.REQUEST.get('address').encode('utf-8')
 
     if key:
         # See settings.OMGEO_SETTINGS for configuration
