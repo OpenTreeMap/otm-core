@@ -100,7 +100,6 @@ def add_species_to_instance(instance):
 
 
 PERMISSION_VIEW_EXTERNAL_LINK = 'view_external_link'
-PERMISSION_ACCESS_WORKS_MANAGEMENT = 'access_works_management'
 
 
 # Don't call this function directly, call plugin.get_instance_permission_spec()
@@ -113,12 +112,6 @@ def get_instance_permission_spec():
                              'of a tree or map feature'),
             'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR],
             'label': _('Can View External Link')
-        },
-        {
-            'codename': PERMISSION_ACCESS_WORKS_MANAGEMENT,
-            'description': _('Can view or modify Works Management entities'),
-            'default_role_names': [Role.ADMINISTRATOR],
-            'label': _('Can Access Works Management')
         }
     ]
 

@@ -1,0 +1,43 @@
+{% extends "treemap/partials/search_location.html" %}
+{% load i18n %}
+
+{% block well-controls %}
+    <a class="draw-area" title="{% trans "Draw search area on map" %}">
+        <i class="icon-polygon"></i>
+    </a>
+    <a class="clear-location-input">
+        <i class="icon-cancel"></i>
+    </a>
+{% endblock %}
+
+{% block alternate-content %}
+
+    <div class="location-search-alternate" id="draw-area-controls">
+        <span class="text">{% trans "Draw search area on map" %}</span>
+        <a class="cancel cancel-draw">
+            <i class="icon-cancel"></i>
+        </a>
+    </div>
+
+    <div class="location-search-alternate" id="custom-area-controls">
+        <span class="text" style="font-style:italic;">
+            {% trans "CUSTOM AREA" %}
+        </span>
+        <a class="edit-area">
+            <i class="icon-pencil" title="{% trans "Edit custom area" %}"></i>
+        </a>
+        <a class="cancel clear-custom-area" title="{% trans "Clear custom area" %}">
+            <i class="icon-trash"></i>
+        </a>
+    </div>
+    <div class="location-search-alternate" id="edit-area-controls">
+        <span class="text">{% trans "Edit search area" %}</span>
+        <a class="save-area" title="{% trans "Save edits" %}">
+            <i class="icon-ok"></i>
+        </a>
+        <a class="cancel cancel-edit" title="{% trans "Cancel editing" %}">
+            <i class="icon-cancel"></i>
+        </a>
+    </div>
+
+{% endblock %}

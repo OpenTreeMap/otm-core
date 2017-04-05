@@ -11,18 +11,16 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
-    R = require('ramda'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     U = require('treemap/lib/utility.js'),
-    geocoderInvokeUi = require('treemap/lib/geocoderInvokeUi.js'),
-    geocoderResultsUi = require('treemap/lib/geocoderResultsUi.js'),
+    geocoderUi = require('treemap/lib/geocoderUi.js'),
     Search = require('treemap/lib/search.js'),
     udfcSearch = require('treemap/lib/udfcSearch.js'),
-    BU = require('treemap/lib/baconUtils.js'),
     MapManager = require('treemap/lib/MapManager.js'),
     reverse = require('reverse'),
     config = require('treemap/lib/config.js'),
     stickyTitles = require('treemap/lib/stickyTitles.js'),
+    toastr = require('toastr'),
     mapManager = new MapManager();
 
 var dom = {
@@ -30,6 +28,7 @@ var dom = {
     subheader: '.subhead',
     advanced: '.advanced-search',
     advancedToggle: '#search-advanced',
+    resetButton: '#search-reset',
     categoryDropdown: '.advanced-search .dropdown',
     categoryToggle: '.advanced-search .dropdown-toggle',
     categoryOpenToggle: '.advanced-search .dropdown.open .dropdown-toggle',
@@ -44,10 +43,10 @@ var dom = {
     searchFields: '[data-search-type]',
     searchFieldContainer: '.search-field-wrapper',
     speciesSearchTypeahead: '#species-typeahead',
-    speciesSearchToggle: '#species-toggle',
     speciesSearchContainer: '#species-search-wrapper',
     locationSearchTypeahead: '#boundary-typeahead',
-    foreignKey: '[data-foreign-key]',
+    clearLocationInput: '.clear-location-input',
+    foreignKey: '[data-foreign-key]'
 };
 
 // Placed onto the jquery object
@@ -56,32 +55,25 @@ require('bootstrap-datepicker');
 var showGeocodeError = function (e) {
     // Bacon just returns an error string
     if (_.isString(e)) {
-        // TODO: Toast
-        window.alert(e);
+        toastr.error(e);
     // If there was an error from the server the error
     // object contains standard http info
     } else if (e.status && e.status === 404) {
-        // TODO: Toast
-        window.alert('There were no results matching your search.');
+        toastr.error('There were no results matching your search.');
     } else {
-        // TODO: Toast
-        window.alert('There was a problem running your search.');
+        toastr.error('There was a problem running your search.');
     }
 };
 
 var getSearchDatum = function() {
-    return otmTypeahead.getDatum($('#boundary-typeahead'));
+    return otmTypeahead.getDatum($(dom.locationSearchTypeahead));
 };
 
-function redirectToSearchPage(filters, wmCoords) {
-    var getZPortion = function (wmCoords) {
-            var ll = U.webMercatorToLatLng(wmCoords.x, wmCoords.y);
-            return '&z='+ mapManager.ZOOM_PLOT + '/' + ll.lat + '/' + ll.lng;
-        },
-        query = Search.makeQueryStringFromFilters(filters);
-
-    query += wmCoords ? getZPortion(wmCoords) : '';
-
+function redirectToSearchPage(filters, latLng) {
+    var query = Search.makeQueryStringFromFilters(filters);
+    if (latLng) {
+        query += '&z=' + mapManager.ZOOM_PLOT + '/' + latLng.lat + '/' + latLng.lng;
+    }
     window.location.href = reverse.map(config.instance.url_name) + '?' + query;
 }
 
@@ -89,28 +81,6 @@ function initSearchUi(searchStream) {
     var $advancedToggle = $(dom.advancedToggle),
         $header = $(dom.header),
         $subheader = $(dom.subheader);
-    otmTypeahead.create({
-        name: "species",
-        url: reverse.species_list_view(config.instance.url_name),
-        input: "#species-typeahead",
-        template: "#species-element-template",
-        hidden: "#search-species",
-        button: "#species-toggle",
-        reverse: "id",
-        forceMatch: true
-    });
-    otmTypeahead.create({
-        name: "boundaries",
-        url: reverse.boundary_list(config.instance.url_name),
-        input: "#boundary-typeahead",
-        template: "#boundary-element-template",
-        hidden: "#boundary",
-        button: "#boundary-toggle",
-        reverse: "id",
-        sortKeys: ['sortOrder', 'value'],
-        geocoder: true,
-        geocoderBbox: config.instance.extent
-    });
 
     var $query_typeaheads = $('.search-right .autocomplete-group');
     $query_typeaheads.each(function () {
@@ -199,13 +169,12 @@ function updateUi(search) {
 }
 
 function updateActiveSearchIndicators(search) {
-    var activeCategories = _(search.filter)
+    var simpleSearchKeys = ['species.id', 'mapFeature.geom'],
+        activeCategories = _(search.filter)
             .map(getFilterCategory)
             .unique()
             .filter() // remove "false" (category with a filter that isn't displayed)
-            .value(),
-
-        simpleSearchKeys = ['species.id', 'mapFeature.geom'];
+            .value();
 
     function getFilterCategory(filter, key) {
         var moreSearchFeatureBlacklist;
@@ -331,7 +300,6 @@ function updateDisabledFields(search) {
 
 function updateDisabledSpeciesFields(disabled) {
     $(dom.speciesSearchTypeahead).prop('disabled', disabled);
-    $(dom.speciesSearchToggle).prop('disabled', disabled);
     $(dom.speciesSearchContainer).toggleClass('disabled', disabled);
     $(dom.speciesDisabledMessage).toggle(disabled);
 }
@@ -343,7 +311,7 @@ module.exports = exports = {
             redirect = _.partial(redirectToSearchPage),
             redirectWithoutLocation = _.partialRight(redirect, undefined);
 
-        streams.filterNonGeocodeObjectStream.onValue(redirectWithoutLocation);
+        streams.filtersStream.onValue(redirectWithoutLocation);
         streams.geocodedLocationStream.onValue(function (wmCoords) {
             // get the current state of the search dom
             var filters = Search.buildSearch();
@@ -357,12 +325,48 @@ module.exports = exports = {
         Search.reset();
     },
 
-    init: function () {
-        var searchStream = BU.enterOrClickEventStream({
-                inputs: 'input[data-class="search"]',
-                button: '#perform-search,#location-perform-search'
+    init: function (options) {
+
+        var speciesTypeahead = otmTypeahead.create({
+                name: "species",
+                url: reverse.species_list_view(config.instance.url_name),
+                input: "#species-typeahead",
+                template: "#species-element-template",
+                hidden: "#search-species",
+                reverse: "id"
             }),
-            resetStream = $("#search-reset").asEventStream("click"),
+            locationTypeahead = otmTypeahead.create({
+                name: "boundaries",
+                url: reverse.boundary_list(config.instance.url_name),
+                input: dom.locationSearchTypeahead,
+                template: "#boundary-element-template",
+                hidden: "#boundary",
+                reverse: "id",
+                sortKeys: ['sortOrder', 'value'],
+                geocoder: true,
+                geocoderBbox: config.instance.extent
+            }),
+            ui = geocoderUi({
+                locationTypeahead: locationTypeahead,
+                otherTypeaheads: speciesTypeahead,
+                searchButton: '#perform-search,#location-perform-search'
+            }),
+            geocodedLocationStream = ui.geocodedLocationStream,
+            clearLocationInputStream = $(dom.clearLocationInput)
+                .asEventStream('click')
+                .doAction(function () { // make sure this happens first
+                    locationTypeahead.clear();
+                }),
+            // If we're on a page where custom area is supported,
+            // we need searchStream to also produce events when
+            // the geojson from the anonymous boundary representing the
+            // custom area has arrived and been rendered.
+            customAreaSearchEvents = (!!options && options.customAreaSearchEvents) || Bacon.never(),
+            searchStream = Bacon.mergeAll(
+                ui.triggerSearchStream,
+                clearLocationInputStream,
+                customAreaSearchEvents
+            ),
             searchFiltersProp = searchStream.map(Search.buildSearch).toProperty(),
             filtersStream = searchStream
                 // Filter out geocoded selections.
@@ -374,46 +378,34 @@ module.exports = exports = {
                     return !(datum && datum.magicKey);
                 })
                 .map(Search.buildSearch),
+            resetStream = $(dom.resetButton).asEventStream("click"),
             uSearch = udfcSearch.init(resetStream),
             searchChangedStream = Bacon
                 .mergeAll(searchStream, resetStream)
-                .map(true),
+                .map(true);
 
-            geocodeResponseStream = geocoderInvokeUi({
-                searchTriggerStream: searchStream,
-                addressInput: '#boundary-typeahead'
-            }),
-            geocodedLocationStream = geocoderResultsUi(
-                {
-                    geocodeResponseStream: geocodeResponseStream,
-                    cancelGeocodeSuggestionStream: resetStream,
-                    resultTemplate: '#geocode-results-template',
-                    addressInput: '#boundary-typeahead',
-                    displayedResults: '.search-block [data-class="geocode-result"]'
-                });
-
-        geocodeResponseStream.onError(showGeocodeError);
+        geocodedLocationStream.onError(showGeocodeError);
         initSearchUi(searchStream);
 
         return {
-            // a stream of events corresponding to clicks on the reset button.
+            // Stream of events corresponding to clicks on the reset button.
             resetStream: resetStream,
 
-            // the final, pinpointed stream of geocoded locations
-            // consumers should act with this data directly to
-            // modify the state of their UI or pass to other consumers.
+            // Stream of geocoded locations.
             geocodedLocationStream: geocodedLocationStream,
 
-            // Stream of search events, carries the filter object and display
-            // list with it. should be used by consumer to execute searches.
-            filterNonGeocodeObjectStream: filtersStream,
+            // Stream of search events, carrying the filter object and display
+            // list with it. Should be used by consumer to execute searches.
+            filtersStream: filtersStream,
 
-            // Current value of search filters updated every time the
-            // "Search" button is pressed.
+            // Current value of search filters, updated for every search event
             searchFiltersProp: searchFiltersProp,
 
-            // has a value on all events that change the current search
+            // Has a value on all events that change the current search
             searchChangedStream: searchChangedStream,
+
+            // Used when the url changes, resulting in a location search change
+            programmaticallyUpdatedStream: locationTypeahead.programmaticallyUpdatedStream,
 
             applySearchToDom: function (search) {
                 Search.applySearchToDom(search);

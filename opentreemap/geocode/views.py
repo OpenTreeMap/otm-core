@@ -16,9 +16,7 @@ from omgeo import Geocoder
 from omgeo.places import Viewbox, PlaceQuery
 
 
-geocoder = Geocoder(sources=settings.OMGEO_SETTINGS, postprocessors=[])
-geocoder_for_magic_key = Geocoder(
-    sources=settings.OMGEO_SETTINGS_FOR_MAGIC_KEY)
+geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
 
 
 def _omgeo_candidate_to_dict(candidate, srid=3857):
@@ -87,59 +85,24 @@ def geocode(request):
     Search for specified address, returning candidates with lat/long
     """
     key = request.REQUEST.get('key')
-    address = request.REQUEST.get('address')
+    address = request.REQUEST.get('address').encode('utf-8')
+
     if key:
-        return _geocode_with_magic_key(address, key)
-    else:
-        return _geocode_without_magic_key(request, address)
+        # See settings.OMGEO_SETTINGS for configuration
+        pq = PlaceQuery(query=address, key=key)
+        geocode_result = geocoder.geocode(pq)
+        candidates = geocode_result.get('candidates', None)
+        if candidates:
+            # There should only be one candidate since the user already chose a
+            # specific suggestion and the front end filters out suggestions
+            # that might result in more than one candidate (like "Beaches").
+            match = candidates[0]
+            return {
+                'lat': match.y,
+                'lng': match.x
+            }
 
-
-def _geocode_with_magic_key(address, key):
-    # See settings.OMGEO_SETTINGS_FOR_MAGIC_KEY for configuration
-    pq = PlaceQuery(query=address, key=key)
-    geocode_result = geocoder_for_magic_key.geocode(pq)
-    candidates = geocode_result.get('candidates', None)
-    if candidates:
-        # Address searches return many candidates. But the user already
-        # chose a specific suggestion so we want the first candidate.
-        # The exception is a "point of interest" search, where the user's
-        # chosen suggestion may be a category like "Beaches" and you want to
-        # see many candidates.
-        if candidates[0].locator_type != 'POI':
-            candidates = [candidates[0]]
-        candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-        return {'candidates': candidates}
-    else:
-        return _no_results_response(address)
-
-
-def _geocode_without_magic_key(request, address):
-    # See settings.OMGEO_SETTINGS for configuration
-    viewbox = _get_viewbox_from_request(request)
-    pq = PlaceQuery(query=address, viewbox=viewbox)
-    geocode_result = geocoder.geocode(pq)
-
-    candidates = geocode_result.get('candidates', None)
-
-    if not candidates:
-        return _no_results_response(address)
-    else:
-        candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-
-        if _contains_bbox(request):
-            # The geocoder favored results inside the bounding box but may have
-            # returned results outside the bounding box, so filter those away.
-            bbox = {'xmin': request.REQUEST['xmin'],
-                    'ymin': request.REQUEST['ymin'],
-                    'xmax': request.REQUEST['xmax'],
-                    'ymax': request.REQUEST['ymax']}
-
-            candidates = [c for c in candidates if _in_bbox(bbox, c)]
-
-            if len(candidates) == 0:
-                return _no_results_response(address, inregion=True)
-
-        return {'candidates': candidates}
+    return _no_results_response(address)
 
 
 geocode_view = json_api_call(geocode)

@@ -35,7 +35,7 @@ otm.settings.bing_api_key = '{{ BING_API_KEY }}';
 
 otm.settings.geocoder = Object.freeze({
     maxLocations: 20,
-    errorString: '{% trans "That address was not found near this map. You may need to include a city and state." %}',
+    errorString: '{% trans "Location not found." %}',
     reverseGeocoderErrorString: '{% trans "Unable to find an address for the location" %}',
     reverseGeocodeDistance: 200, // Meters
     threshold: 80
@@ -55,13 +55,18 @@ otm.settings.trans = Object.freeze({
             kicker: '{% trans "ESC to cancel" %}'
         },
         cont: {
-            message: '{% trans "Click to add a corner" %}',
-            kicker: '{% trans "Add as many as you want" %}'
+            message: '{% trans "Click to add a corner" %}'
         },
         end: {
-            message: '{% trans "Click first corner to finish" %}'
+            message: '{% trans "Click to add a corner" %}',
+            kicker: '{% trans "Click first corner to finish" %}'
         }
-    }
+    },
+    tooltipForEditArea: [
+        '{% trans "Drag a corner to move it." %}',
+        '{% trans "Click a corner to delete it." %}',
+        '{% trans "Enter when done. ESC to cancel." %}'
+    ]
 });
 
 otm.settings.errorMessages = Object.freeze({

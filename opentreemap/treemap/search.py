@@ -290,7 +290,7 @@ def _parse_within_radius_value(predicate_value, field=None):
 
 
 def _parse_in_boundary(boundary_id, field=None):
-    boundary = Boundary.objects.get(pk=boundary_id)
+    boundary = Boundary.all_objects.get(pk=boundary_id)
     return {'__within': boundary.geom}
 
 

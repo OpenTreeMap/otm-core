@@ -69,31 +69,7 @@ MANAGERS = ADMINS
 
 TEST_RUNNER = "treemap.tests.OTM2TestRunner"
 
-OMGEO_SETTINGS = [[  # Used when no suggestion has been chosen
-    'omgeo.services.EsriWGS',
-    {
-        'preprocessors': [],
-        'postprocessors': [
-            postprocessors.AttrFilter(
-                good_values=['PointAddress', 'BuildingName', 'StreetAddress',
-                             'StreetName'],
-                attr='locator_type'),
-            postprocessors.DupePicker(  # Filters by highest score
-                attr_dupes='match_addr',
-                attr_sort='locator_type',
-                ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
-            ),
-            postprocessors.AttrSorter(
-                ordered_values=['PointAddress', 'StreetAddress', 'StreetName'],
-                attr='locator_type'),
-            postprocessors.GroupBy('match_addr'),
-            postprocessors.GroupBy(('x', 'y')),
-            postprocessors.SnapPoints(distance=10)
-        ]
-    }
-]]
-
-OMGEO_SETTINGS_FOR_MAGIC_KEY = [[  # Used when a suggestion has been chosen
+OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGS',
     {
         'preprocessors': [],
@@ -404,9 +380,7 @@ IMPORT_BATCH_SIZE = 85
 # The rate limit for how frequently batches of imports can happen per worker
 IMPORT_COMMIT_RATE_LIMIT = "1/m"
 
-# We have... issues on IE9 right now
-# Disable it on production, but enable it in Debug mode
-IE_VERSION_MINIMUM = 9 if DEBUG else 11
+IE_VERSION_MINIMUM = 11
 
 IE_VERSION_UNSUPPORTED_REDIRECT_PATH = '/unsupported'
 

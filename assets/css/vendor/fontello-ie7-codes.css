@@ -617,3 +617,4 @@
 .icon-check-1 { *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML = '&#xea67;&nbsp;'); }
 .icon-cancel-1 { *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML = '&#xea68;&nbsp;'); }
 .icon-video-1 { *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML = '&#xea69;&nbsp;'); }
+.icon-polygon { *zoom: expression( this.runtimeStyle['zoom'] = '1', this.innerHTML = '&#xea6a;&nbsp;'); }

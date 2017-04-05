@@ -5,6 +5,7 @@ var $ = require('jquery'),
     U = require('treemap/lib/utility.js'),
     addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
+    plotMarker = require('treemap/lib/plotMarker.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js');
 
 var activateMode = _.identity,
@@ -14,18 +15,15 @@ var activateMode = _.identity,
     STEP_FINAL = 2;
 
 function init(options) {
-    var plotMarker = options.plotMarker,
-        $sidebar = $(options.sidebar),
+    var $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
-        $speciesInput = U.$find('[data-typeahead-input="tree.species"]', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar),
         typeahead = otmTypeahead.create(options.typeahead),
         clearEditControls = function() {
             typeahead.clear();
         },
-        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options)),
-        hideSearch;
+        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options));
 
     activateMode = function() {
         manager.activate();
@@ -33,14 +31,11 @@ function init(options) {
         plotMarker.useTreeIcon(true);
         plotMarker.enablePlacing();
         $('body').addClass('add-feature');
-        hideSearch = $('body').hasClass('hide-search');
     };
 
     deactivateMode = function() {
         typeahead.clear();
         manager.deactivate();
-        $('body').removeClass('add-feature');
-        $('body').toggleClass('hide-search', hideSearch);
     };
 
     diameterCalculator({ formSelector: options.formSelector,

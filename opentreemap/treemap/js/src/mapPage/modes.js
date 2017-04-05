@@ -1,17 +1,22 @@
 "use strict";
 
-// The main "map" page has several modes -- browse trees, add a tree, and edit
-// tree details. Each mode has a div in the sidebar to show its UI and a JS
+// The main "map" page has several modes -- e.g. browse trees, add a tree, and
+// edit tree details. Each mode has a div in the sidebar to show its UI and a JS
 // module to handle UI events. This module initializes the mode modules and
 // orchestrates switching between modes.
+
+// Mode changes are initiated by calling one of the exported activation functions
+// (e.g. activateAddTreeMode, activateBrowseTreesMode). Note that calls to these
+// functions are not isolated in a single controller module due to the differing
+// requirements of the code that calls them.
 
 var $                   = require('jquery'),
     _                   = require('lodash'),
     reverse             = require('reverse'),
     config              = require('treemap/lib/config.js'),
-    U                   = require('treemap/lib/utility.js'),
     browseTreesMode     = require('treemap/mapPage/browseTreesMode.js'),
     drawAreaMode        = require('treemap/mapPage/drawAreaMode.js'),
+    editAreaMode        = require('treemap/mapPage/editAreaMode.js'),
     addTreeMode         = require('treemap/mapPage/addTreeMode.js'),
     editTreeDetailsMode = require('treemap/mapPage/editTreeDetailsMode.js'),
     addResourceMode     = require('treemap/mapPage/addResourceMode.js'),
@@ -19,71 +24,76 @@ var $                   = require('jquery'),
     urlState            = require('treemap/lib/urlState.js'),
     plotMarker          = require('treemap/lib/plotMarker.js'),
     statePrompter       = require('treemap/lib/statePrompter.js'),
-    stickyTitles        = require('treemap/lib/stickyTitles.js'),
+    stickyTitles        = require('treemap/lib/stickyTitles.js');
+
+var sidebarBrowseTrees = '#sidebar-browse-trees',
+    sidebarAddTree     = '#sidebar-add-tree',
+    sidebarAddResource = '#sidebar-add-resource',
+    map,
     prompter,
-    currentMode, currentType;
+    currentMode,
+    currentMapFeatureType;
 
-var sidebarBrowseTrees          = '#sidebar-browse-trees',
-    sidebarAddTree              = '#sidebar-add-tree',
-    sidebarAddResource          = '#sidebar-add-resource',
-    $treeDetailAccordionSection = U.$find('#tree-detail'),
-    $fullDetailsButton          = U.$find('#full-details-button'),
-    $treeDetailButtonGroup      = U.$find('#map-plot-details-button'),
-    $exploreMapHeaderLink       = U.$find('.navbar li.explore-map'),
-    $addFeatureHeaderLink       = U.$find('.navbar li[data-feature=add_plot]');
+function activateBrowseTreesMode(options) {
+    activateMode(browseTreesMode, sidebarBrowseTrees, options);
+}
+function activateDrawAreaMode(options) {
+    activateMode(drawAreaMode, sidebarBrowseTrees, options);
+}
+function activateEditAreaMode(options) {
+    activateMode(editAreaMode, sidebarBrowseTrees, options);
+}
+function activateAddTreeMode(options) {
+    activateMode(addTreeMode, sidebarAddTree, options);
+}
+function activateEditTreeDetailsMode(options) {
+    activateMode(editTreeDetailsMode, sidebarBrowseTrees, options);
+}
+function activateAddResourceMode(options) {
+    activateMode(addResourceMode, sidebarAddResource, options);
+}
 
-function activateMode(mode, sidebar, safeTransition, type) {
+// All changes between modes use this function.
+// It deactivates the current mode, activates the new mode, displays the
+// appropriate sidebar, and manages "are you sure you want to exit" queries.
 
-    // each mode activator takes an argument that determines
-    // whether or not to lock the prompter, or in other words,
-    // whether or not activateMode should prompt the user before
-    // changing modes.
-    if (safeTransition === true) {
+function activateMode(mode, sidebar, options) {
+
+    if (options && options.skipPrompt) {
+        // Caller knows we don't need an "are you sure" query
+        // (e.g. when switching from edit trees mode to browse trees mode)
         prompter.unlock();
     }
-    if ((mode !== currentMode || type !== currentType) &&
+
+    var mapFeatureType = options && options.mapFeatureType;
+    if ((mode !== currentMode || mapFeatureType !== currentMapFeatureType) &&
         prompter.canProceed()) {
+
         if (currentMode && currentMode.deactivate) {
-            currentMode.deactivate();
+            currentMode.deactivate(options);
         }
+        if (mode.activate) {
+            mode.activate(options);
+        }
+        currentMode = mode;
+        currentMapFeatureType = mapFeatureType;
+
         $(sidebar).siblings().hide();
         $(sidebar).show();
-        if (mode.activate) {
-            mode.activate(type);
+
+        if (mode.lockOnActivate === true) {
+            prompter.lock();  // Ask "are you sure" when leaving mode
+        } else {
+            prompter.unlock();  // Don't ask "are you sure" when leaving mode
         }
 
-        // lockOnActivate will specify whether to leave the
-        // prompter in a locked state, which causes a
-        // prompt on mode changes and page navigation.
-        if (mode.lockOnActivate === true) {
-            prompter.lock();
-        } else {
-            prompter.unlock();
-        }
+        // On mobile we hide the search bar in some modes
         if ('hideSearch' in mode) {
             $('body').toggleClass('hide-search', mode.hideSearch);
         }
-        urlState.setModeName(mode.name);
-        urlState.setModeType(type);
-        currentMode = mode;
-        currentType = type;
+        // On mobile some transitions change the size of the map
+        map.invalidateSize();
     }
-}
-
-function activateBrowseTreesMode(safeTransition) {
-    activateMode(browseTreesMode, sidebarBrowseTrees, safeTransition);
-}
-function activateDrawAreaMode(safeTransition) {
-    activateMode(drawAreaMode, sidebarBrowseTrees, safeTransition);
-}
-function activateAddTreeMode(safeTransition) {
-    activateMode(addTreeMode, sidebarAddTree, safeTransition);
-}
-function activateEditTreeDetailsMode(safeTransition) {
-    activateMode(editTreeDetailsMode, sidebarBrowseTrees, safeTransition);
-}
-function activateAddResourceMode(safeTransition, type) {
-    activateMode(addResourceMode, sidebarAddResource, safeTransition, type);
 }
 
 function inBrowseTreesMode() { return currentMode === browseTreesMode; }
@@ -92,6 +102,8 @@ function inEditTreeMode()    { return currentMode === editTreeDetailsMode; }
 function inAddResourceMode() { return currentMode === addResourceMode; }
 
 function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
+    map = mapManager.map;
+
     // browseTreesMode and editTreeDetailsMode share an inlineEditForm,
     // so initialize it here.
     var form = inlineEditForm.init({
@@ -114,40 +126,48 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
     form.inEditModeProperty.onValue(function (inEditMode) {
         // Form is changing to edit mode or display mode
         if (inEditMode) {
-            activateEditTreeDetailsMode(true);
+            activateEditTreeDetailsMode({keepSelection: true});
         } else {
-            activateBrowseTreesMode(true);
+            activateBrowseTreesMode({
+                keepSelection: true,
+                skipPrompt: true
+            });
         }
     });
     form.saveOkStream.onValue(triggerSearchBus.push);
 
-    plotMarker.init(mapManager.map);
+    plotMarker.init(map);
 
     browseTreesMode.init({
-        map: mapManager.map,
+        map: map,
         embed: embed,
         completedSearchStream: completedSearchStream,
         inMyMode: inBrowseTreesMode,
-        $treeDetailAccordionSection: $treeDetailAccordionSection,
-        $fullDetailsButton: $fullDetailsButton,
-        inlineEditForm: form,
-        plotMarker: plotMarker,
-        $buttonGroup: $treeDetailButtonGroup
+        inlineEditForm: form
     });
 
+    // As discussed in http://stackoverflow.com/a/21424911, using "this" could
+    // fail if modes.init() were called within this file. But it won't be, so
+    // silence JSHint's warning.
+    /*jshint validthis: true */
+
     drawAreaMode.init({
-        map: mapManager.map,
+        map: map,
+        modes: this,
         tooltipStrings: config.trans.tooltipsForDrawArea
     });
 
+    editAreaMode.init({
+        map: map,
+        modes: this,
+        tooltipStrings: config.trans.tooltipForEditArea
+    });
+
     addTreeMode.init({
-        $addFeatureHeaderLink: $addFeatureHeaderLink,
-        $exploreMapHeaderLink: $exploreMapHeaderLink,
         mapManager: mapManager,
-        plotMarker: plotMarker,
+        activateBrowseTreesMode: activateBrowseTreesMode,
         inMyMode: inAddTreeMode,
         sidebar: sidebarAddTree,
-        onClose: _.partial(activateBrowseTreesMode, true),
         formSelector: '#add-tree-form',
         validationFields: '#add-tree-container [data-class="error"]',
         indexOfSetLocationStep: 0,
@@ -159,19 +179,15 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
     editTreeDetailsMode.init({
         mapManager: mapManager,
         inlineEditForm: form,
-        plotMarker: plotMarker,
         inMyMode: inEditTreeMode,
         typeaheads: [getSpeciesTypeaheadOptions("edit-tree-species")]
     });
 
     addResourceMode.init({
-        $addFeatureHeaderLink: $addFeatureHeaderLink,
-        $exploreMapHeaderLink: $exploreMapHeaderLink,
         mapManager: mapManager,
-        plotMarker: plotMarker,
+        activateBrowseTreesMode: activateBrowseTreesMode,
         inMyMode: inAddResourceMode,
         sidebar: sidebarAddResource,
-        onClose: _.partial(activateBrowseTreesMode, true),
         formSelector: '#add-resource-form',
         validationFields: '#add-resource-container [data-class="error"]',
         indexOfSetLocationStep: 1,
@@ -201,6 +217,7 @@ module.exports = {
     init: init,
     activateBrowseTreesMode: activateBrowseTreesMode,
     activateDrawAreaMode: activateDrawAreaMode,
+    activateEditAreaMode: activateEditAreaMode,
     activateAddTreeMode: activateAddTreeMode,
     activateAddResourceMode: activateAddResourceMode
 };

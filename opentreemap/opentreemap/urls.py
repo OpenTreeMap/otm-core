@@ -64,6 +64,8 @@ urlpatterns = patterns(
     url(r'^eco/benefit/within_itree_regions/$', within_itree_regions_view,
         name='within_itree_regions'),
     url(r'^instances/$', routes.instances_geojson),
+    url(r'^anonymous-boundary/$',
+        routes.anonymous_boundary, name='anonymous_boundary'),
     url(instance_pattern + r'/accounts/register/$',
         RegistrationView.as_view(),
        name='instance_registration_register'),

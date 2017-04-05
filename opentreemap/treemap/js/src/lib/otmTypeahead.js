@@ -61,7 +61,6 @@ var create = exports.create = function(options) {
     var template = mustache.compile($(options.template).html()),
         $input = $(options.input),
         $hidden_input = $(options.hidden),
-        $openButton = $(options.button),
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : getSortFunction(['value']),
 
@@ -86,7 +85,6 @@ var create = exports.create = function(options) {
         prefetchEngine,
         queryEngine,
         geocoderEngine,
-        allDataStream,
 
         typeaheadOptions = {
             minLength: options.minLength || 0
@@ -116,7 +114,7 @@ var create = exports.create = function(options) {
         },
         geocoderOptions = {
             limit: 10,
-            source: function (query, sync, async) {
+            source: function(query, sync, async) {
                 if (query === '') {
                     sync([]);
                 } else {
@@ -174,7 +172,8 @@ var create = exports.create = function(options) {
             remote: {
                 url: url,
                 transform: function(response) {
-                    return response.suggestions;
+                    // Omit choices representing more than one match (e.g. "Beaches")
+                    return _.filter(response.suggestions, {'isCollection': false});
                 },
                 prepare: function(query, settings) {
                     if (options.geocoderBbox) {
@@ -213,13 +212,16 @@ var create = exports.create = function(options) {
 
         editStream = matchStream.merge(backspaceOrDeleteStream.map(undefined)),
 
-        idStream = matchStream.map(".id")
-                               .merge(backspaceOrDeleteStream.map("")),
+        idStream = matchStream.map(".id").merge(backspaceOrDeleteStream.map("")),
 
         openCloseStream = Bacon.mergeAll(
                 $input.asEventStream('focus typeahead:active typeahead:open').map(true),
                 $input.asEventStream('typeahead:idle typeahead:close').map(false)
-            );
+            ),
+
+        allDataStream,
+
+        enginePostActionBus = new Bacon.Bus();
 
     selectStream.onValue(function() {
         // After the user selects a field, blur the input so that any soft
@@ -264,19 +266,23 @@ var create = exports.create = function(options) {
                 if (value) {
                     setTypeaheadAfterDataLoaded($input, reverse, value);
                 }
+                enginePostActionBus.push();
             });
+
 
             $hidden_input.on('restore', function(event, value) {
                 enginePromise.done(function() {
                     // If we're already loaded, this applies right away
                     setTypeaheadAfterDataLoaded($input, reverse, value);
+                    enginePostActionBus.push();
                 });
 
                 // If we're not, this will get used when loaded later
                 $hidden_input.val(value || '');
+                enginePostActionBus.push();
             });
 
-            allDataStream = Bacon.fromPromise(enginePromise).map(function () {
+            allDataStream = Bacon.fromPromise(enginePromise).map(function() {
                 return prefetchEngine.all();
             });
         } else if (options.remote) {
@@ -290,40 +296,16 @@ var create = exports.create = function(options) {
         }
     }
 
-    if (options.button) {
-        // typeahead('open') will not show suggestions unless they have already
-        // been rendered once by focusing on the text box. Doing a quick focus
-        // then blur on page load means we can later call it on button click
-        $input.focus();
-        $input.blur();
-
-        var isOpen = false;
-        $input.on('typeahead:open', function() {
-            isOpen = true;
-        });
-        $input.on('typeahead:close', function() {
-            isOpen = false;
-            $openButton.removeClass('active');
-        });
-        $openButton.on('click', function(e) {
-            e.preventDefault();
-            if (isOpen) {
-                $input.typeahead('close');
-            } else {
-                setTypeahead($input, '');
-                $input.typeahead('open');
-
-                // The open may fail if there is no data to show
-                // If so don't add the active class, because then it can never
-                // be removed
-                if (isOpen) {
-                    $openButton.addClass('active');
+    return {
+        autocomplete: function () {
+            if ($input.val()) {
+                var top = $input.data('ttTypeahead').menu.getTopSelectable(),
+                    success = $input.typeahead('autocomplete', top);
+                if (!success) {
+                    $input.removeData('datum');
                 }
             }
-        });
-    }
-
-    return {
+        },
         getDatum: function() {
             return exports.getDatum($input);
         },
@@ -334,11 +316,13 @@ var create = exports.create = function(options) {
                 $hidden_input.val('');
             }
         },
+        input: options.input,
         selectStream: selectStream,
+        programmaticallyUpdatedStream: enginePostActionBus.map(_.identity),
         allDataStream: allDataStream
     };
 };
 
-exports.bulkCreate = function (typeaheads) {
+exports.bulkCreate = function(typeaheads) {
     _.each(typeaheads, create);
 };

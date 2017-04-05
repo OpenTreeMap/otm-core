@@ -85,6 +85,10 @@ class UITestCase(StaticLiveServerTestCase):
     def find_id(self, id):
         return self.driver.find_element_by_id(id)
 
+    def is_visible(self, selector):
+        element = self.find(selector)
+        return element is not None and element.is_displayed()
+
     def process_login_form(self, username, password):
         username_elmt = self.wait_until_present('[name="username"]')
         password_elmt = self.find_name('password')

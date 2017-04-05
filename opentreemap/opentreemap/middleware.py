@@ -5,7 +5,8 @@ from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
 
-_ie_version_regex = re.compile(r'MSIE\s+([\d]+)')
+# http://stackoverflow.com/a/30907476
+_ie_version_regex = re.compile(r'(MSIE\s+|Trident.*rv[ :])([\d]+)')
 
 CONTENT_TYPE_PASS_THROUGHS = ('application/json', 'text/csv')
 
@@ -30,7 +31,7 @@ class InternetExplorerRedirectMiddleware:
     def _parse_major_ie_version_from_user_agent(self, user_agent):
         search_result = _ie_version_regex.search(user_agent)
         if search_result:
-            return int(search_result.groups()[0])
+            return int(search_result.groups()[1])
         else:
             return None
 

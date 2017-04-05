@@ -115,7 +115,7 @@
 
     #perform-search {
         margin-top: 2px;
-        padding: 5px 0;
+        padding: 4px 0 5px;
     }
 
     .btn-group {
@@ -200,8 +200,12 @@
         .search-block-wrapper {
             width: calc(100% - #{$mobile-search-button-group-width});
         }
-        .draw-area-button {
-            display: none;
+        .draw-area {
+            // JS add/removes 'style="display: inline;"' for desktop users.
+            // Overriding with '!important' for mobile without having to
+            // either make the JS conditional on screen size, or use
+            // a `hidden` class instead of `.show()`, `.hide()`
+            display: none !important;
         }
         &:not(.expanded) {
             &.collapsed {
@@ -211,9 +215,6 @@
                 }
             }
             .search-block {
-                .typeahead-toggle {
-                    display: none;
-                }
                 > label {
                     display: none;
                 }

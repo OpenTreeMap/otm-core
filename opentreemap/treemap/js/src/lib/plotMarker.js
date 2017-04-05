@@ -13,7 +13,6 @@ var $ = require('jquery'),
 
 var marker,
     shouldUseTreeIcon,
-    markerDraggingContext,
     firstMoveBus = new Bacon.Bus(),
     moveBus = new Bacon.Bus(),
     markerWasMoved,
@@ -176,7 +175,7 @@ function enableMoving(options) {
 
 // Prevent user from dragging the marker
 function disableMoving() {
-    if (marker.dragging) {
+    if (marker && marker.dragging) {
         marker.dragging.disable();
     }
     if (map.hasLayer(marker)) {

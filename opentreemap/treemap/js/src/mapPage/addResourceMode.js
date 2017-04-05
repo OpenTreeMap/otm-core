@@ -2,10 +2,10 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     polylineEditor = require('treemap/lib/polylineEditor.js'),
+    plotMarker = require('treemap/lib/plotMarker.js'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse');
 
@@ -25,12 +25,8 @@ function init(options) {
         $resourceType = U.$find('input[name="addResourceType"]', $sidebar),
         $form = U.$find(options.formSelector, $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
-        $summarySubhead = U.$find('.summarySubhead', $sidebar),
         $continueLink = $('#addresource-viewdetails'),
-        mapManager = options.mapManager,
-        plotMarker = options.plotMarker,
         areaFieldIdentifier,
-        hideSearch,
         editor = polylineEditor(options),
         onlyOneResourceType = $resourceType.length === 1;
 
@@ -44,14 +40,11 @@ function init(options) {
         plotMarker.useTreeIcon(false);
         initSteps(type);
         $('body').addClass('add-feature');
-        hideSearch = $('body').hasClass('hide-search');
     };
 
     deactivateMode = function () {
         editor.removeAreaPolygon();
         manager.deactivate();
-        $('body').removeClass('add-feature');
-        $('body').toggleClass('hide-search', hideSearch);
     };
 
     function onResourceTypeChosen() {
@@ -198,8 +191,8 @@ function init(options) {
     }
 }
 
-function activate(type) {
-    activateMode(type);
+function activate(options) {
+    activateMode(options.mapFeatureType);
 }
 
 function deactivate() {
