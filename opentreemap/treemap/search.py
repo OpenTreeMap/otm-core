@@ -6,6 +6,7 @@ from __future__ import division
 from json import loads
 from datetime import datetime
 from functools import partial
+from itertools import groupby, chain
 
 from django.db.models import Q
 
@@ -122,7 +123,6 @@ class FilterContext(Q):
 
         super(FilterContext, self).__init__(*args, **kwargs)
 
-    # TODO: Nothing uses add, is it necessary?
     def add(self, thing, conn):
         if thing.basekeys:
             self.basekeys = self.basekeys | thing.basekeys
@@ -170,16 +170,80 @@ def create_filter(instance, filterstr, mapping):
 
 def _parse_filter(query, mapping):
     if type(query) is dict:
-        return _parse_predicate(query, mapping)
+        return _parse_query_dict(query, mapping)
     elif type(query) is list:
         predicates = [_parse_filter(p, mapping) for p in query[1:]]
         return _apply_combinator(query[0], predicates)
 
 
-def _parse_predicate(query, mapping):
-    qs = [_parse_predicate_pair(*kv, mapping=mapping)
+def _parse_query_dict(query_dict, mapping):
+    # Separate the collection udf queries from the scalar queries,
+    # handle them distinctly, and then combine back together.
+
+    # A search for {
+    #    'udf:plot:<udfd>.action': ...,
+    #    'udf.plot:<udfd>.date': ...}
+    # should match IFF a plot with a UserDefinedCollectionValue
+    # matches both the action and the date parts.
+    # By correlary, it should NOT match a plot that has
+    # one UserDefinedCollectionValue that matches the action,
+    # and another that matches the date, neither of which matches both.
+    by_type = _parse_by_is_collection_udf(query_dict, mapping)
+    scalars = _unparse_scalars(by_type.pop('*', []))
+    scalar_predicates = _parse_scalar_predicate(scalars, mapping) \
+        if scalars else FilterContext()
+    collection_predicates = _parse_collections(by_type, mapping) \
+        if by_type else FilterContext()
+    return _apply_combinator('AND', [scalar_predicates, collection_predicates])
+
+
+def _parse_scalar_predicate(query, mapping):
+    qs = [_parse_scalar_predicate_pair(*kv, mapping=mapping)
           for kv in query.iteritems()]
     return _apply_combinator('AND', qs)
+
+
+def _parse_by_is_collection_udf(query_dict, mapping):
+    query_dict_list = [dict(value=v, **_parse_by_key_type(k, mapping=mapping))
+                       for k, v in query_dict.items()]
+    grouped = groupby(sorted(query_dict_list, key=lambda qd: qd['type']),
+                      lambda qd: qd['type'])
+    return {k: list(v) for k, v in grouped}
+
+
+def _parse_by_key_type(key, mapping):
+    model, field = _parse_predicate_key(key, mapping)
+    typ = model if _is_udf(model) else '*'
+    return {'type': typ, 'model': model, 'field': field, 'key': key}
+
+
+def _unparse_scalars(scalars):
+    return dict(zip([qd['key'] for qd in scalars],
+                    [qd['value'] for qd in scalars]))
+
+
+def _parse_collections(by_type, mapping):
+    return _apply_combinator(
+        'AND', [_parse_collection_subquery(identifier, field_parts, mapping)
+                for identifier, field_parts in by_type.items()])
+
+
+def _parse_collection_subquery(identifier, field_parts, mapping):
+    # identifier looks like 'udf:<model type>:<udfd id>'
+    __, model, udfd_id = identifier.split(':', 2)
+
+    return FilterContext(
+        basekey=model, **{
+            mapping[model] + 'id__in': UserDefinedCollectionValue.objects
+            .filter(_parse_udf_collection(udfd_id, field_parts))
+            .values_list('model_id', flat=True)})
+
+
+def _parse_udf_collection(udfd_id, query_parts):
+    return _apply_combinator(
+        'AND', list(chain([Q(field_definition=udfd_id)],
+                          [Q(**_parse_udf_dict(part['key'], part['value']))
+                           for part in query_parts])))
 
 
 def _parse_predicate_key(key, mapping):
@@ -413,42 +477,28 @@ _parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
                                 HSTORE_PREDICATE_TYPES)
 
 
-def _parse_predicate_pair(key, value, mapping):
+def _parse_scalar_predicate_pair(key, value, mapping):
     try:
         model, search_key = _parse_predicate_key(key, mapping)
     except ModelParseException:
-        # currently, the only case in which a key for another model
-        # may be sent to a model search is when udfs are sent to
-        # tree search. therefore we should only allow those to pass.
-        if _is_udf(key):
-            return FilterContext(id__in=[])
-        else:
-            raise
-    __, __, field = key.partition('.')
+        raise
 
-    if _is_udf(model) and type(value) == dict:
-        preds = _parse_udf_dict_value(value, field)
-        query = {'data' + k: v for (k, v) in preds.iteritems()}
-    elif _is_udf(model):
-        query = {'data__contains': {field: value}}
-    elif type(value) is dict:
-        query = {search_key + k: v for (k, v)
-                 in _parse_dict_value(value).iteritems()}
-    else:
-        query = {search_key: value}
-
-    # If the model being searched is a collection UDF, we do an in clause on a
-    # subquery because we can't easily join to UserDefinedCollectionValue
-    if _is_udf(model):
-        __, __, udf_def_pk = model.split(':')
-        subquery = UserDefinedCollectionValue.objects\
-            .filter(**query)\
-            .filter(field_definition=udf_def_pk)\
-            .distinct('model_id')\
-            .values_list('model_id', flat=True)
-        query = {search_key + '__in': subquery}
+    query = {search_key + k: v for (k, v)
+             in _parse_dict_value(value).iteritems()} \
+        if isinstance(value, dict) \
+        else {search_key: value}
 
     return FilterContext(basekey=model, **query)
+
+
+def _parse_udf_dict(key, value):
+    __, field = key.split('.')
+    if isinstance(value, dict):
+        preds = _parse_udf_dict_value(value, field)
+        query = {'data' + k: v for (k, v) in preds.iteritems()}
+    else:
+        query = {'data__contains': {field: value}}
+    return query
 
 
 def _apply_combinator(combinator, predicates):
