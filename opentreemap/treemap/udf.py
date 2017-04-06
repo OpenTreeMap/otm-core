@@ -761,13 +761,6 @@ class UserDefinedFieldDefinition(models.Model):
 
         return datatypes
 
-    @property
-    def permissions_for_udf(self):
-        return FieldPermission.objects.filter(
-            instance=self.instance,
-            model_name=self.model_type,
-            field_name=self.canonical_name)
-
     def reverse_clean(self, value):
         if self.datatype_dict['type'] == 'user':
             if hasattr(value, 'pk'):
