@@ -876,9 +876,39 @@
     min-height: 195px;
     position: relative;
 
-    .choice-item input {
-        border: 1px dashed #ccc;
-        box-shadow: none;
+    .choice-item {
+        input {
+            border: 1px dashed #ccc;
+            box-shadow: none;
+        }
+        margin-bottom: 4px;
+        // Error messagees normally hidden
+        div.error {
+            display: none;
+        }
+        &.blank-error {
+            [data-item="blank"] {
+                display: block;
+            }
+        }
+        &.reused-error {
+            [data-item="reused"] {
+                display: block;
+            }
+            // Only display one message at a time
+            [data-item="blank"] {
+                display: none;
+            }
+        }
+        &.duplicate-error {
+            [data-item="duplicate"] {
+                display: block;
+            }
+            // Only display one message at a time
+            [data-item="reused"], [data-item="blank"] {
+                display: none;
+            }
+        }
     }
     &:after {
         position: absolute;
@@ -925,9 +955,6 @@
                 display: none;
             }
         }
-    }
-    .choice-item {
-        margin-bottom: 4px;
     }
 }
 
