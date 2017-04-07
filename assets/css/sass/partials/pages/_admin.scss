@@ -924,6 +924,12 @@
     }
 }
 
+// When editing a choice custom field,
+// hide the choice trash-can button on the sole remaining pre-existing choice.
+.udf-choices .choice-item:first-child:nth-last-child(2) [data-action="delete"] {
+    display: none;
+}
+
 // Requires all this specificity to override base style
 #management .admin-table tr[data-udf] {
     td {
