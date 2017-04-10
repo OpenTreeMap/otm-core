@@ -43,6 +43,8 @@
                     <tbody>
                     {% block extra_menu_items %}
                     {% endblock extra_menu_items %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="benefits" title=_("Ecosystem Benefits") icon="icon-leaf" %}
                     </tbody>
                 </table>
             </div>

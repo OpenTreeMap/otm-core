@@ -1,0 +1,16 @@
+{% url view instance_url_name=request.instance.url_name as url %}
+{% if request.path == url %}
+    <li class="active">
+        <a>
+            {% include "manage_treemap/partials/admin_notification.html" %}
+            {{ title }}
+        </a>
+    </li>
+{% else %}
+    <li>
+        <a href="{{ url }}">
+            {% include "manage_treemap/partials/admin_notification.html" %}
+            {{ title }}
+        </a>
+    </li>
+{% endif %}
