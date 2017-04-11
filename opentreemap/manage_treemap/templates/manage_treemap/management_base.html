@@ -1,0 +1,82 @@
+{% extends "instance_base.html" %}
+{% load l10n %}
+{% load i18n %}
+{% load auth_extras %}
+{% load instance_config %}
+
+{% block page_title %} | {% trans "Manage" %} | {% block admin_title %}{% endblock %}{% endblock %}
+
+{% block activeexplore %}
+{% endblock %}
+
+{% block activemanagement %}
+    active
+{% endblock %}
+
+{% block header %}
+{% endblock header %}
+{% block subhead %}
+{% endblock subhead %}
+
+{% block content %}
+    <div class="image-background"></div>
+    <div id="management" data-update-url="{% url 'admin_counts' instance_url_name=request.instance.url_name %}">
+        <div  class="management-container">
+            <div class="management-sidebar tab-list" id="tab-list">
+                <table class="map-switcher">
+                    <tbody>
+                    <tr>
+                        <td class="brand-icon-container">
+                            <div class="brand-icon">
+                                <i class="icon-tree"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="full-section brand">
+                                {{ request.instance.name }}
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="nav nav-list">
+                    <tbody>
+                    {% block extra_menu_items %}
+                    {% endblock extra_menu_items %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="management-content tab-content">
+                {% block tab_content %}
+                {% endblock tab_content %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block templates %}
+    {{ block.super }}
+
+    {# No search on management pages #}
+    {% block searchscripts %}
+    {% endblock searchscripts %}
+
+    {% verbatim %}
+    <script id="field-error-template" type="text/x-mustache-template">
+        <ul class="list-unstyled">
+            {{#errors}}
+            <li>{{field}}: {{message}}</li>
+            {{/errors}}
+        </ul>
+    </script>
+
+    <script id="global-errors-template" type="text/x-mustache-template">
+        <ul class="list-unstyled">
+            {{#globalErrors}}
+            <li>{{.}}</li>
+            {{/globalErrors}}
+        </ul>
+    </script>
+    {% endverbatim %}
+{% endblock templates %}

@@ -275,6 +275,7 @@ MANAGED_APPS = (
     'importer',
     'appevents',
     'stormwater',
+    'manage_treemap',
 )
 
 UNMANAGED_APPS = (
