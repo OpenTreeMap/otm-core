@@ -23,10 +23,6 @@ urlpatterns = patterns(
         routes.boundary_to_geojson, name='boundaries_geojson'),
     url(r'^boundaries/$', routes.boundary_autocomplete, name='boundary_list'),
     url(r'^edits/$', routes.edits_page, name='edits'),
-    url(r'^photo_review/$', routes.photo_review_partial,
-        name='photo_review'),
-    url('^photo_review/approve-reject/(?P<action>(approve)|(reject))$',
-        routes.approve_or_reject_photos, name='approve_or_reject_photos'),
     url(r'^species/$', routes.species_list, name="species_list_view"),
     url(r'^map/$', routes.map_page, name='map'),
 

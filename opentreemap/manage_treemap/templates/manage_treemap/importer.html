@@ -1,0 +1,31 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+
+{% block admin_title %}{% trans "Bulk Uploader" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="bulk-uploader">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Bulk Uploader" %}</h1>
+            </div>
+            <div class="page-header-actions">
+                <!-- buttons Here -->
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="importer">
+                {% include "importer/partials/imports.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/importer/bulkUpload' %}
+{% endblock scripts %}

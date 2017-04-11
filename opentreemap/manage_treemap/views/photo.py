@@ -57,8 +57,9 @@ def photo_review(request, instance):
         # If the page number is out of bounds, return the last page
         paged_photos = paginator.page(paginator.num_pages)
 
-    urlizer = UrlParams('photo_review', instance.url_name, page=page_number,
-                        sort=sort_order, archived=is_archived)
+    urlizer = UrlParams('photo_review_partial', instance.url_name,
+                        page=page_number, sort=sort_order,
+                        archived=is_archived)
 
     filter_value = dict(archived=is_archived)
 

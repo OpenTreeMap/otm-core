@@ -13,7 +13,7 @@ from opentreemap.util import json_from_request, dotted_split
 from otm_comments.views import get_comments
 from treemap.models import BenefitCurrencyConversion
 from treemap.util import package_field_errors
-from treemap.views.photo import get_photos
+from manage_treemap.views.photo import get_photos
 
 
 def management_root(request, instance_url_name):
