@@ -10,8 +10,10 @@ from django_tinsel.utils import decorate as do
 
 import manage_treemap.views.management as views
 import manage_treemap.views.photo as photo_views
+import manage_treemap.views.green_infrastructure as green_infrastructure_views
 
 from importer.views import list_imports
+from manage_treemap.views import update_instance_fields_with_validator
 from otm_comments.views import comment_moderation
 from treemap.decorators import (require_http_method, admin_instance_request,
                                 return_400_if_validation_errors)
@@ -26,6 +28,44 @@ management = do(
 
 admin_counts = admin_route(
     GET=do(json_api_call, views.admin_counts)
+)
+
+site_config = admin_route(
+    GET=do(render_template('manage_treemap/basic.html'),
+           views.site_config_basic_info),
+    PUT=json_do(update_instance_fields_with_validator,
+                views.site_config_validator)
+)
+
+external_link = admin_route(
+    GET=do(render_template('manage_treemap/link.html'),
+           views.external_link),
+    PUT=json_do(views.update_external_link)
+)
+
+branding = admin_route(
+    GET=do(render_template('manage_treemap/branding.html'),
+           views.branding),
+    PUT=json_do(update_instance_fields_with_validator,
+                views.branding_validator)
+)
+
+embed = admin_route(
+    GET=do(render_template('manage_treemap/embed.html'),
+           views.embed)
+)
+
+update_logo = do(
+    require_http_method("POST"),
+    admin_instance_request,
+    json_api_call,
+    return_400_if_validation_errors,
+    views.update_logo)
+
+green_infrastructure = admin_route(
+    GET=do(render_template('manage_treemap/green_infrastructure.html'),
+           green_infrastructure_views.site_config_green_infrastructure),
+    PUT=json_do(green_infrastructure_views.green_infrastructure),
 )
 
 comment_moderation = admin_route(

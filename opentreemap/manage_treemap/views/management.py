@@ -5,12 +5,20 @@ from __future__ import division
 
 import locale
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
+from django.core.validators import URLValidator, validate_email
 from django.shortcuts import redirect
 from django.utils.translation import ugettext as _
 
+from manage_treemap.views import update_instance_fields
 from opentreemap.util import json_from_request, dotted_split
 from otm_comments.views import get_comments
+from treemap.images import save_image_from_request
+from treemap.lib import COLOR_RE
+from treemap.lib.external_link import (get_url_tokens_for_display,
+                                       validate_token_template)
 from treemap.models import BenefitCurrencyConversion
 from treemap.util import package_field_errors
 from manage_treemap.views.photo import get_photos
@@ -35,6 +43,163 @@ def admin_counts(request, instance):
             'udfs': humanize(len(udf_notifications))
         },
         'udf_notifications': udf_notifications
+    }
+
+
+def site_config_basic_info(request, instance):
+    info = {
+        'url': request.build_absolute_uri(
+            settings.SITE_ROOT + instance.url_name),
+        'fields': [
+            (_('Tree Map Title'), 'instance.name'),
+            (_('Publicly Visible'), 'instance.is_public')]}
+
+    info['fields'].append(
+        (_('Contact E-Mail'), 'instance.config.linkData.contact'))
+
+    info['fields'].append(
+        (_('Tree ID URL'), 'instance.config.linkData.treekey'))
+
+    info['fields'].append(
+        (_('Allow Data Exports For Non-Administrators'),
+         'instance.non_admins_can_export'))
+
+    return {
+        'instance': instance,
+        'site_config': info}
+
+
+def site_config_validator(field_name, value, model_name):
+    if model_name != 'instance':
+        return [_('Invalid model name, must be a field on instance')]
+
+    if field_name not in {'config.linkData.contact',
+                          'config.linkData.treekey',
+                          'name',
+                          'is_public',
+                          'non_admins_can_export'}:
+        return [_('Invalid field name')]
+
+    elif field_name == 'config.linkData.treekey':
+        try:
+            if value and len(value) > 0:
+                URLValidator()(value)
+        except ValidationError:
+            return [_('You must specify a valid url')]
+
+    elif field_name == 'config.linkData.contact':
+        try:
+            if value and len(value) > 0:
+                validate_email(value)
+        except ValidationError:
+            return [_('You must specify a valid email')]
+
+    return None
+
+
+def external_link(request, instance):
+    return {
+        'instance': instance,
+        'tokens': get_url_tokens_for_display(True)
+    }
+
+
+def update_external_link(request, instance):
+
+    def validator(field_name, value, model_name):
+        if model_name != 'instance':
+            return [_('Invalid model name, must be a field on instance')]
+
+        if field_name not in {'config.externalLink.text',
+                              'config.externalLink.url'}:
+            return [_('Invalid field name')]
+        elif field_name == 'config.externalLink.url':
+            try:
+                if value and len(value) > 0:
+                    URLValidator()(value)
+            except ValidationError:
+                return [_('You must specify a valid url')]
+
+            if not validate_token_template(value):
+                return [_('Invalid token, the allowed values are'
+                          ': %(list_of_url_tokens)s') %
+                        {'list_of_url_tokens': get_url_tokens_for_display()}]
+
+        return None
+
+    data = json_from_request(request)
+    url = data.get('instance.config.externalLink.url',
+                   instance.config.get('externalLink.url'))
+    text = data.get('instance.config.externalLink.text',
+                    instance.config.get('externalLink.text'))
+    if bool(url) ^ bool(text):
+        if text:
+            field, other_field = 'url', _('Link Text')
+        else:
+            field, other_field = 'text', _('Link URL')
+
+        raise ValidationError(
+            {'instance.config.externalLink.%s' % field:
+             [_("This field is required when %(other_field)s is present") %
+              {'other_field': other_field}]})
+
+    return update_instance_fields(request, instance, validator)
+
+
+def branding(request, instance):
+    prefix = 'instance.config.scss_variables.'
+    info = {
+        'color_fields': [
+            (_('Primary Color'), prefix + 'primary-color'),
+            (_('Secondary Color'), prefix + 'secondary-color')]
+    }
+    return {
+        'instance': instance,
+        'branding': info,
+        'logo_endpoint': reverse('logo_endpoint', args=(instance.url_name,))
+    }
+
+
+def branding_validator(field_name, value, model_name):
+    if model_name != 'instance':
+        return [_('Invalid model name, must be a field on instance')]
+
+    if field_name not in {'config.scss_variables.primary-color',
+                          'config.scss_variables.secondary-color'}:
+
+        return [_('Invalid field name')]
+
+    elif not COLOR_RE.match(value):
+        return [_('Please enter 3 or 6 digits of 0-9 and/or A-F')]
+
+    return None
+
+
+def update_logo(request, instance):
+    name_prefix = "logo-%s" % instance.url_name
+    instance.logo, __ = save_image_from_request(request, name_prefix)
+    instance.save()
+
+    return {'url': instance.logo.url}
+
+
+def embed(request, instance):
+    embed_endpoint = reverse('map', args=(instance.url_name,))
+    embed_url = request.build_absolute_uri(embed_endpoint)
+    iframe = '<iframe src="{}?embed=1" width="%s" height="%s"></iframe>'\
+        .format(embed_url)
+    wide = {'w': '1280', 'h': '888'}
+    standard = {'w': '900', 'h': '600'}
+    return {
+        'iframe_custom': iframe,
+        'iframe_wide': iframe % (wide['w'], wide['h']),
+        'iframe_standard': iframe % (standard['w'], standard['h']),
+        'iframe_wide_width': wide['w'],
+        'iframe_wide_height': wide['h'],
+        'iframe_standard_width': standard['w'],
+        'iframe_standard_height': standard['h'],
+        'iframe_custom_min_width': '768',
+        'iframe_custom_min_height': '450',
     }
 
 

@@ -22,12 +22,16 @@ class PagesLoadTestCase(UrlTestCase):
         return reverse(django_url_name,
                        kwargs={'instance_url_name': self.instance.url_name})
 
-    # TODO: test redirect once site_config page is moved
-    # def test_management_redirects(self):
-    #     self.assert_page_redirects('management', 'site_config')
+    def test_management_redirects(self):
+        self.assert_page_redirects('management', 'site_config')
 
     def test_pages_load(self):
-        self.assert_page_loads('benefits')
-        self.assert_page_loads('importer')
+        self.assert_page_loads('site_config')
+        self.assert_page_loads('green_infrastructure')
+        self.assert_page_loads('branding')
+        self.assert_page_loads('embed')
+        self.assert_page_loads('external_link')
         self.assert_page_loads('comment_moderation')
         self.assert_page_loads('photo_review_admin')
+        self.assert_page_loads('importer')
+        self.assert_page_loads('benefits')

@@ -1,0 +1,42 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+
+{% block admin_title %}{% trans "Basic Information" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="external-links">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "External Links" %}</h1>
+            </div>
+            {% include "treemap/partials/form_buttons.html" %}
+        </div>
+        <div class="content">
+            Specify an external link to be placed at the top of the tree detail page.
+            <form>
+                <fieldset>
+                    {% trans "See this tree on SomeOtherSite.org" as placeholder %}
+                    {% with extra='placeholder="'|add:placeholder|add:'"' %}
+                        {% field _("Link Text") from "instance.config.externalLink.text" in request.instance withtemplate "treemap/field/div.html" %}
+                    {% endwith %}
+                    {% trans "https://www.SomeOtherTreeSite.org/tree/#{tree.id}" as placeholder %}
+                    {% with extra='placeholder="'|add:placeholder|add:'"' %}
+                        {% field _("Link URL") from "instance.config.externalLink.url" in request.instance withtemplate "treemap/field/div.html" %}
+                    {% endwith %}
+                    {% blocktrans with tokens=tokens|safe %}
+                        <h5 data-class="edit" style="display: none;">Type {{ tokens }} where that id field should appear in the URL.</h5>
+                    {% endblocktrans %}
+                </fieldset>
+            </form>
+        </div>
+    </div>
+{% endblock tab_content %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/link' %}
+{% endblock scripts %}
