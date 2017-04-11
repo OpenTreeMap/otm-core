@@ -8,6 +8,7 @@ from functools import partial
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import etag
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import (route, json_api_call, render_template,
@@ -48,6 +49,7 @@ index_page = instance_request(misc_views.index)
 
 map_page = do(
     instance_request,
+    ensure_csrf_cookie,
     render_template('treemap/map.html'),
     misc_views.get_map_view_context)
 
