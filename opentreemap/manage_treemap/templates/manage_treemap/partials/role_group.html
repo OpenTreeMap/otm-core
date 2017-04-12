@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load l10n %}
+
+<h3 class="management-header">{% block title %}{% endblock %}</h3>
+
+<table class="role-table role-table-fixed table admin-table">
+    <thead><tr><th>{% trans "Permission" %}</th></tr></thead>
+    <tbody>
+    {% block row_labels %}{% endblock %}
+    </tbody>
+</table>
+<div class="role-table-scroll">
+    <table class="role-table table admin-table">
+        <thead>
+            <tr>
+            {% for role in roles %}
+                <th>{{ role.name }}</th>
+            {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% block row_settings %}{% endblock %}
+        </tbody>
+    </table>
+</div>

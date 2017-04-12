@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from opentreemap.util import json_from_request, dotted_split
 from treemap.json_field import is_json_field_reference, set_attr_on_json_field
+from treemap.plugin import validate_is_public
 from treemap.util import package_field_errors
 
 
@@ -44,6 +45,7 @@ def _update_instance_fields(json_data, instance, validation_fn=None):
         validation_error = ValidationError(error_dict)
     else:
         try:
+            validate_is_public(instance)
             instance.save()
             return {'ok': True}
         except ValidationError, ve:

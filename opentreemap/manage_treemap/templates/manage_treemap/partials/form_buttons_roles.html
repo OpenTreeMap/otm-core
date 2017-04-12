@@ -1,0 +1,9 @@
+{% extends "treemap/partials/form_buttons.html" %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block other_buttons %}
+    <button data-class="display" class="btn btn-info addRoleBtn">
+        {% trans "Add Role" %}
+    </button>
+{% endblock other_buttons %}

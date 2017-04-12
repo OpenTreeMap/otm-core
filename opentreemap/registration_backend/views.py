@@ -18,8 +18,8 @@ from registration.backends.default.views\
 from registration.backends.default.views\
     import ActivationView as DefaultActivationView
 
+from manage_treemap.views.user_roles import should_send_user_activation
 from treemap.models import InstanceUser
-from treemap.plugin import should_send_user_activation
 from treemap.util import get_instance_or_404
 
 

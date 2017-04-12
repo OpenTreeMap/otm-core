@@ -77,17 +77,7 @@ feature_enabled = get_plugin_function('FEATURE_BACKEND_FUNCTION',
                                       lambda instance, feature: True)
 
 
-# Should return True if an activation email should be sent on user creation
-should_send_user_activation = get_plugin_function(
-    'USER_ACTIVATION_FUNCTION',
-    lambda request, username, email, password: True)
-
-
 setup_for_ui_test = get_plugin_function('UITEST_SETUP_FUNCTION', lambda: None)
-
-
-get_viewable_instances_filter = get_plugin_function(
-    'VIEWABLE_INSTANCES_FUNCTION', lambda: Q())
 
 
 get_viewable_instances_filter = get_plugin_function(
@@ -100,3 +90,15 @@ get_tree_limit = get_plugin_function('TREE_LIMIT_FUNCTION',
 
 get_instance_permission_spec = get_plugin_function(
     'INSTANCE_PERMISSIONS_FUNCTION', lambda instance: [])
+
+
+validate_is_public = get_plugin_function(
+    'VALIDATE_IS_PUBLIC_FUNCTION', lambda instance: None)
+
+
+can_add_user = get_plugin_function(
+    'CAN_ADD_USER_FUNCTION', lambda instance: True)
+
+
+does_user_own_instance = get_plugin_function(
+    'INSTANCE_OWNER_FUNCTION', lambda instance, user: False)

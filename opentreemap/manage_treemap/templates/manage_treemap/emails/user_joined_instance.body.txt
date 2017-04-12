@@ -1,0 +1,15 @@
+{% load i18n %}
+
+{% with username=user.username %}
+    {% blocktrans %}
+        {{ username }} has accepted an invitation to join your tree map!
+        Check out their profile at
+    {% endblocktrans %}
+    <a href="{{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'user' username=user.username %}">
+             {{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'user' username=user.username %}
+    </a>
+{% endwith %}
+
+<br/>
+<br/>
+<br/>

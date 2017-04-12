@@ -1,0 +1,71 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Users" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="user-roles">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu toggle" id="toggle-sidebar"></i>
+                <i data-toggle="collapse" href="#user-search-content" role="button" aria-expanded="false" aria-controls="user-search-content" class="icon-search toggle"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Users" %}</h1>
+            </div>
+            {% include "manage_treemap/partials/form_buttons_users.html" %}
+        </div>
+
+        <div class="content">
+            <div id="user-search-content" class="collapse management-toggle">
+                <div class="management-toggle-section">
+                    <a class="close" data-toggle="collapse" href="#user-search-content" role="button" aria-expanded="false" aria-controls="user-search-content" class="icon-search toggle">&times;</a>
+                    <div class="management-search">
+                        <input id="user-search" type="text" placeholder="{% trans 'Type a username and press enter to search' %}">
+                        <button id="clear-search">{% trans "Clear Search" %}</button>
+                    </div>
+                </div>
+            </div>
+            <div id="user-roles-content">
+                {% include "manage_treemap/partials/user_roles.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block endbody %}
+    <div id="add-user-modal" class="modal modal-primary fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3>{% trans "Add User to Tree Map" %}</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal" onsubmit="return false;">
+                        <div class="alert alert-danger messages" id="add-user-errors"></div>
+
+                        <div class="control-group">
+                            <label class="control-label">{% trans "Email Address: " %}</label>
+                            <input type="email" class="form-control" id="user-email">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn dismiss-cancel" data-dismiss="modal">
+                        {% trans "Cancel" %}
+                    </button>
+                    <button id="invite-user" class="btn btn-primary pull-right">
+                        {% trans "Add User" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/users' %}
+{% endblock scripts %}
