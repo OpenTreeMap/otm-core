@@ -100,3 +100,9 @@ benefits = admin_route(
            views.benefits_convs),
     PUT=json_do(views.update_benefits)
 )
+
+units = admin_route(
+    GET=do(render_template('manage_treemap/units.html'), views.units),
+    PUT=json_do(update_instance_fields_with_validator,
+                views.units_validator)
+)

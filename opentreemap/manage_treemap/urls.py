@@ -31,4 +31,5 @@ urlpatterns = patterns(
 
     url(r'^bulk-uploader/$', routes.importer, name='importer'),
     url(r'^benefits/$', routes.benefits, name='benefits'),
+    url(r'^units/$', routes.units, name='units_endpoint'),
 )

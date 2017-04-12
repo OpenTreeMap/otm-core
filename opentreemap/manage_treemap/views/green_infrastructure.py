@@ -272,7 +272,7 @@ def green_infrastructure(request, instance):
         model, field_name = dotted_split(identifier, 2, maxsplit=1)
         if field_name.startswith('config.map_feature_types') or \
            field_name.startswith('config.map_feature_config'):
-            if not instance.feature_enabled('green infrastructure'):
+            if not instance.feature_enabled('green_infrastructure'):
                 raise PermissionDenied("The Green Infrastructure module is "
                                        "not enabled for this tree map")
             increment_universal_rev = True

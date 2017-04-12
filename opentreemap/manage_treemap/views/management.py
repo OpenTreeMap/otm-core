@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import locale
+import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -13,15 +14,19 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext as _
 
 from manage_treemap.views import update_instance_fields
+from manage_treemap.views.photo import get_photos
 from opentreemap.util import json_from_request, dotted_split
 from otm_comments.views import get_comments
+from stormwater.models import Bioswale, RainBarrel, RainGarden
+from treemap.ecobenefits import benefit_labels, BenefitCategory
 from treemap.images import save_image_from_request
 from treemap.lib import COLOR_RE
 from treemap.lib.external_link import (get_url_tokens_for_display,
                                        validate_token_template)
-from treemap.models import BenefitCurrencyConversion
+from treemap.models import BenefitCurrencyConversion, Plot, Tree
+from treemap.units import get_value_display_attr, get_convertible_units, \
+    get_unit_name
 from treemap.util import package_field_errors
-from manage_treemap.views.photo import get_photos
 
 
 def management_root(request, instance_url_name):
@@ -290,3 +295,139 @@ def update_benefits(request, instance):
 def _get_default_conversions():
     currency_symbol = locale.localeconv()['currency_symbol'] or '$'
     return BenefitCurrencyConversion(currency_symbol=currency_symbol)
+
+
+class GreenInfrastructureCategory(object):
+    RAINFALL = 'rainfall'
+    AREA = 'area'
+
+    GROUPS = (RAINFALL, AREA)
+
+
+def units(request, instance):
+    """
+    Build context for "Units" tab, which allows specifying units and number of
+    decimal digits for values like plot.width or eco.stormwater.
+    For each such value we build a "field spec" for "units" and for "digits",
+    which drive the creation of display/edit fields on the tab form.
+    """
+    value_names = [
+        {'title': _("Planting Site Fields"),
+         'category_name': 'plot',
+         'model': Plot,
+         'value_names': ['width', 'length']},
+        {'title': _("Tree Fields"),
+         'category_name': 'tree',
+         'model': Tree,
+         'value_names': ['diameter', 'height', 'canopy_height']},
+        {'title': _("Eco Benefits"),
+         'category_name': 'eco',
+         'label_dict': benefit_labels,
+         'value_names': BenefitCategory.GROUPS},
+        {'title': _("{bioswale} Fields")
+         .format(bioswale=Bioswale.display_name(instance)),
+         'category_name': 'bioswale',
+         'model': Bioswale,
+         'value_names': ['drainage_area']},
+        {'title': _("{rainBarrel} Fields")
+         .format(rainBarrel=RainBarrel.display_name(instance)),
+         'category_name': 'rainBarrel',
+         'model': RainBarrel,
+         'value_names': ['capacity']},
+        {'title': _("{rainGarden} Fields")
+         .format(rainGarden=RainGarden.display_name(instance)),
+         'category_name': 'rainGarden',
+         'model': RainGarden,
+         'value_names': ['drainage_area']},
+        {'title': _("Green Infrastructure"),
+         'category_name': 'greenInfrastructure',
+         'inclusion_test': lambda:
+            instance.feature_enabled('green_infrastructure'),
+         'label_dict': {
+             GreenInfrastructureCategory.RAINFALL: _('Annual Rainfall'),
+             GreenInfrastructureCategory.AREA:     _('Area')
+         },
+         'value_names': GreenInfrastructureCategory.GROUPS},
+    ]
+
+    def get_label_getter(attrs):
+        inclusion_test = attrs.get('inclusion_test')
+        if inclusion_test:
+            if not inclusion_test():
+                return None
+        Model = attrs.get('model')
+        if Model:
+            name = Model.__name__
+            if name == 'Tree' or name in instance.map_feature_types:
+                return lambda value_name: \
+                    Model._meta.get_field(value_name).verbose_name
+        else:
+            label_dict = attrs.get('label_dict')
+            if label_dict:
+                return label_dict.get
+        return None
+
+    specs_by_category = []
+    for attrs in value_names:
+        get_label = get_label_getter(attrs)
+        if not get_label:
+            continue
+        category_name = attrs['category_name']
+        category_specs = []
+        for value_name in attrs['value_names']:
+            def identifier_and_value(key):
+                return get_value_display_attr(
+                    instance, category_name, value_name, key)
+
+            label = get_label(value_name)
+
+            # Make a dropdown choice for each unit we can convert to
+            abbrevs = get_convertible_units(category_name, value_name)
+            choices = [{'value': abbrev,
+                        'display_value': get_unit_name(abbrev)}
+                       for abbrev in abbrevs]
+
+            # Make field spec for units
+            identifier, abbrev = identifier_and_value('units')
+            units_field_spec = {
+                'identifier': identifier,
+                'value': abbrev,
+                'display_value': get_unit_name(abbrev),
+                'data_type': 'choice',
+                'choices': choices
+            }
+
+            # Make field spec for number of decimal digits
+            identifier, value = identifier_and_value('digits')
+            digits_field_spec = {
+                'identifier': identifier,
+                'value': value,
+                'display_value': value
+            }
+
+            category_specs.append({
+                'label': label,
+                'units': units_field_spec,
+                'digits': digits_field_spec})
+
+        if category_specs:
+            specs_by_category.append({'title': attrs['title'],
+                                      'items': category_specs})
+
+    return {'value_specs': specs_by_category}
+
+
+_unit_re = re.compile(r'config\.value_display\.\w+\.\w+\.(?:units|digits)')
+
+
+def units_validator(field_name, value, model_name):
+    if model_name != 'instance':
+        return [_('Invalid model name, must be a field on instance')]
+
+    if not _unit_re.match(field_name):
+        return [_('Invalid field name')]
+
+    elif field_name.endswith('digits') and not value.isdigit():
+        return [_('Please enter a number that is 0 or greater')]
+
+    return None
