@@ -9,4 +9,6 @@ from manage_treemap import routes
 urlpatterns = patterns(
     '',
     url(r'^$', routes.management, name='management'),
+    url(r'^notifications/$', routes.admin_counts, name='admin_counts'),
+    url(r'^benefits/$', routes.benefits, name='benefits'),
 )
