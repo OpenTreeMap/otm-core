@@ -68,6 +68,7 @@ function activate() {
     // plot move mode
     $('#edit-plot-location,#cancel-edit-plot-location').on('click', function () {
         $('body').toggleClass('feature-move');
+        mapManager.map.invalidateSize();
     });
 
     $('#done-edit-plot-location').on('click', function() {
@@ -75,6 +76,7 @@ function activate() {
         $('#cancel-edit-plot-location').hide();
         currentPlotMover.disable();
         $('body').toggleClass('feature-move');
+        mapManager.map.invalidateSize();
     });
 }
 
