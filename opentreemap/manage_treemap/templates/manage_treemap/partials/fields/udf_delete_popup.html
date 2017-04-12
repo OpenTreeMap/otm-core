@@ -1,0 +1,37 @@
+{% load i18n %}
+{% load l10n %}
+{% load util %}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>Delete this field?</h3>
+        </div>
+        <div class="modal-body">
+            <div>
+                {% blocktrans with name=udf.name %}
+                    <p>Are you sure you want to delete the {{ name }} field?</p>
+                {% endblocktrans %}
+                {% if udf_uses > 0 %}
+                    {% blocktrans with model=udf.model_type|display_name:request.instance plural=udf_uses|pluralize %}
+                        <div class="alert alert-danger">
+                            <p>This field has been used in {{ udf_uses }} {{ model }}{{ plural }}.</p>
+                            <p>Deleting it will permanently remove data entered for it on all {{ model }}s, including the edit history.</p>
+                            <p>If you want to keep your data, you can set the field permissions for this field to Invisible for all user roles</p>
+                        </div>
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans with model=udf.model_type|display_name:request.instance name=udf.name %}
+                        <p>No {{ model }}s currently have data entered for {{ name }}.</p>
+                    {% endblocktrans %}
+                {% endif %}
+            </div>
+            <span style="display: none;" class="error-msg">{% trans "There was  an error deleting the field. Please try again later." %}</span>
+        </div>
+        <div class="modal-footer">
+            <a href="javascript:void(0)" class="btn dismiss-cancel" data-dismiss="modal">{% trans "Cancel" %}</a>
+            <a href="javascript:void(0)" class="btn dismiss-ok btn-danger" data-dismiss="modal" data-udf-delete="{{ udf.pk|unlocalize }}">{% trans "Delete" %}</a>
+        </div>
+    </div>
+</div>

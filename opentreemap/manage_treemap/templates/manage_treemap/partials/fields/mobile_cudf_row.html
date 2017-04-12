@@ -1,0 +1,13 @@
+{% load i18n %}
+{% load util %}
+
+<li data-collection-udf-key="{{ key }}" data-sortable class="field-row-container">
+    <div class="field-row">
+        <span class="mobile-field-label">{{ key|identifier_model_name }} {{ key|udf_name }}</span>
+
+        <label data-class="edit" class="pull-right checkbox hidden">
+            <input data-action="field-toggle" type="checkbox" {% if not disabled %}checked="checked"{% endif %}>
+            {% trans "Display" %}
+        </label>
+    </div>
+</li>

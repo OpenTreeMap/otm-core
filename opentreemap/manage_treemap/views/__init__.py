@@ -50,3 +50,15 @@ def _update_instance_fields(json_data, instance, validation_fn=None):
             validation_error = ve
 
     raise ValidationError(package_field_errors('instance', validation_error))
+
+
+def add_udf_notification(instance, udf_name):
+    notifications = set(instance.config.get('udf_notifications', []))
+    instance.config['udf_notifications'] = list(notifications | {udf_name})
+    instance.save()
+
+
+def remove_udf_notification(instance, udf_name):
+    notifications = set(instance.config.get('udf_notifications', []))
+    instance.config['udf_notifications'] = list(notifications - {udf_name})
+    instance.save()

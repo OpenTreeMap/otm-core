@@ -103,6 +103,32 @@
                     {% include "manage_treemap/partials/admin_link.html" with view="benefits" title=_("Ecosystem Benefits") icon="icon-leaf" %}
 
                     {% include "manage_treemap/partials/admin_link.html" with view="units_endpoint" title=_("Units") icon="icon-book" %}
+
+                    {% with is_active=request|is_current_view:"udfs field_configs search_config_admin" %}
+                        <tr {% if is_active %}class="active"{% endif %}>
+                            <td>
+                                {% include "manage_treemap/partials/admin_icon_link.html" with view="udfs" icon="icon-brush" %}
+                            </td>
+                            <td>
+                                <div class="full-section">
+                                    <a class="section-title" data-toggle="collapse" data-target="#nav-fields">
+                                        {% trans "Field Configuration" %}
+                                        {% if is_active %}
+                                            <i class="icon-down-open"></i>
+                                        {% else %}
+                                            <i class="icon-left-open"></i>
+                                        {% endif %}
+                                    </a>
+                                    <ul class="nav collapse {% if is_active %}in{% endif %}" id="nav-fields">
+                                        {% include "manage_treemap/partials/nested_link.html" with view="udfs" title=_("Custom Fields") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="search_config_admin" title=_("Search Fields") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="field_configs" title=_("Data Fields") %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
                     </tbody>
                 </table>
             </div>

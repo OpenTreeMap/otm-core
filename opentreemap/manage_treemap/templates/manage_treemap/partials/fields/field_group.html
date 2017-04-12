@@ -1,0 +1,47 @@
+{% load i18n %}
+{% load form_extras %}
+
+<div class="field-group" data-item="field-group" data-sortable>
+    <h3 class="management-header" data-class="display" data-header="{{ group.header }}">{% trans group.header %}</h3>
+    <div class="group-header hidden" data-class="edit">
+        {% block group_controls %}
+            <div class="group-controls">
+                <i data-action="group-handle" class="icon-resize-full-alt handle"></i>
+                <a href="javascript:" data-action="up"><i class="icon-up-big"></i></a>
+                <a href="javascript:" data-action="down"><i class="icon-down-big"></i></a>
+            </div>
+        {% endblock %}
+        {{ group.header }}
+    </div>
+
+    {% if "field_keys" in group %}
+        <div class="field-list-wrapper" data-item="field-lists">
+            <ul class="enabled-fields list-unstyled" data-group="{{ group.category }}" data-item="enabled-fields">
+                {% with fields=group.field_keys %}
+                    {% include "manage_treemap/partials/fields/field_group_items.html" %}
+                {% endwith %}
+            </ul>
+            <ul data-item="disabled-fields" class="list-unstyled disabled-fields hidden" data-class="edit">
+                {% with fields=group.disabled_fields disabled=True %}
+                    {% include "manage_treemap/partials/fields/field_group_items.html" %}
+                {% endwith %}
+            </ul>
+        </div>
+    {% endif %}
+    {% if "collection_udf_keys" in group %}
+        <div class="field-list-wrapper" data-item="field-lists">
+            <ul class="enabled-fields list-unstyled" data-sort-key="{{ group.sort_key }}" data-item="enabled-fields">
+                {% for key in group.collection_udf_keys %}
+                    {% include "manage_treemap/partials/fields/mobile_cudf_row.html" %}
+                {% endfor %}
+            </ul>
+            <ul data-item="disabled-fields" class="list-unstyled disabled-fields hidden" data-class="edit">
+                {% with disabled=True %}
+                    {% for key in group.disabled_cudf_fields %}
+                        {% include "manage_treemap/partials/fields/mobile_cudf_row.html" %}
+                    {% endfor %}
+                {% endwith %}
+            </ul>
+        </div>
+    {% endif %}
+</div>

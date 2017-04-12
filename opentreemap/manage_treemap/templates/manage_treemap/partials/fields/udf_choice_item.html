@@ -1,0 +1,28 @@
+{% load i18n %}
+<div class="form-group choice-item" data-item="choice" {% block choice_attrs %}style="display: none;"{% endblock %}>
+    <input type="text" class="form-control" tabindex="4"
+           placeholder="{% trans 'Add a New Option' %}"
+           data-field-id="{{ data_field_id|default:'<%= field %>' }}"
+           {% block input_attrs %}{% endblock %}></input>
+
+    <button data-action="delete" tabindex="5" {% block delete_attrs %}{% endblock %}>
+        <i class="icon-trash-1"></i>
+    </button>
+
+    {# Error classes within a .choice-item are styled to be hidden by default #}
+    <div class="error" data-class="error" data-field-id="{{ data_field_id|default:'<%= field %>' }}"></div>
+
+    <div class="error" data-item="duplicate">
+        <i class="icon-attention"></i>{% trans "You cannot use the same name twice" %}
+    </div>
+
+    {# Necessary for adding choices on existing custom field definitions #}
+    <div class="error" data-item="reused">
+        <i class="icon-attention"></i>{% trans "You cannot reuse a former name without saving first" %}
+    </div>
+
+    {# Necessary for renaming choices on existing custom field definitions #}
+    <div class="error" data-item="blank">
+        <i class="icon-attention"></i>{% trans "You cannot give a choice a blank name, but you can delete it" %}
+    </div>
+</div>

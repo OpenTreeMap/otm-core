@@ -1,0 +1,9 @@
+{% load form_extras %}
+
+{% for field in fields %}
+    {% if field.label %}
+        {% include "manage_treemap/partials/fields/mobile_field_row.html" %}
+    {% else %}
+        {% create from field in instance withtemplate "manage_treemap/partials/fields/mobile_field_row.html" %}
+    {% endif %}
+{% endfor %}

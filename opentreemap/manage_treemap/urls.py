@@ -32,4 +32,15 @@ urlpatterns = patterns(
     url(r'^bulk-uploader/$', routes.importer, name='importer'),
     url(r'^benefits/$', routes.benefits, name='benefits'),
     url(r'^units/$', routes.units, name='units_endpoint'),
+
+    url(r'^udfs/$', routes.udfs, name='udfs'),
+    url(r'^udfs/(?P<udf_id>\d+)$', routes.udf_change, name='udfs_change'),
+    url(r'^search-configuration/$', routes.search_config_page,
+        name='search_config_admin'),
+    url(r'^search-configuration-partial/$', routes.search_config,
+        name='search_config'),
+    url(r'^field-configuration/$', routes.field_configs,
+        name='field_configs'),
+    url(r'^set-fields/$', routes.set_field_configs,
+        name='set_field_configs'),
 )

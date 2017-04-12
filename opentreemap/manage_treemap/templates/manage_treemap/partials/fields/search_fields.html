@@ -1,0 +1,29 @@
+{% load i18n %}
+<div id="field-groups">
+    <ul class="management-nav nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+            <a href="#website-search" aria-controls="profile" role="tab" data-toggle="tab">
+                {% trans "Web" %}
+            </a>
+        </li>
+        <li role="presentation">
+            <a href="#mobile-search" aria-controls="profile" role="tab" data-toggle="tab">
+                {% trans "Mobile" %}
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" data-item="group-container" id="website-search">
+            {% include "manage_treemap/partials/fields/search_field_info.html" %}
+            {% for group in website_field_groups %}
+                {% include "manage_treemap/partials/fields/search_field_group.html" %}
+            {% endfor %}
+        </div>
+        <div role="tabpanel" class="tab-pane" data-item="group-container" id="mobile-search">
+            {% include "manage_treemap/partials/fields/search_field_info.html" %}
+            {% for group in mobile_field_groups %}
+                {% include "manage_treemap/partials/fields/search_field_group.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
