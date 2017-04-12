@@ -185,7 +185,7 @@ def _parse_query_dict(query_dict, mapping):
     #    'udf.plot:<udfd>.date': ...}
     # should match IFF a plot with a UserDefinedCollectionValue
     # matches both the action and the date parts.
-    # By correlary, it should NOT match a plot that has
+    # By corollary, it should NOT match a plot that has
     # one UserDefinedCollectionValue that matches the action,
     # and another that matches the date, neither of which matches both.
     by_type = _parse_by_is_collection_udf(query_dict, mapping)
