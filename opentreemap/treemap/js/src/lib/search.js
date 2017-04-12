@@ -164,7 +164,7 @@ function buildFilterObject () {
 
         if ($elem.is(':checked') || ($elem.is(':not(:checkbox)') && val && val.length > 0)) {
             if ($elem.is('[data-date-format]')) {
-                var date = moment($elem.datepicker('getDate'));
+                var date = moment($elem.datepicker('getDate') || $elem.val());
                 if (key_and_pred.pred === "MIN") {
                     date = date.startOf("day");
                 } else if (key_and_pred.pred === "MAX") {
