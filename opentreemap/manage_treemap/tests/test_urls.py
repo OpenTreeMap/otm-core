@@ -28,3 +28,6 @@ class PagesLoadTestCase(UrlTestCase):
 
     def test_pages_load(self):
         self.assert_page_loads('benefits')
+        self.assert_page_loads('importer')
+        self.assert_page_loads('comment_moderation')
+        self.assert_page_loads('photo_review_admin')

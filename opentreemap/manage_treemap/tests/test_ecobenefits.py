@@ -7,7 +7,7 @@ import json
 
 from django.core.exceptions import ValidationError
 
-from manage_treemap.views import update_benefits
+from manage_treemap.views.management import update_benefits
 
 from treemap.instance import Instance
 from treemap.models import BenefitCurrencyConversion

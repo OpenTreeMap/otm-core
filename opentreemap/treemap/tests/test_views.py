@@ -43,7 +43,7 @@ from treemap.views.map_feature import (update_map_feature, delete_map_feature,
                                        delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
                                 forgot_username, user, users)
-from treemap.views.photo import approve_or_reject_photos
+from manage_treemap.views.photo import approve_or_reject_photos
 from treemap.views.tree import delete_tree
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,

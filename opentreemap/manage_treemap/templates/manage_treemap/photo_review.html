@@ -1,0 +1,15 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+
+{% block admin_title %}{% trans "Photos" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="photo-review">
+        {% include "manage_treemap/partials/photo_review.html" %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/photoReview' %}
+{% endblock scripts %}

@@ -1,0 +1,15 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+
+{% block admin_title %}{% trans "Comments" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="comment-moderation">
+        {% include "otm_comments/partials/moderation.html" %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/otm_comments/moderation' %}
+{% endblock scripts %}
