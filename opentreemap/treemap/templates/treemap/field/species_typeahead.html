@@ -12,7 +12,7 @@
        data-typeahead-input="{{ field.identifier }}"
        id="{{ field.label }}-typeahead"
        class="form-control" 
-       placeholder="Common or scientific name"
+       placeholder="{% trans "Common or scientific name" %}"
        data-thumbprint="{{ request|species_thumbprint }}"
        value="{{ field.value.display_name }}"/>
 <input type="hidden"

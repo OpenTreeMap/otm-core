@@ -35,7 +35,7 @@ active
         <a class="btn pull-right" href="{% url 'edits' instance_url_name=request.instance.url_name %}">{% trans "Reset" %}</a>
       </h1>
       <div class="alert alert-info">
-          <p style="margin:0;">All edits made in the tree map are listed below, beginning with the most recent. Click a link in the Type, Object ID, or Edited By columns to sort all the edits by that entry. To go to the detail page for a tree or planting site, click the Detail button located in the far left column. Click the Reset button to view all edits.</p>
+	      <p style="margin:0;">{% trans "All edits made in the tree map are listed below, beginning with the most recent. Click a link in the Type, Object ID, or Edited By columns to sort all the edits by that entry. To go to the detail page for a tree or planting site, click the Detail button located in the far left column. Click the Reset button to view all edits." %}</p>
       </div>
 
       <table class="table table-striped">
