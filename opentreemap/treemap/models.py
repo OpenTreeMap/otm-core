@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin)
+from django.template.loader import get_template
 
 from treemap.species.codes import ITREE_REGIONS, get_itree_code
 from treemap.audit import Auditable, Role, Dictable, Audit, PendingAuditable
@@ -73,6 +74,12 @@ class StaticPage(models.Model):
     name = models.CharField(max_length=100)
     content = models.TextField()
 
+    DEFAULT_CONTENT = {
+        'resources': get_template('treemap/partials/Resources.html').render(),
+        'about': get_template('treemap/partials/About.html').render(),
+        'faq': get_template('treemap/partials/FAQ.html').render()
+    }
+
     @staticmethod
     def built_in_names():
         return ['Resources', 'FAQ', 'About', 'Partners']
@@ -97,7 +104,9 @@ class StaticPage(models.Model):
 
             static_page = StaticPage(
                 instance=instance, name=page_name,
-                content=_('There is no content for this page yet.'))
+                content=StaticPage.DEFAULT_CONTENT.get(
+                    page_name.lower(),
+                    ('There is no content for this page yet.')))
         return static_page
 
     @staticmethod
@@ -378,8 +387,8 @@ class User(AbstractUniqueEmailUser, Auditable):
         # If the user has no instance user yet, we need to provide a default so
         # that template filters can determine whether that user can perform an
         # action that will make them into an instance user
-        if (instance_user is None
-           and instance.feature_enabled('auto_add_instance_user')):
+        if instance_user is None \
+           and instance.feature_enabled('auto_add_instance_user'):
             return InstanceUser(user=self,
                                 instance=instance,
                                 role=instance.default_role)
@@ -418,7 +427,7 @@ class Species(UDFModel, PendingAuditable):
     DEFAULT_MAX_DIAMETER = 200
     DEFAULT_MAX_HEIGHT = 800
 
-    ### Base required info
+    # Base required info
     instance = models.ForeignKey(Instance)
     # ``otm_code`` is the key used to link this instance
     # species row to a cannonical species. An otm_code
@@ -433,7 +442,7 @@ class Species(UDFModel, PendingAuditable):
     other_part_of_name = models.CharField(max_length=255, blank=True,
                                           verbose_name='Other Part of Name')
 
-    ### From original OTM (some renamed) ###
+    # From original OTM (some renamed) ###
     is_native = models.NullBooleanField(verbose_name='Native to Region')
     flowering_period = models.CharField(max_length=255, blank=True,
                                         verbose_name='Flowering Period')
@@ -450,7 +459,7 @@ class Species(UDFModel, PendingAuditable):
     plant_guide_url = models.URLField(max_length=255, blank=True,
                                       verbose_name='Plant Guide URL')
 
-    ### Used for validation
+    # Used for validation
     max_diameter = models.IntegerField(default=DEFAULT_MAX_DIAMETER,
                                        verbose_name='Max Diameter')
     max_height = models.IntegerField(default=DEFAULT_MAX_HEIGHT,

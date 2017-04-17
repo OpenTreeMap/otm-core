@@ -106,6 +106,8 @@ class StaticPageViewTest(ViewTestCase):
 
         self.assertIsNotNone(rslt['content'])
         self.assertIsNotNone(rslt['title'])
+        self.assertEqual(len(rslt['content']),
+                         len(StaticPage.DEFAULT_CONTENT['about']))
 
 
 class BoundaryViewTest(ViewTestCase):
@@ -1000,11 +1002,11 @@ class PlotViewProgressTest(PlotViewTestCase):
         wo_tree_context = self.get_plot_context(self.plot_wo_tree)
         w_tree_context = self.get_plot_context(self.plot_w_tree)
 
-        self.assertTrue(len(wo_tree_context['progress_messages'])
-                        > len(w_tree_context['progress_messages']))
+        self.assertTrue(len(wo_tree_context['progress_messages']) >
+                        len(w_tree_context['progress_messages']))
         # Adding a tree without and details does not add progress
-        self.assertTrue(wo_tree_context['progress_percent']
-                        == w_tree_context['progress_percent'])
+        self.assertTrue(wo_tree_context['progress_percent'] ==
+                        w_tree_context['progress_percent'])
 
     def test_progress_increases_when_diameter_is_added(self):
         tree = self.plot_w_tree.current_tree()
