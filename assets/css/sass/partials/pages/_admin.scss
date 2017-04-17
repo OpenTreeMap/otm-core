@@ -896,6 +896,11 @@
                 display: block;
             }
         }
+        &.no-double-quotes-error {
+            [data-item="no-double-quotes"] {
+                display: block;
+            }
+        }
         &.reused-error {
             [data-item="reused"] {
                 display: block;
