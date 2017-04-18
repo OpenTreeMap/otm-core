@@ -20,13 +20,9 @@
         </div>
 
         <div class="content">
-            {% if request.instance|feature_enabled:"set_advanced_search" %}
-                <div id="search-config-container">
-                    {% include "manage_treemap/partials/fields/search_fields.html" %}
-                </div>
-            {% else %}
-                {% include "cloud_management/partials/upgrade.html" %}
-            {% endif %}
+            <div id="search-config-container">
+                {% include "manage_treemap/partials/fields/search_fields.html" %}
+            </div>
         </div>
     </div>
 {% endblock %}
