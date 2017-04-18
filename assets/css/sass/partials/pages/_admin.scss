@@ -886,6 +886,11 @@
         div.error {
             display: none;
         }
+        &.empty-error {
+            [data-item="empty"] {
+                display: block;
+            }
+        }
         &.blank-error {
             [data-item="blank"] {
                 display: block;
