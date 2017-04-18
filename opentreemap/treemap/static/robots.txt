@@ -1,1 +1,27 @@
+User-agent: *
 
+# Allow the home page to be indexed.
+Allow: /$
+
+# Allow marketing pages to be indexed.
+Allow: /map/$
+Allow: /engage/$
+Allow: /analyze/$
+Allow: /mobile/$
+Allow: /pricing/$
+
+# Allow user profile pages to be indexed. If the user makes their
+# profile private, the robot will see a 404.
+Allow: /user/
+
+# Allow instance map feature detail pages to be indexed.
+Allow: /*/features/
+
+# Allow instance custom pages to be indexed.
+Allow: /*/page/
+
+# Disallow indexing of everything by default. We only want a small
+# subset of the site's pages to be indexed. This is at the bottom so
+# that crawlers that process the file from the top down will still
+# crawl the explicitly allowed pages.
+Disallow: /
