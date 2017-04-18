@@ -9,11 +9,14 @@ from django_tinsel.decorators import route, render_template, json_api_call
 from django_tinsel.utils import decorate as do
 
 import manage_treemap.views.management as views
+import manage_treemap.views.fields as field_views
 import manage_treemap.views.photo as photo_views
 import manage_treemap.views.green_infrastructure as green_infrastructure_views
 
 from importer.views import list_imports
 from manage_treemap.views import update_instance_fields_with_validator
+from manage_treemap.views.udf import udf_bulk_update, udf_create, udf_list, \
+    udf_delete_popup, udf_delete, udf_update_choice
 from otm_comments.views import comment_moderation
 from treemap.decorators import (require_http_method, admin_instance_request,
                                 return_400_if_validation_errors)
@@ -105,4 +108,59 @@ units = admin_route(
     GET=do(render_template('manage_treemap/units.html'), views.units),
     PUT=json_do(update_instance_fields_with_validator,
                 views.units_validator)
+)
+
+udfs = do(
+    admin_instance_request,
+    route(PUT=udf_bulk_update,
+          POST=do(
+              return_400_if_validation_errors,
+              render_template("manage_treemap/partials/fields/udf_row.html"),
+              udf_create),
+          GET=do(render_template('manage_treemap/udfs.html'),
+                 udf_list))
+)
+
+udf_change = do(
+    admin_instance_request,
+    route(
+        GET=do(
+            render_template(
+                "manage_treemap/partials/fields/udf_delete_popup.html"),
+            udf_delete_popup),
+        PUT=do(return_400_if_validation_errors, udf_update_choice),
+        DELETE=udf_delete))
+
+search_config_page = admin_route(
+    GET=do(render_template('manage_treemap/search_fields.html'),
+           field_views.search_config)
+)
+
+search_config = do(
+    admin_instance_request,
+    route(
+        PUT=do(json_api_call,
+               return_400_if_validation_errors,
+               field_views.set_search_config),
+        GET=do(
+            render_template(
+                'manage_treemap/partials/fields/search_fields.html'),
+            field_views.search_config))
+)
+
+field_configs = admin_route(
+    GET=do(render_template('manage_treemap/field_configuration.html'),
+           field_views.set_fields_page)
+)
+
+set_field_configs = do(
+    admin_instance_request,
+    route(
+        PUT=do(json_api_call,
+               return_400_if_validation_errors,
+               field_views.set_fields),
+        GET=do(
+            render_template(
+                'manage_treemap/partials/fields/field_groups.html'),
+            field_views.set_fields_page))
 )

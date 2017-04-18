@@ -1,0 +1,9 @@
+{% extends "treemap/partials/form_buttons.html" %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block other_buttons %}
+    <a class="btn btn-default" data-class="display" data-toggle="modal" data-target="#add-udf-panel">
+        <i class="icon-plus-1"></i>{% trans "Add Field" %}
+    </a>
+{% endblock other_buttons %}

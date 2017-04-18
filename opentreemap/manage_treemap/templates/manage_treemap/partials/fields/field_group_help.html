@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="well" data-class="display">
+    {% blocktrans %}
+        Select and arrange the data fields on the detail {{ view }} for a tree. Users will only be able to view and edit fields based on the permissions available for their user role.
+    {% endblocktrans %}
+</div>
+<div class="well hidden" data-class="edit">
+    {% blocktrans %}
+        To rearrange the order in which the fields appear, click the <i class="icon-resize-full-alt"></i> icon to the left of the field name and then drag that field to a new location. You can also drag each group (Tree Information, Planting Site Information, etc.) to rearrange the order in which the groups appear in the {{ app }} interface.
+    {% endblocktrans %}
+</div>

@@ -1,0 +1,31 @@
+{% load i18n %}
+<div id="field-groups">
+    <ul class="management-nav nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+            <a href="#web-fields" aria-controls="profile" role="tab" data-toggle="tab">
+                {% trans "Web" %}
+            </a>
+        </li>
+        <li role="presentation">
+            <a href="#mobile-fields" aria-controls="profile" role="tab" data-toggle="tab">
+                {% trans "Mobile" %}
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" data-item="group-container" id="web-fields" data-type="web_detail_fields">
+            {% include "manage_treemap/partials/fields/field_group_help.html" with view=_("page") app=_("web") %}
+            {% for group in web_field_groups %}
+                {% include "manage_treemap/partials/fields/field_group.html" %}
+            {% endfor %}
+        </div>
+        <div role="tabpanel" class="tab-pane" data-item="group-container" id="mobile-fields" data-type="mobile_api_fields">
+            {% include "manage_treemap/partials/fields/field_group_help.html" with view=_("screen") app=_("mobile") %}
+
+            {% for group in mobile_field_groups %}
+                {% include "manage_treemap/partials/fields/field_group.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
