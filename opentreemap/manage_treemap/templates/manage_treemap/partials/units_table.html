@@ -1,0 +1,19 @@
+<h3 class="management-header">{{ spec.title }}</h3>
+<table class="units table table-hover admin-table">
+  <thead>
+    <tr>
+      <th style="width:40%;">Field</th>
+      <th style="width:40%;">Units</th>
+      <th style="width:20%;">Decimal Digits</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for value_spec in spec.items %}
+    <tr>
+      <td>{{ value_spec.label }}</td>
+      {% include "treemap/field/td.html" with field=value_spec.units %}
+      {% include "treemap/field/td.html" with field=value_spec.digits %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

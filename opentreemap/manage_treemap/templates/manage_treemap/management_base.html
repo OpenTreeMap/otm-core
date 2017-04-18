@@ -42,6 +42,35 @@
                 </table>
                 <table class="nav nav-list">
                     <tbody>
+                    {% with is_active=request|is_current_view:"site_config green_infrastructure branding embed external_link" %}
+                        <tr {% if is_active %}class="active"{% endif %}>
+                            <td>
+                                {% include "manage_treemap/partials/admin_icon_link.html" with view="site_config" icon="icon-cog" %}
+                            </td>
+                            <td>
+                                <div class="full-section">
+                                    <a class="section-title" data-toggle="collapse" data-target="#nav-general">
+                                        {% trans "General" %}
+                                        {% if is_active %}
+                                            <i class="icon-down-open"></i>
+                                        {% else %}
+                                            <i class="icon-left-open"></i>
+                                        {% endif %}
+                                    </a>
+                                    <ul class="nav collapse {% if is_active %}in{% endif %}" id="nav-general">
+                                        {% include "manage_treemap/partials/nested_link.html" with view="site_config" title=_("Basic Information") %}
+                                        {% if request.instance|feature_enabled:"green_infrastructure" %}
+                                            {% include "manage_treemap/partials/nested_link.html" with view="green_infrastructure" title=_("Green Infrastructure") %}
+                                        {% endif %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="branding" title=_("Branding") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="embed" title=_("Embed") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="external_link" title=_("External Link") %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
                     {% block extra_menu_items %}
                     {% endblock extra_menu_items %}
 
@@ -72,6 +101,8 @@
                     {% include "manage_treemap/partials/admin_link.html" with view="importer" title=_("Bulk Uploader") icon="icon-tools" %}
 
                     {% include "manage_treemap/partials/admin_link.html" with view="benefits" title=_("Ecosystem Benefits") icon="icon-leaf" %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="units_endpoint" title=_("Units") icon="icon-book" %}
                     </tbody>
                 </table>
             </div>

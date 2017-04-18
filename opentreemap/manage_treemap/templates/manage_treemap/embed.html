@@ -1,0 +1,89 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Embed" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="embed">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Embed" %}</h1>
+            </div>
+        </div>
+
+        <div class="content">
+            <h3>{% trans "Embed this tree map on another site" %}</h3>
+            <p>Use the HTML snippet below to include this tree map on another website you administer.</p>
+            <form>
+                <fieldset>
+                    <ul class="frame-size-choice list-inline container-fluid">
+                        <li class="pull-left">
+                            <label class="checkbox">
+                                <input type="radio" name="frame-size" id="frame-size-standard" value="{{ iframe_standard }}" checked="checked">
+                                <span>{% trans "Standard" %}</span> <span class="reduced">{{ iframe_standard_width }}x{{ iframe_standard_height }}</span>
+                            </label>
+                        </li>
+                        <li class="pull-left">
+                            <label class="checkbox">
+                                <input type="radio" name="frame-size" id="frame-size-wide" value="{{ iframe_wide }}">
+                                <span>{% trans "Wide" %}</span> <span class="reduced">{{ iframe_wide_width }}x{{ iframe_wide_height }}</span>
+                            </label>
+                        </li>
+                        <li class="pull-left">
+                            <label class="checkbox">
+                                <input type="radio" name="frame-size" id="frame-size-custom" value="{{ iframe_custom }}">
+                                <span>{% trans "Custom " %}</span>
+                                <span class="width-height-group">
+                                <input id="iframe-width" class="input-sm" type="number"
+                                       placeholder="{% trans "width" %}" min="{{ iframe_custom_min_width }}" step="10" max="10000">
+                                &times;
+                                <input id="iframe-height" class="input-sm" type="number"
+                                       placeholder="{% trans "height" %}" min="{{ iframe_custom_min_height }}" step="10" max="10000">
+                                <button id="preview" class="btn-link">{% trans "Preview " %}</button>
+                            </span>
+                            </label>
+                        </li>
+                    </ul>
+                    <div class="hidden alert alert-danger">
+                        <div id="width-required" class="message hidden">
+                            {% trans "The width is required for a preview." %}
+                        </div>
+                        <div id="height-required" class="message hidden">
+                            {% trans "The height is required for a preview." %}
+                        </div>
+                        <div id="both-required" class="message hidden">
+                            {% trans "The width and height are required for a preview." %}
+                        </div>
+                        <div id="width-range-error" class="message hidden">
+                            {% trans "The width must be between" %} {{ iframe_custom_min_width }} {% trans "and" %} 10,000.
+                        </div>
+                        <div id="height-range-error" class="message hidden">
+                            {% trans "The height must be between" %} {{ iframe_custom_min_height }} {% trans "and" %} 10,000.
+                        </div>
+                        <div id="both-range-error" class="message hidden">
+                            {% trans "The width must be between" %} {{ iframe_custom_min_width }} {% trans "and" %} 10,000,
+                            {% trans "and the height must be between" %} {{ iframe_custom_min_height }} {% trans "and" %} 10,000.
+                        </div>
+                    </div>
+                    <input id="snippet" type="text" readonly="readonly" value="{{ iframe_standard }}">
+                </fieldset>
+            </form>
+            <div id="iframe-container">
+                {{ iframe_standard|safe }}
+            </div>
+        </div>
+    </div>
+{% endblock tab_content %}
+
+{% block endbody %}
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/embed' %}
+{% endblock scripts %}
