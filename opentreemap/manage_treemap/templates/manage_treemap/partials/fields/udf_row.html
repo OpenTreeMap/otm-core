@@ -20,9 +20,9 @@
         {% if udf.iscollection %}
             {% if request.instance|feature_enabled:"edit_collection_udfs" or udf.model_type in editable_gsi_models %}
                 {% with datatype=udf.datatype_dict|first %}
-                      {% if datatype.choices %}
-                            {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=datatype.choices name=datatype.name %}
-                      {% endif %}
+                    {% if datatype.choices %}
+                        {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=datatype.choices name=datatype.name %}
+                    {% endif %}
                 {% endwith %}
             {% endif %}
         {% endif %}
