@@ -557,10 +557,9 @@ function validate($choiceList, $choice, $input) {
         ($choice.is(':first-child:not(' + dom.existingChoice + ')') && $input.val() === '')) {
         $choice.toggleClass('empty-error', true);
     } else {
-        $choice.toggleClass('blank-error',  false);
+        $choice.toggleClass('blank-error', false);
         $choice.toggleClass('empty-error', false);
     }
-
 }
 
 // For use in jQuery filters
@@ -641,6 +640,7 @@ function checkDuplicates($choiceList, $choice) {
         });
     $choice.toggleClass('reused-error', 0 < $matchedOriginal.length);
 
+    $trashedChoices.find('.form-control').toggleClass('error', false);
     highlightErrors($choiceList);
 }
 
