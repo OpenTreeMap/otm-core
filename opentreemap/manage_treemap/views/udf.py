@@ -36,6 +36,29 @@ def udf_update_choice(request, instance, udf_id):
 
 @transaction.atomic
 def udf_bulk_update(request, instance):
+    '''
+    udf_bulk_update(request, instance)
+
+    'instance': a treemap instance
+    'request': an HTTP request object whose body is a JSON representation
+               of a dict containing the key 'choice_changes'.
+
+    choice_changes is a list of directives per choice-type
+    UserDefinedFieldDefinition.  Each directive is a dict, defined as follows:
+    {
+        'id': id of a UserDefinedFieldDefinition,
+        'changes': a list of changes to make to the UserDefinedFieldDefinition
+                   with that id.
+    }
+
+    Each change is either a delete, rename, or add request pertaining to
+    one choice of the UserDefinedFieldDefinition.
+
+    There should be no more than one change per choice,
+    and the list should be ordered as deletes, then renames, then adds.
+    See the docstring for `_udf_update_choice` for the structure of each
+    choice change parameter.
+    '''
     params = json.loads(request.body)
     choice_changes = params.get('choice_changes', None)
 
@@ -60,6 +83,22 @@ def udf_bulk_update(request, instance):
 
 
 def _udf_update_choice(udf, instance, params):
+    '''
+    _udf_update_choice(udf, instance, params)
+
+    `udf`: a choice-type UserDefinedFieldDefinition
+    `instance`: a treemap Instance
+    `params`: a dict representing changes to make to the udf, as follows.
+    {
+        'action':         ('delete'|'rename'|'add')
+        'subfield':       empty string for a scalar udf, or
+                          the key of interest in a collection udf.
+        'original_value': the name of the choice on entry to this function,
+                          empty string if 'action' is 'add'.
+        'new_value':      the name of the choice on exit from this function,
+                          empty string if 'action is 'delete'.
+    }
+    '''
     editable_udf_model_names = {clz.__name__ for clz in
                                 instance.editable_udf_models()['all']}
 

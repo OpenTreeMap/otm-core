@@ -10,7 +10,10 @@
     </button>
 
     {# Error classes within a .choice-item are styled to be hidden by default #}
-    <div class="error" data-class="error" data-field-id="{{ data_field_id|default:'<%= field %>' }}"></div>
+
+    <div class="error" data-item="empty">
+        <i class="icon-attention"></i>{% trans "You need at least one choice" %}
+    </div>
 
     <div class="error" data-item="duplicate">
         <i class="icon-attention"></i>{% trans "You cannot use the same name twice" %}

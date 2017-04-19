@@ -22,16 +22,17 @@ var dom = {
 
     // Trash can on the choice item in Edit mode
     choiceDelete: '[data-action="delete"]',
-    // "Remove Choice" button on "Remove field choice" modal
-    removeChoiceAction: '[data-udf-action="delete"]',
 
+    // Display only choice list
     choices: '.choice-udf-choices',
     existingChoice: '[data-udf-choice]',
     addChoiceContainer: '#udf-create-choices',
+    trashCan: '[data-item="deleted-choices"]',
+    deletedChoice: '[data-marked="delete"]',
     duplicateError: '[data-item="duplicate"]',
     reusedError: '[data-item="reused"]',
     blankError: '[data-item="blank"]',
-    popupTarget: '[data-popup-target]',
+    emptyError: '[data-item="empty"]',
     originalChoice: '[data-original-choice]',
     displayChoice: '[data-choice]',
     showAllLess: '[data-less-more]',
@@ -41,6 +42,7 @@ var dom = {
     udfs: '#udf-info',
 
     saveBtn: '.saveBtn',
+    cancelBtn: '.cancelBtn',
 
     createNewUdf: '#create-new-udf',
     createUdfPopup: '#add-udf-panel',
@@ -79,13 +81,13 @@ var saveModal = (function() {
                     .find('[data-udf="' + changeSpec.id + '"]');
 
             var filledInChanges = _.map(changeSpec.changes, function(changeSpec) {
-                // TODO: The new choice item is not up to spec.
-                // It should read "Choice XX", where XX is the numeric index of
-                // the choice, and the word "Choice" should be translated.
-                var displayOriginal = changeSpec.original_value || 'new choice';
+                var displayOriginal = changeSpec.original_value || 'new choice',
+                    displayNew = changeSpec.action === 'delete' ?
+                        'deleted' : changeSpec.new_value;
+
                 return saveConfirmChangeTemplate({
                     originalValue: displayOriginal,
-                    newValue: changeSpec.new_value
+                    newValue: displayNew
                 });
             });
 
@@ -215,11 +217,7 @@ $('body').on('keydown paste cut', dom.choiceInput, function(e) {
         }
         validate($choiceList, $choice, $input);
         checkDuplicates($choiceList, $choice, $input);
-        if (0 === $(dom.udfs).find('.form-control.error').length) {
-            $(dom.saveBtn).removeAttr('disabled');
-        } else {
-            $(dom.saveBtn).attr('disabled', 'disabled');
-        }
+        enableDisableSaveBtn();
     });
 });
 $('body').on('blur', dom.choiceInput, function(e) {
@@ -241,69 +239,38 @@ $('body').on('click', dom.choice + ' ' + dom.choiceDelete, function(e) {
         $button = $icon.closest('button,a'),
         $choice = $button.closest(dom.choice);
 
-    if ($button.is(dom.popupTarget)) {
-        presentRemoveChoicePopup($button, $choice);
+    if (0 === $choice.closest(dom.addChoiceContainer).length) {
+        prepareChoiceForRemoval($button, $choice);
     } else {
         removeChoice($choice);
     }
 });
 
-// dom.removeChoiceAction is what the user clicks to affirm that
-// they really want to delete the choice.
-$(dom.removeChoiceAction)
-    .asEventStream('click')
-    .map('.target')
-    .map($)
-    .onValue(function($removeControl) {
-        var options = JSON.parse($removeControl.data('remove-choice-info'));
-        $.ajax({
-            method: 'PUT',
-            url: getUdfUrlForId(options.id),
-            contentType: 'application/json',
-            data: JSON.stringify({
-                'original_value': options.choice,
-                'subfield': options.subfield,
-                'new_value': '',
-                'action': 'delete'
-            })
-        }).done(function (r) {
-            var $container = $('[data-udf="' + options.id + '"]'),
-                $display = $container.find('[data-class="display"]'),
-                $choiceList = $container.find('[data-class="edit"]'),
-                $choice = $choiceList.find('[data-udf-choice="' + options.choice + '"]'),
-                $item = $display.find('[data-choice="' + options.choice + '"]');
+function prepareChoiceForRemoval($trashButton, $choice) {
+    var $choiceList = $choice.closest(dom.choiceList),
+        $udf = $choiceList.closest(dom.udfContainer),
+        $trashCan = $udf.find(dom.trashCan);
 
-            $item.remove();
-
-            toastr.success(r);
-            removeChoice($choice);
-        }).fail(function (resp) {
-            var vals = _.values(JSON.parse(resp.responseText));
-
-            toastr.error(
-                '<ul><li>' + vals.join('</li><li>') + '</li></ul>');
-        });
-    });
-
-function presentRemoveChoicePopup($trashButton, $choice) {
-    var $choiceList = $choice.closest(dom.choiceList);
-
-    var $udfpopup = $($trashButton.data('popup-target'));
-    var $action = $udfpopup.find(dom.removeChoiceAction);
-
-    $action.data('remove-choice-info', JSON.stringify({
-        'id': $choiceList.closest(dom.udfContainer).data('udf'),
-        'subfield': $choiceList.data('subfield'),
-        'choice': $choice.data('udf-choice')
-    }));
-
-    $udfpopup.modal('show');
+    if ($choice.is(dom.existingChoice)) {
+        removeChoice($choice, true) // true means keep.
+            .then(function () {
+                $choice.attr('data-marked', 'delete');
+                $choice.appendTo($trashCan);
+                checkAllDuplicates($choiceList);
+                enableDisableSaveBtn();
+            });
+    } else {
+        removeChoice($choice);
+    }
 }
 
 $(dom.createUdfPopup).on('show.bs.modal', resetModal);
 
 function getChanged() {
-    return $(dom.udfContainer)
+    var $deletedChoices = $(dom.udfContainer)
+        .find(dom.deletedChoice)
+        .find('.form-control');
+    var $addedAndRenamed = $(dom.udfContainer)
         .find(dom.choiceList)
         .find('.form-control')
         .filter(function() { return !!$(this).val().trim(); })
@@ -311,42 +278,49 @@ function getChanged() {
             var $this = $(this);
             return $this.val().trim() != $this.closest(dom.choice).data('udf-choice');
         });
+    return $deletedChoices.add($addedAndRenamed);
 }
 
 // Hook for editableForm to get the data,
 // since our data doesn't conform to standard fields.
 function getChoiceChanges() {
-    var $changed = getChanged(),
-        // Extract the data needed by the backend from
-        // $changed and its dom ancestors.
-        idChange = _.map($changed.toArray(), function(el) {
-            var $el = $(el),
-                $choice = $el.closest(dom.choice),
-                $choiceList = $choice.closest(dom.choiceList),
-                $container = $choiceList.closest(dom.udfContainer),
-                original = $choice.data('udf-choice'),
-                subfield = $choiceList.data('subfield');
+    // Extract the data needed by the backend from getChanged and its dom ancestors,
+    // and group the changes by the id.
+    var $changed = getChanged().map(function() {
+        var $el = $(this),
+            $choice = $el.closest(dom.choice),
+            $choiceList = $choice.closest(dom.choiceList),
+            $container = $choice.closest(dom.udfContainer),
+            original = $choice.data('udf-choice'),
+            action = $choice.is(dom.deletedChoice) ?
+                'delete' : !!original && 'rename' || 'add';
 
+        if (action === 'delete') {
+            $choiceList = $container.find(dom.choiceList);
+        }
+        var subfield = $choiceList.data('subfield');
+
+        return {
+            id: $container.data('udf'),
+            change: {
+                new_value: $el.val(),
+                original_value: original,
+                subfield: subfield,
+                action: action
+            }
+        };
+    });
+
+    var changes = $changed.toArray();
+    var byId = _.chain(changes)
+        .groupBy('id')
+        .map(function(changes, id) {
             return {
-                id: $container.data('udf'),
-                change: {
-                    new_value: $el.val(),
-                    original_value: original,
-                    subfield: subfield,
-                    action: !!original && 'rename' || 'add'
-                }
+                id: id,
+                changes: _.pluck(changes, 'change')
             };
-        }),
-        // Group the changes by the id
-        byId = _.chain(idChange)
-            .groupBy('id')
-            .map(function(changes, id) {
-                return {
-                    id: id,
-                    changes: _.pluck(changes, 'change')
-                };
-            })
-            .value();
+        })
+        .value();
     return {'choice_changes': byId};
 }
 
@@ -372,7 +346,8 @@ function showPutSuccess(r) {
             value = $input.val().trim(),
             $choice = $input.closest(dom.choice),
             original_value = $choice.data('udf-choice'),
-            $choiceList = $choice.closest(dom.choiceList),
+            $container = $choice.closest(dom.udfContainer),
+            $choiceList = $container.find(dom.choiceList),
             $display = $choiceList.prev(),
             $list = $display.find('ul'),
             $allDisplayItems = $list.children(dom.displayChoice),
@@ -386,15 +361,20 @@ function showPutSuccess(r) {
                 choice: value
             }));
             $item.insertBefore($showAllLess);
+        } else if ($choice.is(dom.deletedChoice)) {
+            $item.remove();
         } else {
             $item.data('choice', value);
             $item.html(value);
         }
-        // Set the attribute to act as a selector
-        $choice.attr('data-udf-choice', value);
-        // Setting the attribute doesn't update the data value
-        $choice.data('udf-choice', value);
-        $choice.find(dom.choiceDelete).attr('data-popup-target', '#remove-udf-choice-panel');
+        if ($choice.is(dom.deletedChoice)) {
+            $choice.remove();
+        } else {
+            // Set the attribute to act as a selector
+            $choice.attr('data-udf-choice', value);
+            // Setting the attribute doesn't update the data value
+            $choice.data('udf-choice', value);
+        }
     });
 
     toastr.success(r);
@@ -402,11 +382,22 @@ function showPutSuccess(r) {
 
 function restoreValues() {
     $(dom.udfs).find(dom.choiceList).each(function() {
-        var $choiceList = $(this);
+        var $choiceList = $(this),
+            $udf = $choiceList.closest(dom.udfContainer),
+            $deletedChoices = $udf.find(dom.deletedChoice);
+
+        $deletedChoices.each(function() {
+            var $choice = $(this);
+
+            $choice.prependTo($choiceList).show();
+            $choice.removeData('marked');
+            $choice.removeAttr('data-marked');
+        });
 
         $choiceList.find('.duplicate-error').removeClass('duplicate-error');
         $choiceList.find('.reused-error').removeClass('reused-error');
         $choiceList.find('.blank-error').removeClass('blank-error');
+        $choiceList.find('.empty-error').removeClass('empty-error');
         $choiceList.find('input[type="text"]').each(function() {
             var $input = $(this),
                 $choice = $input.closest(dom.choice);
@@ -418,6 +409,25 @@ function restoreValues() {
                 $choice.remove();
             }
         });
+
+        if (0 < $deletedChoices.length) {
+            // Put the choices back in their original order.
+            var $display = $choiceList.prev(),
+                $list = $display.find('ul'),
+                $allDisplayItems = $list.children(dom.displayChoice),
+                displayValues = $allDisplayItems.map(function() {
+                    return $(this).data('choice');
+                }).toArray(),
+
+                $existingChoices = $choiceList.find(dom.existingChoice).detach(),
+                $addNewChoice = $choiceList.find(dom.choice);
+
+            _.each(displayValues, function(value) {
+                var $choice = $existingChoices.filter('[data-udf-choice="' + value + '"]');
+                $existingChoices = $existingChoices.not($choice);
+                $choice.insertBefore($addNewChoice);
+            });
+        }
     });
 }
 
@@ -471,12 +481,42 @@ function addChoice($container) {
     });
 }
 
-function removeChoice($choice) {
+function canBeSaved() {
+    return 0 === $(dom.udfs).find('.form-control.error').length && 0 < getChanged().length;
+}
+
+function enableDisableSaveBtn() {
+    if (canBeSaved()) {
+        $(dom.saveBtn).removeAttr('disabled');
+    } else {
+        $(dom.saveBtn).attr('disabled', 'disabled');
+    }
+}
+
+function removeChoice($choice, keep) {
     var $list = $choice.closest(dom.choiceList);
-    $choice.fadeOut('fast', function() {
-        $choice.remove();
-        checkAllDuplicates($list);
-    });
+    // jQuery fadeOut doesn't actually change the dom until the fade is complete.
+    // It adds a promise to the elements it is applied to,
+    // which we return in case someone wants to listen for it.
+    //
+    // If the user cancels while the fadeOut is in progress,
+    // the deleted choice will still be removed from the dom later
+    // when the fadeOut is done. Simplest way to avoid this race
+    // is to disable Cancel until the fadeOut is complete.
+    $(dom.cancelBtn).attr('disabled', 'disabled');
+    return $choice.fadeOut('fast')
+        .promise().then(function () {
+            if (keep) {
+                $choice.detach();
+                // No point in checking duplicates until after the caller
+                // does something with the $choice it wants to keep.
+            } else {
+                $choice.remove();
+                checkAllDuplicates($list);
+                enableDisableSaveBtn();
+            }
+            $(dom.cancelBtn).removeAttr('disabled');
+        });
 }
 
 resetAddChoices();
@@ -506,9 +546,31 @@ function getChoices($choiceList, $except) {
 function validate($choiceList, $choice, $input) {
     if (0 === $input.val().length && !!$choice.data('udf-choice')) {
         $choice.toggleClass('blank-error', true);
+    } else if ($choice.is(':only-child') ||
+            ($choice.is(':first-child:not(' + dom.existingChoice + ')') && $input.val() === '')) {
+        $choice.toggleClass('empty-error', true);
     } else {
         $choice.toggleClass('blank-error', false);
+        $choice.toggleClass('empty-error', false);
     }
+}
+
+// For use in jQuery filters
+function trimOrNull(value) {
+    return !!value ? value.trim() : null;
+}
+function getValue(choiceElem) {
+    var value = $(choiceElem).find('.form-control').val();
+    return trimOrNull(value);
+}
+function compact(index, elem) {
+    return !!getValue($(elem));
+}
+function getOriginalValue(choiceElem) {
+    return trimOrNull($(choiceElem).data('udf-choice'));
+}
+function compactOriginal(index, elem) {
+    return !!getOriginalValue($(elem));
 }
 
 function checkDuplicates($choiceList, $choice) {
@@ -529,46 +591,53 @@ function checkDuplicates($choiceList, $choice) {
     // the original name of the first.
 
     var $otherChoices = $choiceList.find(dom.choice).not($choice),
-        getValue = function(choiceElem) {
-            var value = $(choiceElem).find('.form-control').val();
-            return !!value ? value.trim() : null;
-        },
         choiceValue = getValue($choice),
-        getOriginalValue = function(choiceElem) {
-            var value = $(choiceElem).data('udf-choice');
-            return !!value ? value.trim() : null;
-        },
         isDuplicate = function(testValue) {
             return function(index, choiceElem) {
                 return getValue($(choiceElem)) === testValue;
             };
         };
 
-    var $duplicates = !!choiceValue && $otherChoices.filter(isDuplicate(choiceValue)) || [],
-        // The value of $choice can only match 0 or 1 other original value.
-        $matchedOriginal = $otherChoices.filter(function() {
-            var originalValue = getOriginalValue($(this));
-            return originalValue ? originalValue === choiceValue : false;
-        });
-
-    if (0 < $duplicates.length) {
-        $duplicates.add($choice).toggleClass('duplicate-error', true);
-    }
     // clear duplicate-errors and recalculate them
     $otherChoices.add($choice).removeClass('duplicate-error');
-    var compact = function(index, elem) {
-        return !!getValue($(elem));
-    };
+
+    var $duplicates = !!choiceValue && $otherChoices.filter(isDuplicate(choiceValue)) || [];
+
+    // Flag duplication on the $choice if it isn't in the trash can
+    if (0 === $choice.closest(dom.trashCan).length && 0 < $duplicates.length) {
+        $duplicates.add($choice).toggleClass('duplicate-error', true);
+    }
+    // Invalidate other choices if they duplicate $choice
     $otherChoices.filter(compact).each(function() {
         var $other = $(this),
             otherValue = getValue($other),
             $otherChoices = $choiceList.find(dom.choice).not($other).filter(compact),
-            $duplicates = $otherChoices.filter(isDuplicate(otherValue));
+            $duplicates = $otherChoices
+                .filter(isDuplicate(otherValue))
+                .filter(function() {
+                    return 0 === $(this).closest(dom.trashCan).length;
+                });
         if (0 < $duplicates.length) {
             $duplicates.add($other).toggleClass('duplicate-error', true);
         }
     });
+
+    // Invalidate $choice if it reuses another choice
+    var $udf = $choiceList.closest(dom.udfContainer),
+        $trashCan = $udf.find(dom.trashCan),
+        $trashedChoices = $trashCan.find(dom.choice),
+        // The value of $choice can only match 0 or 1 other original value.
+        $matchedOriginal = $otherChoices.add($trashedChoices).filter(function() {
+            var originalValue = getOriginalValue($(this));
+            return originalValue ? originalValue === choiceValue : false;
+        });
     $choice.toggleClass('reused-error', 0 < $matchedOriginal.length);
+
+    $trashedChoices.find('.form-control').toggleClass('error', false);
+    highlightErrors($choiceList);
+}
+
+function highlightErrors($choiceList) {
     // highlight the associated form controls
     $choiceList.find('.form-control').toggleClass('error', false);
     $choiceList.find('.duplicate-error .form-control')
@@ -577,10 +646,18 @@ function checkDuplicates($choiceList, $choice) {
         .toggleClass('error', true);
     $choiceList.find('.blank-error .form-control')
         .toggleClass('error', true);
+    $choiceList.find('.empty-error .form-control')
+        .toggleClass('error', true);
 }
 
 function checkAllDuplicates($choiceList) {
-    $choiceList.find(dom.choiceInput).each(function(i, input) {
+    var $udf = $choiceList.closest(dom.udfContainer),
+        $trashCan = $udf.find(dom.trashCan);
+
+    // Need to validate against the $trashCan as well,
+    // in order to remove duplicates that no longer matter
+    // and expose reuse of trashed choices.
+    $choiceList.add($trashCan).find(dom.choiceInput).each(function(i, input) {
         var $input = $(input),
             $choice = $input.closest(dom.choice);
         validate($choiceList, $choice, $input);
