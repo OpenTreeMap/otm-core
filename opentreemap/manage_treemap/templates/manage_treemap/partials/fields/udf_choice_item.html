@@ -19,6 +19,10 @@
         <i class="icon-attention"></i>{% trans "You cannot use the same name twice" %}
     </div>
 
+    <div class="error" data-item="no-double-quotes">
+        <i class="icon-attention"></i>{% trans "Double quotes are not allowed in multiple choice fields" %}
+    </div>
+
     {# Necessary for adding choices on existing custom field definitions #}
     <div class="error" data-item="reused">
         <i class="icon-attention"></i>{% trans "You cannot reuse a former name without saving first" %}
