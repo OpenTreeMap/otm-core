@@ -15,13 +15,13 @@
       N/A
     {% endif %}
     {% if not udf.iscollection and udf.datatype_dict.choices %}
-      {% include "cloud_management/partials/udf_choice_cell.html" with choices=udf.datatype_dict.choices %}
+      {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=udf.datatype_dict.choices %}
     {% endif %}
     {% if udf.iscollection %}
       {% if request.instance|feature_enabled:"edit_collection_udfs" or udf.model_type in editable_gsi_models %}
         {% with datatype=udf.datatype_dict|first %}
            {% if datatype.choices %}
-              {% include "cloud_management/partials/udf_choice_cell.html" with choices=datatype.choices name=datatype.name %}
+              {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=datatype.choices name=datatype.name %}
            {% endif %}
         {% endwith %}
       {% endif %}
