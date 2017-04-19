@@ -4,7 +4,10 @@
 {% load l10n %}
 {% load util %}
 
-<tr data-udf="{{ udf.pk|unlocalize }}" data-model-type="{{ udf.model_type }}" data-is-collection="{{ udf.iscollection|yesno }}">
+<tr data-udf="{{ udf.pk|unlocalize }}"
+        data-model-type="{{ udf.model_type }}"
+        data-is-collection="{{ udf.iscollection|yesno }}"
+        data-datatype="{{ udf.datatype_dict.type }}">
     <td>{{ udf.model_type|display_name:request.instance }} {{ udf.name }}</td>
     <td>{{ datatype }}</td>
     <td class="udf-choices">
@@ -26,7 +29,9 @@
     </td>
     <td>
         {% if not udf.iscollection %}
-            <a class="btn btn-danger btn-xs" data-class="edit" style="display: none;" href="javascript:void(0)" data-udf-delete-popup>{% trans 'Delete Field' %}</a>
+            <a class="btn btn-danger btn-xs"
+               data-class="edit" style="display: none;" href="javascript:void(0)"
+               data-udf-delete-popup>{% trans 'Delete Field' %}</a>
         {% endif %}
     </td>
 </tr>

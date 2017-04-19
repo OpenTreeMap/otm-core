@@ -647,6 +647,11 @@ class UserDefinedFieldDefinition(models.Model):
             if len(choices) != len(set(choices)):
                 raise ValidationError(_('Duplicate choices are not allowed'))
 
+            if datatype['type'] == 'multichoice':
+                if 0 < len([c for c in choices if '"' in c]):
+                    raise ValidationError(_('Double quotes are not allowed'
+                                            'in multiple choice fields'))
+
         if 'default' in datatype:
             try:
                 self.clean_value(datatype['default'], datatype)

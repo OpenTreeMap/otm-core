@@ -702,6 +702,29 @@ class UDFDefTest(OTMTestCase):
               'default': 'anything'}],
             iscollection=True)
 
+    def test_create_multiple_choice_udf(self):
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({
+                'type': 'multichoice',
+                'choices': ['a', 'b']
+            }),
+            iscollection=False,
+            name='a name')
+
+    def test_cannot_create_multiple_choice_udf_with_double_quotes(self):
+        with self.assertRaises(ValidationError):
+            UserDefinedFieldDefinition.objects.create(
+                instance=self.instance,
+                model_type='Plot',
+                datatype=json.dumps({
+                    'type': 'multichoice',
+                    'choices': ['a', 'b"']
+                }),
+                iscollection=False,
+                name='a name')
+
     def test_invalid_names(self):
         with self.assertRaises(ValidationError):
             UserDefinedFieldDefinition.objects.create(

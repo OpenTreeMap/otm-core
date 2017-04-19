@@ -29,9 +29,6 @@ var dom = {
     addChoiceContainer: '#udf-create-choices',
     trashCan: '[data-item="deleted-choices"]',
     deletedChoice: '[data-marked="delete"]',
-    duplicateError: '[data-item="duplicate"]',
-    reusedError: '[data-item="reused"]',
-    blankError: '[data-item="blank"]',
     emptyError: '[data-item="empty"]',
     originalChoice: '[data-original-choice]',
     displayChoice: '[data-choice]',
@@ -398,6 +395,7 @@ function restoreValues() {
         $choiceList.find('.reused-error').removeClass('reused-error');
         $choiceList.find('.blank-error').removeClass('blank-error');
         $choiceList.find('.empty-error').removeClass('empty-error');
+        $choiceList.find('.no-double-quotes-error').removeClass('no-double-quotes-error');
         $choiceList.find('input[type="text"]').each(function() {
             var $input = $(this),
                 $choice = $input.closest(dom.choice);
@@ -544,10 +542,19 @@ function getChoices($choiceList, $except) {
 }
 
 function validate($choiceList, $choice, $input) {
+    var isMultiple = false;
+    if (1 === $choice.closest(dom.addChoiceContainer).length) {
+        isMultiple = $udfType.val() === 'multichoice';
+    } else {
+        isMultiple = $choice.closest(dom.udfContainer).data('datatype') === 'multichoice';
+    }
+    $choice.toggleClass('no-double-quotes-error',
+        isMultiple && -1 < $input.val().indexOf('"'));
+
     if (0 === $input.val().length && !!$choice.data('udf-choice')) {
         $choice.toggleClass('blank-error', true);
     } else if ($choice.is(':only-child') ||
-            ($choice.is(':first-child:not(' + dom.existingChoice + ')') && $input.val() === '')) {
+        ($choice.is(':first-child:not(' + dom.existingChoice + ')') && $input.val() === '')) {
         $choice.toggleClass('empty-error', true);
     } else {
         $choice.toggleClass('blank-error', false);
@@ -647,6 +654,8 @@ function highlightErrors($choiceList) {
     $choiceList.find('.blank-error .form-control')
         .toggleClass('error', true);
     $choiceList.find('.empty-error .form-control')
+        .toggleClass('error', true);
+    $choiceList.find('.no-double-quotes-error .form-control')
         .toggleClass('error', true);
 }
 
