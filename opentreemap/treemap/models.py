@@ -1094,7 +1094,10 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     @property
     def itree_code(self):
-        return self.species.get_itree_code(self.plot.itree_region.code)
+        if self.species:
+            return self.species.get_itree_code(self.plot.itree_region.code)
+        else:
+            return None
 
     ##########################
     # tree validation
