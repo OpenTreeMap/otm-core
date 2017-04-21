@@ -208,7 +208,9 @@ def async_csv_export(job, model, query, display_filters):
         write_csv(limited_qs, csv_file,
                   field_order=field_header_map.keys(),
                   field_header_map=field_header_map)
-        filename = generate_filename(limited_qs).replace('plot', 'tree')
+        filename = \
+            generate_filename(limited_qs, append_datestamp=True) \
+                .replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
 
     job.save()
