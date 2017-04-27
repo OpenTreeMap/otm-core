@@ -14,43 +14,22 @@ function d(path) {
 }
 
 function getEntries() {
-    var files = glob.sync('./opentreemap/*/js/src/*.js'),
-        entries = {};
-    files.forEach(function(file) {
-        var app = file.split(path.sep)[2],
-            basename = path.basename(file, '.js');
-        entries['js/' + app + '/' + basename] = file;
-    });
-    return entries;
+    return {
+        'demo': './opentreemap/modeling/js/src/modeling.js'
+    };
 }
 
 function getAliases() {
-    var dirs = glob.sync('opentreemap/*/js/src/*/'),
-        aliases = {};
-    dirs.forEach(function(thePath) {
-        var parts = thePath.split(path.sep),
-            app = parts[1],
-            dir = parts[4],
-            alias = app + path.sep + dir,
-            target = thePath.slice(0, -1);
-        aliases[alias] = d(target);
-    });
+    var aliases = {
+            'modeling': d('opentreemap/modeling/js/src/')
+        };
     return _.merge(aliases, shimmed);
 }
 
 var shimmed = {
-    leafletbing: d('assets/js/shim/leaflet.bing.js'),
-    utfgrid: d('assets/js/shim/leaflet.utfgrid.js'),
     typeahead: d('assets/js/shim/typeahead.jquery.js'),
     bootstrap: d('assets/js/shim/bootstrap.js'),
-    jqueryFileUpload: d('assets/js/shim/jquery.fileupload.js'),
-    jqueryIframeTransport: d('assets/js/shim/jquery.iframe-transport.js'),
-    jqueryUiWidget: d('assets/js/shim/jquery.ui.widget.js'),
-    ionRangeSlider: d('assets/js/shim/ion.rangeSlider.js'),
-    "bootstrap-datepicker": d('assets/js/shim/bootstrap-datepicker.js'),
-    "bootstrap-multiselect": d('assets/js/shim/bootstrap-multiselect.js'),
-    "bootstrap-slider": d('assets/js/shim/bootstrap-slider.js'),
-    jscolor: d('assets/js/shim/jscolor.js')
+    'bootstrap-slider': d('assets/js/shim/bootstrap-slider.js')
 };
 
 module.exports = {
@@ -62,7 +41,7 @@ module.exports = {
     },
     module: {
         loaders: [{
-            include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],
+            include: [shimmed["bootstrap-slider"]],
             loader: "imports?bootstrap"
         }, {
             test: /\.scss$/,
@@ -92,13 +71,6 @@ module.exports = {
             jQuery: "jquery",
             "window.jQuery": "jquery",
             L: "leaflet"
-        }),
-        new Webpack.optimize.CommonsChunkPlugin({
-            // Inlude the treemap/base entry module as part of the common module
-            name: "js/treemap/base",
-
-            // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
-            minChunks: 2,
         }),
         new ExtractTextPlugin('css/main.css', {allChunks: true}),
         new BundleTracker({path: d('static'), filename: 'webpack-stats.json'})

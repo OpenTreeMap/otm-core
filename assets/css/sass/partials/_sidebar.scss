@@ -1,0 +1,60 @@
+// Partial: Map Page Sidebar
+
+.sidebar {
+    width: 350px;
+    background: $navbar-color;
+    border-left: 1px solid $well-color;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    > div {
+        height: 100%;
+        overflow: auto;
+    }
+    .panel {
+        border: none;
+        margin: 0;
+    }
+    .panel-group {
+        border-radius: 0;
+        margin-bottom: 0;
+        border: none;
+        border-top: 1px solid darken($secondary-color, 25%);
+    }
+    .panel-heading {
+        background: $secondary-color;
+        padding: 0;
+
+        a {
+            text-decoration: none;
+            color: #FFF;
+            box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+            background: darken($secondary-color, 5%);
+            padding: 15px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: block;
+
+            &.collapsed {
+                color: lighten($secondary-color, 35%);
+                color: rgba(255,255,255,.5);
+                box-shadow: none;
+                background: $secondary-color;
+            }
+
+            &:hover {
+                text-decoration: none;
+                color: #FFF;
+                box-shadow: 0 3px 6px darken($secondary-color, 15%);
+                box-shadow: 0 3px 6px rgba(0,0,0,.2) inset;
+                background: darken($secondary-color, 5%);
+            }
+        }
+    }
+    .panel-body {
+        background: white;
+        padding: 0;
+    }
+}
