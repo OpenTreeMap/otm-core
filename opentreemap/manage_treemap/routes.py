@@ -9,17 +9,24 @@ from django_tinsel.decorators import route, render_template, json_api_call
 from django_tinsel.utils import decorate as do
 
 import manage_treemap.views.management as views
+import otm_comments.views as comment_views
 import manage_treemap.views.fields as field_views
 import manage_treemap.views.photo as photo_views
 import manage_treemap.views.green_infrastructure as green_infrastructure_views
 
+from exporter.views import begin_export_users
 from importer.views import list_imports
 from manage_treemap.views import update_instance_fields_with_validator
-from manage_treemap.views.udf import udf_bulk_update, udf_create, udf_list, \
-    udf_delete_popup, udf_delete, udf_update_choice
-from otm_comments.views import comment_moderation
+from manage_treemap.views.roles import roles_list, roles_update, roles_create
+from manage_treemap.views.udf import (udf_bulk_update, udf_create, udf_list,
+                                      udf_delete_popup, udf_delete,
+                                      udf_update_choice,
+                                      remove_udf_notifications)
+from manage_treemap.views.user_roles import (
+    user_roles_list, update_user_roles, create_user_role)
 from treemap.decorators import (require_http_method, admin_instance_request,
-                                return_400_if_validation_errors)
+                                return_400_if_validation_errors,
+                                requires_feature)
 
 admin_route = lambda **kwargs: admin_instance_request(route(**kwargs))
 
@@ -73,7 +80,7 @@ green_infrastructure = admin_route(
 
 comment_moderation = admin_route(
     GET=do(render_template('manage_treemap/comment_moderation.html'),
-           comment_moderation)
+           comment_views.comment_moderation)
 )
 
 photo_review_admin = admin_route(
@@ -92,6 +99,37 @@ approve_or_reject_photos = do(
     admin_instance_request,
     render_template('manage_treemap/partials/photo_review.html'),
     photo_views.approve_or_reject_photos)
+
+user_roles = admin_route(
+    GET=do(render_template('manage_treemap/user_roles.html'),
+           user_roles_list),
+    PUT=do(return_400_if_validation_errors, update_user_roles),
+    POST=do(return_400_if_validation_errors,
+            render_template('manage_treemap/partials/user_roles.html'),
+            create_user_role)
+)
+
+user_roles_partial = admin_route(
+    GET=do(render_template('manage_treemap/partials/user_roles.html'),
+           user_roles_list)
+)
+
+begin_export_users = do(
+    json_api_call,
+    admin_instance_request,
+    requires_feature('exports'),
+    begin_export_users)
+
+roles = admin_route(
+    GET=do(render_template('manage_treemap/roles.html'), roles_list),
+    PUT=do(roles_update),
+    POST=do(render_template('manage_treemap/partials/roles.html'),
+            roles_create)
+)
+
+clear_udf_notifications = admin_route(
+    POST=do(json_api_call, remove_udf_notifications)
+)
 
 importer = admin_route(
     GET=do(render_template('manage_treemap/importer.html'),

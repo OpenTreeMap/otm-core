@@ -1,0 +1,24 @@
+{% load i18n %}
+
+{% blocktrans with instance_name=instance.name %}
+You've been invited to join the {{ instance_name }} tree map!
+{% endblocktrans %}
+
+{% if instance.is_public %}
+{% trans "You can look at it now by going to:" %}
+<a href="{{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'map' instance_url_name=instance.url_name %}">
+  {{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'map' instance_url_name=instance.url_name %}
+</a>
+
+{% trans "But you'll have to register before you can edit or add trees. You can register at" %}
+{% else %}
+   {% trans "Before you can access the tree map you'll have to register at" %}
+{% endif %}
+
+<a href="{{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'registration_register' %}?join=true&key={{ invite.activation_key }}">
+  {{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'registration_register' %}?join=true&key={{ invite.activation_key }}
+</a>
+
+<br/>
+<br/>
+<br/>

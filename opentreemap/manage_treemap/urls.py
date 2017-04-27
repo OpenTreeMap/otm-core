@@ -29,6 +29,15 @@ urlpatterns = patterns(
     url(r'^photo-review/approve-reject/(?P<action>(approve)|(reject))$',
         routes.approve_or_reject_photos, name='approve_or_reject_photos'),
 
+    url(r'^user-roles/$', routes.user_roles, name='user_roles'),
+    url(r'^user-roles-partial/$', routes.user_roles_partial,
+        name='user_roles_partial'),
+    url(r'^roles/$', routes.roles, name='roles_endpoint'),
+    url(r'^export/user/(?P<data_format>(csv|json))/$',
+        routes.begin_export_users, name='management_begin_export_users'),
+    url(r'^clear-udf-notifications/$',
+        routes.clear_udf_notifications, name='clear_udf_notifications'),
+
     url(r'^bulk-uploader/$', routes.importer, name='importer'),
     url(r'^benefits/$', routes.benefits, name='benefits'),
     url(r'^units/$', routes.units, name='units_endpoint'),

@@ -287,6 +287,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('treemap', '0035_merge'),
+        ('stormwater', '0010_stormwater_blank_true')
     ]
 
     operations = [

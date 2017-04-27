@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load auth_extras %}
 {% load instance_config %}
-{% load manage_treemap %}
+{% load is_current_view %}
 
 {% block page_title %} | {% trans "Manage" %} | {% block admin_title %}{% endblock %}{% endblock %}
 
@@ -73,6 +73,10 @@
 
                     {% block extra_menu_items %}
                     {% endblock extra_menu_items %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="user_roles" title=_("Users") icon="icon-users-1" %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="roles_endpoint" title=_("Roles") icon="icon-lock" notification="udfs" %}
 
                     {% with is_active=request|is_current_view:"comment_moderation_admin photo_review_admin" %}
                         <tr {% if is_active %}class="active"{% endif %}>

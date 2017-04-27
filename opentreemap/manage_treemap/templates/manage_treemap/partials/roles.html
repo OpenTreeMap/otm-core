@@ -1,0 +1,6 @@
+<div data-roles="{{ role_ids }}">
+    {% include "manage_treemap/partials/role_group_instance.html" %}
+    {% for group in role_groups %}
+        {% include "manage_treemap/partials/role_group_model.html" %}
+    {% endfor %}
+</div>

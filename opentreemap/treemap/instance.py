@@ -103,7 +103,7 @@ PERMISSION_VIEW_EXTERNAL_LINK = 'view_external_link'
 
 
 # Don't call this function directly, call plugin.get_instance_permission_spec()
-def get_instance_permission_spec():
+def get_instance_permission_spec(instance=None):
     from treemap.audit import Role
     return [
         {

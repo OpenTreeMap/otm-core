@@ -1,0 +1,37 @@
+{% load i18n %}
+{% load l10n %}
+
+    <tr {% if perm_list.0.codename in udf_notifications %}class="active"{% endif %}>
+    {% for perm in perm_list %}
+        <td>
+            <span data-class="display" data-field="{{ perm.codename }}.{{ forloop.counter }}"
+                  data-value="{{ perm.has_permission }}"
+                  data-display-map="{&quot;false&quot;:&quot;{% trans "No" %}&quot;, &quot;true&quot;:&quot;{% trans "Yes" %}&quot;}">
+                {{ perm.has_permission|yesno|capfirst }}
+            </span>
+            <span class="codename-edit"  style="display: none;"
+                  data-class="edit"
+                  data-field="{{ perm.codename }}.{{ forloop.counter }}"
+                  data-value="{{ perm.has_permission }}">
+                <label class="no boolean-radio">
+                    <input type="radio"
+                        name="{{ perm.codename }}.{{ forloop.counter }}"
+                        {% if not perm.has_permission %}checked="checked"{% endif %}
+                        data-role-id="{{ perm.role.pk|unlocalize }}"
+                        data-value="false"
+                        data-name="{{ perm.codename }}"/>
+                    <span class="codename-radio">{% trans "No" %}</span>
+                </label>
+                <label class="yes boolean-radio">
+                    <input type="radio"
+                        name="{{ perm.codename }}.{{ forloop.counter }}"
+                        {% if perm.has_permission %}checked="checked"{% endif %}
+                        data-role-id="{{ perm.role.pk|unlocalize }}"
+                        data-value="true"
+                        data-name="{{ perm.codename }}"/>
+                    <span class="codename-radio">{% trans "Yes" %}</span>
+                </label>
+            </span>
+        </td>
+    {% endfor %}
+    </tr>
