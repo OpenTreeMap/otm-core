@@ -1,22 +1,19 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# Polish translation by Koduj dla Polski
+# Form more details please refer to http://kodujdlapolski.pl/
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-03-05 20:07+0100\n"
-"PO-Revision-Date: 2016-04-27 19:07+0200\n"
-"Last-Translator: Domenico Aliotta\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Magda R.\n"
 "Language-Team: \n"
-"Language: it\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.7\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
 
 #: opentreemap/treemap/audit.py:683
 msgid "Invisible"
@@ -98,26 +95,20 @@ msgid "Delete"
 msgstr ""
 
 #: opentreemap/treemap/audit.py:1346
-#, fuzzy
-#| msgid "Latest Update"
 msgid "Update"
-msgstr "Ultimo aggiornamento"
+msgstr "Ostatnio zaktualizowane"
 
 #: opentreemap/treemap/audit.py:1347
 msgid "Approved Pending Edit"
 msgstr ""
 
 #: opentreemap/treemap/audit.py:1348
-#, fuzzy
-#| msgid "Recent Edits"
 msgid "Reject Pending Edit"
-msgstr "Editing recenti"
+msgstr "Ostatnie zmiany"
 
 #: opentreemap/treemap/audit.py:1349
-#, fuzzy
-#| msgid "Recent Edits"
 msgid "Rejected Edit"
-msgstr "Editing recenti"
+msgstr "Ostatnie zmiany"
 
 #: opentreemap/treemap/audit.py:1350
 msgid "Approved Edit"
@@ -135,38 +126,28 @@ msgstr ""
 
 #. Translators: 'Energy conserved' is the name of an eco benefit
 #: opentreemap/treemap/ecobenefits.py:434
-#, fuzzy
-#| msgid "Energy Conserved"
 msgid "Energy conserved"
-msgstr "Energia conservata"
+msgstr "Oszczędność energii"
 
 #. Translators: 'Stormwater filtered' is the name of an eco benefit
 #: opentreemap/treemap/ecobenefits.py:436
-#, fuzzy
-#| msgid "Stormwater Intercepted"
 msgid "Stormwater filtered"
-msgstr "Acque piovane intercettate"
+msgstr "Woda opadowa"
 
 #. Translators: 'Carbon dioxide removed' is the name of an eco benefit
 #: opentreemap/treemap/ecobenefits.py:438
-#, fuzzy
-#| msgid "Carbon dioxide reduced"
 msgid "Carbon dioxide removed"
-msgstr "Anidiride Carbonica ridotta"
+msgstr "Redukcja dwutlenku węgla"
 
 #. Translators: 'Carbon dioxide stored' is the name of an eco benefit
 #: opentreemap/treemap/ecobenefits.py:440
-#, fuzzy
-#| msgid "Carbon dioxide reduced"
 msgid "Carbon dioxide stored to date"
-msgstr "Anidiride Carbonica ridotta"
+msgstr "Redukcja dwutlenku węgla"
 
 #. Translators: 'Air quality improved' is the name of an eco benefit
 #: opentreemap/treemap/ecobenefits.py:442
-#, fuzzy
-#| msgid "Air Quality"
 msgid "Air quality improved"
-msgstr "Qualità dell'aria"
+msgstr "Jakość powietrza"
 
 #: opentreemap/treemap/images.py:59
 msgid "The uploaded image is too large"
@@ -214,10 +195,8 @@ msgid "I added a photo of this %s!"
 msgstr ""
 
 #: opentreemap/treemap/lib/map_feature.py:269
-#, fuzzy
-#| msgid "Add a Tree"
 msgid "Add a tree"
-msgstr "Aggiungi un Albero"
+msgstr "Dodaj drzewo"
 
 #: opentreemap/treemap/lib/map_feature.py:271
 msgid "Add the diameter"
@@ -229,10 +208,8 @@ msgstr ""
 
 #: opentreemap/treemap/lib/map_feature.py:275
 #: opentreemap/treemap/lib/map_feature.py:340
-#, fuzzy
-#| msgid "Add Photos"
 msgid "Add a photo"
-msgstr "Aggiungi Foto"
+msgstr "Dodaj zdjęcia"
 
 #: opentreemap/treemap/lib/map_feature.py:427
 #, python-format
@@ -301,10 +278,8 @@ msgid "Values must be not be negative"
 msgstr ""
 
 #: opentreemap/treemap/models.py:256
-#, fuzzy
-#| msgid "Username:"
 msgid "username"
-msgstr "Nome Utente:"
+msgstr "Login:"
 
 #: opentreemap/treemap/models.py:258
 msgid ""
@@ -316,10 +291,8 @@ msgid "Enter a valid username."
 msgstr ""
 
 #: opentreemap/treemap/models.py:265
-#, fuzzy
-#| msgid "Nearby Address:"
 msgid "email address"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/models.py:267
 msgid "staff status"
@@ -364,10 +337,8 @@ msgid "Cannot have spaces in a username"
 msgstr ""
 
 #: opentreemap/treemap/models.py:564
-#, fuzzy
-#| msgid "Nearby Address:"
 msgid "Address"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/models.py:566
 msgid "City"
@@ -378,16 +349,12 @@ msgid "Postal Code"
 msgstr ""
 
 #: opentreemap/treemap/models.py:576
-#, fuzzy
-#| msgid "Latest Update"
 msgid "Last Updated"
-msgstr "Ultimo aggiornamento"
+msgstr "Ostatnio zaktualizowane"
 
 #: opentreemap/treemap/models.py:578
-#, fuzzy
-#| msgid "Latest Update"
 msgid "Last Updated By"
-msgstr "Ultimo aggiornamento"
+msgstr "Ostatnio zaktualizowane"
 
 #: opentreemap/treemap/models.py:658
 msgid "Feature location is not specified"
@@ -399,16 +366,12 @@ msgid "%(model)s must be created inside the map boundaries"
 msgstr ""
 
 #: opentreemap/treemap/models.py:777
-#, fuzzy
-#| msgid "Species:"
 msgid "Missing Species"
-msgstr "Specie:"
+msgstr "Gatunek:"
 
 #: opentreemap/treemap/models.py:779
-#, fuzzy
-#| msgid "Planting Site"
 msgid "Empty Planting Site"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/models.py:872
 #, python-format
@@ -431,16 +394,12 @@ msgid "The %(field_name)s is too large"
 msgstr ""
 
 #: opentreemap/treemap/models.py:894
-#, fuzzy
-#| msgid "Planting Site"
 msgid "Planting Site Width"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/models.py:896
-#, fuzzy
-#| msgid "Planting Site"
 msgid "Planting Site Length"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/models.py:899
 msgid "Custom ID"
@@ -448,14 +407,12 @@ msgstr ""
 
 #: opentreemap/treemap/models.py:904
 msgid "Planting Site"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/models.py:905
 #: opentreemap/treemap/templates/instance_base.html:122
-#, fuzzy
-#| msgid "Planting Site"
 msgid "Planting Sites"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/models.py:916
 msgid "that have been"
@@ -479,26 +436,22 @@ msgstr ""
 #: opentreemap/treemap/models.py:1009
 #: opentreemap/treemap/templates/treemap/field/species_div.html:13
 #: opentreemap/treemap/templates/treemap/field/species_tr.html:19
-#, fuzzy
-#| msgid "Species:"
 msgid "Species"
-msgstr "Specie:"
+msgstr "Gatunek:"
 
 #: opentreemap/treemap/models.py:1013
-#, fuzzy
-#| msgid "Trunk Diameter"
 msgid "Tree Diameter"
-msgstr "Diametro del Tronco"
+msgstr "Średnica pnia"
 
 #: opentreemap/treemap/models.py:1015
 #: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:29
 #: opentreemap/treemap/views/misc.py:82
 msgid "Tree Height"
-msgstr "Altezza dell'albero"
+msgstr "Wysokość drzewa"
 
 #: opentreemap/treemap/models.py:1017
 msgid "Canopy Height"
-msgstr "Altezza della Chioma"
+msgstr "Wysokość korony drzewa"
 
 #: opentreemap/treemap/models.py:1019
 msgid "Date Planted"
@@ -516,47 +469,35 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/models.py:1065
-#, fuzzy
-#| msgid "Tree Key"
 msgid "Tree"
-msgstr "Tree Key"
+msgstr ""
 
 #: opentreemap/treemap/models.py:1065
 #: opentreemap/treemap/templates/instance_base.html:121
-#, fuzzy
-#| msgid "Tree Key"
 msgid "Trees"
-msgstr "Tree Key"
+msgstr ""
 
 #: opentreemap/treemap/models.py:1189
 #: opentreemap/treemap/templates/treemap/partials/photo_review.html:48
-#, fuzzy
-#| msgid "Add Photos"
 msgid "Photo"
-msgstr "Aggiungi Foto"
+msgstr "Dodaj zdjęcia"
 
 #: opentreemap/treemap/models.py:1189
 #: opentreemap/treemap/templates/treemap/partials/photo_review.html:9
-#, fuzzy
-#| msgid "Add Photos"
 msgid "Photos"
-msgstr "Aggiungi Foto"
+msgstr "Dodaj zdjęcia"
 
 #: opentreemap/treemap/search_fields.py:50
 #: opentreemap/treemap/search_fields.py:63
 #: opentreemap/treemap/templates/treemap/partials/tree_section.html:8
-#, fuzzy
-#| msgid "General Tree Information"
 msgid "Tree Information"
-msgstr "Informazioni generali dell'Albero"
+msgstr "Informacje ogólne "
 
 #: opentreemap/treemap/search_fields.py:54
 #: opentreemap/treemap/search_fields.py:69
 #: opentreemap/treemap/templates/treemap/partials/plot_section.html:8
-#, fuzzy
-#| msgid "Planting Site"
 msgid "Planting Site Information"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/search_fields.py:57
 msgid "Stewardship"
@@ -618,10 +559,8 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/search_fields.py:127
-#, fuzzy
-#| msgid "Planting Site"
 msgid "empty planting sites"
-msgstr "Sito di Impianto"
+msgstr "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/search_fields.py:133
 #, python-format
@@ -654,10 +593,8 @@ msgid "Try"
 msgstr ""
 
 #: opentreemap/treemap/templates/404.html:23
-#, fuzzy
-#| msgid "Explore Trees"
 msgid "exploring trees"
-msgstr "Esplora gli alberi"
+msgstr "Zobacz stan drzew"
 
 #: opentreemap/treemap/templates/404.html:24
 msgid "or feel free to"
@@ -697,7 +634,7 @@ msgstr ""
 #: opentreemap/treemap/templates/base.html:61
 #: opentreemap/treemap/templates/treemap/index.html:10
 msgid "Explore Trees"
-msgstr "Esplora gli alberi"
+msgstr "Zobacz stan drzew"
 
 #: opentreemap/treemap/templates/base.html:66
 #: opentreemap/treemap/templates/instance_base.html:46
@@ -712,23 +649,23 @@ msgstr ""
 #: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:16
 #: opentreemap/treemap/templates/treemap/partials/add_plot_btn.html:15
 msgid "Add a Tree"
-msgstr "Aggiungi un Albero"
+msgstr "Dodaj drzewo"
 
 #: opentreemap/treemap/templates/base.html:77
 #: opentreemap/treemap/templates/base.html:101
 msgid "My Account"
-msgstr ""
+msgstr "Moje konto"
 
 #: opentreemap/treemap/templates/base.html:85
 #: opentreemap/treemap/templates/base.html:109
 msgid "Logout"
-msgstr "Esci"
+msgstr "Wyloguj się"
 
 #: opentreemap/treemap/templates/base.html:113
 #: opentreemap/treemap/templates/base.html:122
 #: opentreemap/treemap/templates/registration/login.html:6
 msgid "Login"
-msgstr "Accedi"
+msgstr "Zaloguj się"
 
 #: opentreemap/treemap/templates/base.html:115
 #: opentreemap/treemap/templates/base.html:124
@@ -736,23 +673,19 @@ msgstr "Accedi"
 #: opentreemap/treemap/templates/instance_base.html:99
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:138
 msgid "Sign Up"
-msgstr "Registrati"
+msgstr "Zarejestruj się"
 
 #: opentreemap/treemap/templates/instance_base.html:61
-#, fuzzy
-#| msgid "Explore Trees"
 msgid "Explore Map"
-msgstr "Esplora gli alberi"
+msgstr "Zobacz stan drzew"
 
 #: opentreemap/treemap/templates/instance_base.html:72
 msgid "Plan"
 msgstr ""
 
 #: opentreemap/treemap/templates/instance_base.html:81
-#, fuzzy
-#| msgid "Recent Edits"
 msgid "View Edits"
-msgstr "Editing recenti"
+msgstr "Ostatnie zmiany"
 
 #: opentreemap/treemap/templates/instance_base.html:87
 msgid "Manage"
@@ -773,47 +706,43 @@ msgstr ""
 #: opentreemap/treemap/templates/instance_base.html:183
 #: opentreemap/treemap/templates/instance_base.html:185
 msgid "Advanced"
-msgstr "Avanzato"
+msgstr "Zaawansowane"
 
 #: opentreemap/treemap/templates/instance_base.html:190
 #: opentreemap/treemap/templates/treemap/edits.html:35
 msgid "Reset"
-msgstr "Resetta"
+msgstr "Usuń filtr"
 
 #: opentreemap/treemap/templates/instance_base.html:193
 #: opentreemap/treemap/templates/treemap/partials/step_set_location.html:11
 msgid "Search"
-msgstr "Cerca"
+msgstr "Szukaj"
 
 #: opentreemap/treemap/templates/instance_base.html:207
-#, fuzzy
-#| msgid "Tree Key"
 msgid "Tree ID"
-msgstr "Tree Key"
+msgstr ""
 
 #: opentreemap/treemap/templates/instance_base.html:212
 msgid "Contact"
-msgstr "Contatti"
+msgstr "Kontakt"
 
 #: opentreemap/treemap/templates/registration/activate.html:8
 msgid "Account successfully activated"
-msgstr "Account creato"
+msgstr "Sukces! Twoje konto jest już aktywne."
 
 #: opentreemap/treemap/templates/registration/activate.html:9
 #: opentreemap/treemap/templates/registration/login.html:39
 #: opentreemap/treemap/templates/registration/password_reset_complete.html:11
 msgid "Log in"
-msgstr "Accedi"
+msgstr "Zaloguj się"
 
 #: opentreemap/treemap/templates/registration/activate.html:9
 msgid "to start exploring trees!"
 msgstr ""
 
 #: opentreemap/treemap/templates/registration/activate.html:11
-#, fuzzy
-#| msgid "Account activation on"
 msgid "Account Activation Issue"
-msgstr "Attivazione dell'account su"
+msgstr "Aktywacja konta przez"
 
 #: opentreemap/treemap/templates/registration/activate.html:13
 #, python-format
@@ -866,10 +795,8 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/templates/registration/activation_email_subject.txt:1
-#, fuzzy
-#| msgid "Activate account at"
 msgid "Activate your tree map account"
-msgstr "Account attivato"
+msgstr "Aktywuj konto przez"
 
 #: opentreemap/treemap/templates/registration/login.html:14
 msgid "Log in to OpenTreeMap"
@@ -880,41 +807,33 @@ msgid "Recover my username"
 msgstr ""
 
 #: opentreemap/treemap/templates/registration/login.html:31
-#, fuzzy
-#| msgid "Forgot password"
 msgid "Reset my password"
-msgstr "Password dimenticata"
+msgstr "Zapomniałem hasła"
 
 #: opentreemap/treemap/templates/registration/login.html:45
-#, fuzzy
-#| msgid "Already have an account?"
 msgid "Don't have an account?"
-msgstr "Hai già un account?"
+msgstr "Masz już konto?"
 
 #: opentreemap/treemap/templates/registration/login.html:46
 #: opentreemap/treemap/templates/registration/registration_form.html:5
 msgid "Register"
-msgstr "Registrati"
+msgstr "Zarejestruj się"
 
 #: opentreemap/treemap/templates/registration/password_change_done.html:5
 msgid "Password changed"
-msgstr "Password cambiata"
+msgstr "Hasło zostało zmienione"
 
 #: opentreemap/treemap/templates/registration/password_change_form.html:9
 msgid "Submit"
-msgstr "Invia"
+msgstr "Dalej"
 
 #: opentreemap/treemap/templates/registration/password_reset_complete.html:8
-#, fuzzy
-#| msgid "Password reset failed"
 msgid "Password Reset"
-msgstr "Reset della password fallito"
+msgstr "Nie udało się zmienić hasła"
 
 #: opentreemap/treemap/templates/registration/password_reset_complete.html:9
-#, fuzzy
-#| msgid "Password reset successfully"
 msgid "Your password was reset successfully"
-msgstr "Reset della password riuscito"
+msgstr "Hasło zostało zmienione"
 
 #: opentreemap/treemap/templates/registration/password_reset_confirm.html:11
 msgid "Please enter and confirm a new password for your account."
@@ -930,13 +849,13 @@ msgstr ""
 
 #: opentreemap/treemap/templates/registration/password_reset_confirm.html:20
 msgid "Password reset failed"
-msgstr "Reset della password fallito"
+msgstr "Nie udało się zmienić hasła"
 
 #: opentreemap/treemap/templates/registration/password_reset_done.html:7
-#, fuzzy
-#| msgid "Email with password reset instructions has been sent."
 msgid "Password Reset Instructions Sent"
-msgstr "L'email con le istruzioni per il reset della password è stata inviata"
+msgstr ""
+"Masz wiadomość. Email z linkiem do zmiany hasła został wysłany pod wskazany "
+"przez Ciebie adres. "
 
 #: opentreemap/treemap/templates/registration/password_reset_done.html:8
 #: opentreemap/treemap/templates/registration/password_reset_email_sent.html:5
@@ -980,13 +899,11 @@ msgstr ""
 
 #: opentreemap/treemap/templates/registration/registration_closed.html:7
 msgid "Registration is currently closed."
-msgstr "Le registrazioni sono attualmente chiuse"
+msgstr "Rejestracja tymczasowo nie działa."
 
 #: opentreemap/treemap/templates/registration/registration_complete.html:7
-#, fuzzy
-#| msgid "Account activation failed"
 msgid "Account created!"
-msgstr "Attivazione dell'account fallita"
+msgstr "Ups, nie udało się założyć konta. "
 
 #: opentreemap/treemap/templates/registration/registration_complete.html:8
 msgid ""
@@ -995,22 +912,16 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/templates/registration/registration_form.html:27
-#, fuzzy
-#| msgid "Need an account?"
 msgid "Create an Account"
-msgstr "Necessiti di un account?"
+msgstr "Nie masz jeszcze konta?"
 
 #: opentreemap/treemap/templates/registration/registration_form.html:28
-#, fuzzy
-#| msgid "Already have an account?"
 msgid "I already have an account"
-msgstr "Hai già un account?"
+msgstr "Masz już konto?"
 
 #: opentreemap/treemap/templates/registration/registration_form.html:42
-#, fuzzy
-#| msgid "Activate account at"
 msgid "Create Account"
-msgstr "Account attivato"
+msgstr "Aktywuj konto przez"
 
 #: opentreemap/treemap/templates/treemap/edits.html:7
 #: opentreemap/treemap/templates/treemap/edits.html:34
@@ -1019,10 +930,8 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/edits.html:43
 #: opentreemap/treemap/templates/treemap/map-browse-trees.html:7
-#, fuzzy
-#| msgid "Edit details"
 msgid "Details"
-msgstr "Edita i dettagli"
+msgstr "Dodaj szczegóły"
 
 #: opentreemap/treemap/templates/treemap/edits.html:44
 msgid "Edit #"
@@ -1039,15 +948,15 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/edits.html:47
 msgid "Field"
-msgstr "Campo"
+msgstr "Obszar"
 
 #: opentreemap/treemap/templates/treemap/edits.html:48
 msgid "Old Value"
-msgstr "Vecchio valore"
+msgstr "Poprzednia wartość"
 
 #: opentreemap/treemap/templates/treemap/edits.html:49
 msgid "Current Value"
-msgstr "Valore attuale"
+msgstr "Aktualna wartość"
 
 #: opentreemap/treemap/templates/treemap/edits.html:50
 msgid "Edited By"
@@ -1069,18 +978,16 @@ msgstr ""
 #: opentreemap/treemap/templates/treemap/edits.html:160
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:39
 msgid "Previous"
-msgstr "Precedente"
+msgstr "Poprzednio"
 
 #: opentreemap/treemap/templates/treemap/edits.html:170
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:46
 msgid "Next"
-msgstr "Prossimo"
+msgstr "Następne"
 
 #: opentreemap/treemap/templates/treemap/field/resource_tree.html:6
-#, fuzzy
-#| msgid "Trunk Diameter"
 msgid "No diameter"
-msgstr "Diametro del Tronco"
+msgstr "Średnica pnia"
 
 #. Translators: This is in-between two date boxes for a range search
 #: opentreemap/treemap/templates/treemap/field/search.html:13
@@ -1097,11 +1004,11 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/field/species_tr.html:4
 msgid "Common Name"
-msgstr "Nome Comune"
+msgstr "Nazwa potoczna"
 
 #: opentreemap/treemap/templates/treemap/field/species_tr.html:9
 msgid "Scientific Name"
-msgstr "Nome Scientifico"
+msgstr "Naukowa nazwa"
 
 #: opentreemap/treemap/templates/treemap/field/species_typeahead.html:26
 msgid "Need help identifying the tree's species?"
@@ -1109,7 +1016,7 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/field/tree_id_tr.html:6
 msgid "Tree Number"
-msgstr "Numero dell'Albero"
+msgstr "Numer drzewa"
 
 #: opentreemap/treemap/templates/treemap/forgot_username.html:7
 msgid "Retrieve your Username"
@@ -1122,14 +1029,10 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/forgot_username.html:12
-#, fuzzy
-#| msgid "Nearby Address:"
 msgid "Email Address"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/templates/treemap/forgot_username_done.html:7
-#, fuzzy
-#| msgid "Email:"
 msgid "Email Sent"
 msgstr "Email:"
 
@@ -1155,17 +1058,15 @@ msgstr ""
 #: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:26
 #: opentreemap/treemap/views/map_feature.py:124
 msgid "Trunk Diameter"
-msgstr "Diametro del Tronco"
+msgstr "Średnica pnia"
 
 #: opentreemap/treemap/templates/treemap/map-add-tree.html:33
 msgid "Finalize this tree"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/map-add-tree.html:40
-#, fuzzy
-#| msgid "Nearby Address:"
 msgid "Nearby Address"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/templates/treemap/map-add-tree.html:42
 msgid "After I add this tree..."
@@ -1216,13 +1117,11 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/map.html:5
 msgid "Map"
-msgstr "Mappa"
+msgstr "Mapa"
 
 #: opentreemap/treemap/templates/treemap/map_feature_detail.html:27
-#, fuzzy
-#| msgid "Add Photos"
 msgid "Add a Photo"
-msgstr "Aggiungi Foto"
+msgstr "Dodaj zdjęcia"
 
 #: opentreemap/treemap/templates/treemap/map_feature_detail.html:37
 msgid "Are you sure you want to delete this photo?"
@@ -1260,18 +1159,16 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/map_feature_detail.html:81
 #: opentreemap/treemap/templates/treemap/user.html:57
-#, fuzzy
-#| msgid "Add Photos"
 msgid "Add Photo"
-msgstr "Aggiungi Foto"
+msgstr "Dodaj zdjęcia"
 
 #: opentreemap/treemap/templates/treemap/map_feature_detail.html:104
 msgid "Move Location"
-msgstr ""
+msgstr "Szukaj w lokalizacji"
 
 #: opentreemap/treemap/templates/treemap/map_feature_detail.html:105
 msgid "Cancel Move Location"
-msgstr ""
+msgstr "Szukaj w lokalizacji"
 
 #: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:10
 msgid "Map Feature Photo"
@@ -1293,10 +1190,8 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:33
 #: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:8
-#, fuzzy
-#| msgid "Add a Tree"
 msgid "Add a"
-msgstr "Aggiungi un Albero"
+msgstr "Dodaj drzewo"
 
 #: opentreemap/treemap/templates/treemap/partials/advanced_search/display.html:6
 msgid "Display"
@@ -1311,10 +1206,8 @@ msgid "More"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:7
-#, fuzzy
-#| msgid "Tree Key"
 msgid "Tree Care"
-msgstr "Tree Key"
+msgstr "Numer drzewa"
 
 #: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:15
 msgid "I am looking for"
@@ -1339,10 +1232,8 @@ msgid "Regional Canopy Filter"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:6
-#, fuzzy
-#| msgid "Canopy Height"
 msgid "Canopy"
-msgstr "Altezza della Chioma"
+msgstr "Wysokość korony drzewa"
 
 #: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:7
 #: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:41
@@ -1359,10 +1250,8 @@ msgid "No entries yet!"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:7
-#, fuzzy
-#| msgid "Trunk Diameter"
 msgid "Diameter"
-msgstr "Diametro del Tronco"
+msgstr "Średnica pnia"
 
 #: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:8
 msgid "Circumference"
@@ -1373,20 +1262,16 @@ msgid "Add another trunk?"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:44
-#, fuzzy
-#| msgid "Trunk Diameter"
 msgid "Combined Diameter:"
-msgstr "Diametro del Tronco"
+msgstr "Średnica pnia"
 
 #: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:49
 msgid "Need help measuring the tree?"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:14
-#, fuzzy
-#| msgid "Tree Height"
 msgid "Tree Benefits"
-msgstr "Altezza dell'albero"
+msgstr "Wysokość drzewa"
 
 #: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:25
 msgid "Benefits"
@@ -1460,10 +1345,8 @@ msgid "Indicate Polygon Area"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:63
-#, fuzzy
-#| msgid "About"
 msgid "About this"
-msgstr "Info"
+msgstr "O projekcie"
 
 #: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:75
 msgid "Finalize this"
@@ -1484,17 +1367,15 @@ msgstr ""
 #: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:10
 #: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:9
 msgid "Nearby Address:"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:32
-#, fuzzy
-#| msgid "Add to Favorites"
 msgid "Remove from Favorites"
-msgstr "Aggiungi ai favoriti"
+msgstr "Dodaj do ulubionych"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:33
 msgid "Add to Favorites"
-msgstr "Aggiungi ai favoriti"
+msgstr "Dodaj do ulubionych"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:56
 msgid "Editing of the resource's details is not available to all users"
@@ -1518,10 +1399,8 @@ msgid "Confirm Deletion"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:103
-#, fuzzy
-#| msgid "Commments"
 msgid "Comments"
-msgstr "Commenti"
+msgstr "Komentarze"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:115
 msgid "Removed by Moderator"
@@ -1533,15 +1412,15 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
 msgid "or"
-msgstr "o"
+msgstr "lub"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
 msgid "log in"
-msgstr "Accedi"
+msgstr "Zaloguj się"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:140
 msgid "to add comments"
-msgstr "per aggiungere commenti"
+msgstr "aby dodawać komentarze"
 
 #: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:148
 msgid ""
@@ -1567,10 +1446,8 @@ msgid "Archive"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/photo.html:24
-#, fuzzy
-#| msgid "View all details"
 msgid "View Detail"
-msgstr "Vedi tutti i dettagli"
+msgstr "Zobacz szczegóły"
 
 #: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:18
 msgid "Photo number"
@@ -1589,10 +1466,8 @@ msgid "Id"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/photo_review.html:51
-#, fuzzy
-#| msgid "Action"
 msgid "Actions"
-msgstr "Azione"
+msgstr "Typ zmiany"
 
 #: opentreemap/treemap/templates/treemap/partials/photo_review.html:54
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:12
@@ -1623,9 +1498,10 @@ msgstr ""
 msgid "No Thanks"
 msgstr ""
 
+# jaki jest kontekst? gdzie to wystepuje?
 #: opentreemap/treemap/templates/treemap/partials/plot_detail.html:21
 msgid "Yearly Ecosystem Services"
-msgstr "Ecosystem Services Annuali"
+msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/plot_detail.html:27
 msgid ""
@@ -1658,10 +1534,8 @@ msgid "There is no tree for this planting site."
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/plot_detail_add_tree.html:11
-#, fuzzy
-#| msgid "Add a Tree"
 msgid "Add Tree"
-msgstr "Aggiungi un Albero"
+msgstr "Dodaj drzewo"
 
 #: opentreemap/treemap/templates/treemap/partials/plot_eco.html:5
 msgid ""
@@ -1700,20 +1574,16 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/resource_detail.html:11
-#, fuzzy
-#| msgid "General Tree Information"
 msgid "Information"
-msgstr "Informazioni generali dell'Albero"
+msgstr "Informacje ogólne "
 
 #: opentreemap/treemap/templates/treemap/partials/resource_detail.html:16
 msgid "number"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/resource_detail.html:46
-#, fuzzy
-#| msgid "Yearly Ecosystem Services"
 msgid "Ecosystem Services"
-msgstr "Ecosystem Services Annuali"
+msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/resource_detail.html:63
 msgid "Associated Trees"
@@ -1737,10 +1607,8 @@ msgid ""
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/search_location.html:6
-#, fuzzy
-#| msgid "Search by Species"
 msgid "Search by Location"
-msgstr "Cerca per Specie"
+msgstr "Szukaj w lokalizacji"
 
 #: opentreemap/treemap/templates/treemap/partials/search_location.html:14
 #: opentreemap/treemap/templates/treemap/partials/step_set_location.html:10
@@ -1749,7 +1617,7 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/search_species.html:7
 msgid "Search by Species"
-msgstr "Cerca per Specie"
+msgstr "Szukaj według gatunku"
 
 #: opentreemap/treemap/templates/treemap/partials/search_species.html:20
 msgid "Disabled while missing species search is active"
@@ -1757,22 +1625,20 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/sidebar.html:6
 msgid "Latest Update"
-msgstr "Ultimo aggiornamento"
+msgstr "Ostatnio zaktualizowane"
 
 #: opentreemap/treemap/templates/treemap/partials/sidebar.html:17
 msgid "Complete"
-msgstr "Completo"
+msgstr "Zakończ"
 
 #: opentreemap/treemap/templates/treemap/partials/sidebar.html:27
 #: opentreemap/treemap/templates/treemap/user.html:137
 msgid "Recent Edits"
-msgstr "Editing recenti"
+msgstr "Ostatnie zmiany"
 
 #: opentreemap/treemap/templates/treemap/partials/sidebar.html:42
-#, fuzzy
-#| msgid "Nearby Address:"
 msgid "Nearby Trees"
-msgstr "Indirizzo"
+msgstr "Najbliższy adres:"
 
 #: opentreemap/treemap/templates/treemap/partials/sidebar.html:51
 msgid "There are no trees nearby"
@@ -1795,20 +1661,16 @@ msgid "Done"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/step_controls.html:20
-#, fuzzy
-#| msgid "Next"
 msgid "Next »"
-msgstr "Prossimo"
+msgstr "Następne"
 
 #: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
 msgid "Set the"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
-#, fuzzy
-#| msgid "Action"
 msgid "location"
-msgstr "Azione"
+msgstr "Typ zmiany"
 
 #: opentreemap/treemap/templates/treemap/partials/step_set_location.html:13
 msgid "Use Current Location"
@@ -1855,19 +1717,19 @@ msgstr ""
 
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:8
 msgid "Action"
-msgstr "Azione"
+msgstr "Typ zmiany"
 
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:9
 msgid "Item"
-msgstr "Oggetto"
+msgstr "Czego dotyczy"
 
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:10
 msgid "Value Changed"
-msgstr "Valore cambiato"
+msgstr "Zmieniona wartość"
 
 #: opentreemap/treemap/templates/treemap/recent_user_edits.html:11
 msgid "New Value"
-msgstr "Nuovo valore"
+msgstr "Nowa wartość"
 
 #: opentreemap/treemap/templates/treemap/unsupported.html:19
 msgid "OpenTreeMap currently requires Internet Explorer version 10 or higher."
@@ -1898,32 +1760,26 @@ msgid "Edit Profile"
 msgstr ""
 
 #: opentreemap/treemap/templates/treemap/user.html:68
-#, fuzzy
-#| msgid "Forgot password"
 msgid "Reset Password"
-msgstr "Password dimenticata"
+msgstr "Zapomniałem hasła"
 
 #: opentreemap/treemap/templates/treemap/user.html:80
-#, fuzzy
-#| msgid "Reputation:"
 msgid "Reputation"
-msgstr "Reputazione:"
+msgstr ""
 
 #: opentreemap/treemap/templates/treemap/user.html:91
-#, fuzzy
-#| msgid "Tree Key"
 msgid "Tree Map"
 msgid_plural "Tree Maps"
-msgstr[0] "Tree Key"
-msgstr[1] "Tree Key"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: opentreemap/treemap/templates/treemap/user.html:97
-#, fuzzy
-#| msgid "Add to Favorites"
 msgid "Favorite"
 msgid_plural "Favorites"
-msgstr[0] "Aggiungi ai favoriti"
-msgstr[1] "Aggiungi ai favoriti"
+msgstr[0] "Dodaj do ulubionych"
+msgstr[1] "Dodaj do ulubionych"
+msgstr[2] "Dodaj do ulubionych"
 
 #: opentreemap/treemap/templates/treemap/user.html:129
 msgid "You have not starred any favorites yet."
@@ -2099,10 +1955,8 @@ msgid "feet"
 msgstr ""
 
 #: opentreemap/treemap/units.py:75
-#, fuzzy
-#| msgid "Recent Edits"
 msgid "centimeters"
-msgstr "Editing recenti"
+msgstr "Ostatnie zmiany"
 
 #: opentreemap/treemap/units.py:76
 msgid "meters"
@@ -2245,10 +2099,8 @@ msgid "Resource is temporarily unavailable"
 msgstr ""
 
 #: opentreemap/treemap/views/photo.py:66
-#, fuzzy
-#| msgid "Action"
 msgid "Active"
-msgstr "Azione"
+msgstr "Typ zmiany"
 
 #: opentreemap/treemap/views/photo.py:67
 msgid "Archived"
@@ -2267,14 +2119,14 @@ msgid "tree"
 msgid_plural "trees"
 msgstr[0] ""
 msgstr[1] ""
+msgstr[2] ""
 
 #: opentreemap/treemap/views/tree.py:100
-#, fuzzy
-#| msgid "Planting Site"
 msgid "empty planting site"
 msgid_plural "empty planting sites"
-msgstr[0] "Sito di Impianto"
-msgstr[1] "Sito di Impianto"
+msgstr[0] "Miejsce nasadzenia drzew"
+msgstr[1] "Miejsce nasadzenia drzew"
+msgstr[2] "Miejsce nasadzenia drzew"
 
 #: opentreemap/treemap/views/user.py:29
 msgid "First Name"
@@ -2293,16 +2145,12 @@ msgid "Make Info Visible"
 msgstr ""
 
 #: opentreemap/treemap/views/user.py:46
-#, fuzzy
-#| msgid "Email:"
 msgid "Email"
 msgstr "Email:"
 
 #: opentreemap/treemap/views/user.py:50
-#, fuzzy
-#| msgid "Latest Update"
 msgid "Email Updates"
-msgstr "Ultimo aggiornamento"
+msgstr "Ostatnio zaktualizowane"
 
 #: opentreemap/treemap/views/user.py:127
 msgid "Email field is required"
@@ -2315,38 +2163,33 @@ msgstr ""
 #~ msgid "Energy"
 #~ msgstr "Energia"
 
-#~ msgid "Stormwater"
-#~ msgstr "Acqua piovana"
-
 #~ msgid "Carbon Dioxide"
-#~ msgstr "Anidride Carbonica"
-
-#~ msgid "Cerca per Località"
-#~ msgstr "Cerca per Località"
+#~ msgstr "Dwutlenek węgla"
 
 #~ msgid "Resources"
-#~ msgstr "Risorse"
+#~ msgstr "Baza wiedzy"
 
 #~ msgid "FAQ"
 #~ msgstr "FAQ"
 
 #~ msgid "Your account is now activated."
-#~ msgstr "Il tuo account è ora attivo"
+#~ msgstr "Twoje konto jest już aktywne. Do dzieła!"
 
 #~ msgid "Link is valid for %(expiration_days)s days."
-#~ msgstr "Il link è valido per %(expiration_days)s giorni."
+#~ msgstr "Link aktywacyjny będzie działał jeszcze %(expiration_days)s dni."
 
 #~ msgid "Reset it"
-#~ msgstr "Resetta"
+#~ msgstr "Zmień hasło"
 
 #~ msgid "Logged out"
-#~ msgstr "Uscito"
+#~ msgstr "Wyloguj się"
 
 #~ msgid "Reset password at %(site_name)s"
-#~ msgstr "Reset della password a %(site_name)s"
+#~ msgstr "Zmień hasło tutaj: %(site_name)s"
 
 #~ msgid "You are now registered. Activation email sent."
-#~ msgstr "Sei registrato. Email di attivazione inviata."
+#~ msgstr ""
+#~ "Konto zostało założone.Sprawdź skrzynkę mailową z linkiem aktywacyjnym."
 
 #~ msgid ""
 #~ "\n"
@@ -2358,12 +2201,11 @@ msgstr ""
 #~ "  "
 #~ msgstr[0] ""
 #~ "\n"
-#~ "    %(tree_count)s</span> albero,\n"
-#~ "  "
+#~ "    %(tree_count)s</span> drzewo,"
 #~ msgstr[1] ""
 #~ "\n"
-#~ "    %(tree_count)s</span> alberi,\n"
-#~ "  "
+#~ "    %(tree_count)s</span> drzew,"
+#~ msgstr[2] ""
 
 #~ msgid ""
 #~ "\n"
@@ -2375,56 +2217,54 @@ msgstr ""
 #~ "  "
 #~ msgstr[0] ""
 #~ "\n"
-#~ "    %(plot_count)s</span> Sito di Impianto\n"
-#~ "  "
+#~ "    %(plot_count)s</span> miejsce nasadzenia"
 #~ msgstr[1] ""
 #~ "\n"
-#~ "    %(plot_count)s</span> Siti di Impianto\n"
+#~ "    %(plot_count)s</span> miejsca nasadzeń\n"
 #~ "  "
-
-#~ msgid "DBH Min:"
-#~ msgstr "DBH Min:"
-
-#~ msgid "DBH Max:"
-#~ msgstr "DBH Max:"
+#~ msgstr[2] ""
 
 #~ msgid "Your Turn"
-#~ msgstr "Tuo turno"
+#~ msgstr "Twoja kolej"
 
+# info o źródle danych do uzupełnienia
 #~ msgid ""
 #~ "Our database of trees comes from public records and citizen foresters "
 #~ "like you. Update the information for this tree and help us grow!"
 #~ msgstr ""
-#~ "Il nostro database di alberi proviene da registri pubblici e da cittadini "
-#~ "come te. Aggiornare le informazioni di questo albero e aiutarci a "
-#~ "crescere!"
+#~ "Spis drzew pochodzi z  xxxxx. Pomóż nam uzupełniać brakujące informacje. "
+#~ "Do dzieła!"
 
 #~ msgid "Air pollutants removed"
-#~ msgstr "Inquinanti nell'aria ridotti"
+#~ msgstr "Zmniejszenie zanieczyszczenia powietrza"
 
+# czy jest jakis termin naukowy?
 #~ msgid "Total Co2 stored to date"
-#~ msgstr "Co2 Totale immagazzinata fino ad oggi"
+#~ msgstr "Całkowity dwutlenek węgla"
 
 #~ msgid "ID:"
-#~ msgstr "ID:"
+#~ msgstr "ID: "
 
+# nie wiem co to, czy musi byc, 
 #~ msgid "Audit ID"
-#~ msgstr "ID di Revisione"
+#~ msgstr "ID "
 
 #~ msgid "Model"
-#~ msgstr "Modello"
+#~ msgstr "Model"
 
 #~ msgid "Model #"
-#~ msgstr "Modello #"
+#~ msgstr "Model #"
 
 #~ msgid "Commit By"
-#~ msgstr "Commit di"
+#~ msgstr "Wprowadzona przez"
 
+# TBC czy to na pewno to
 #~ msgid "Commit On"
-#~ msgstr "Commit attivo"
+#~ msgstr "Data wprowadzenia"
 
 #~ msgid "Name:"
-#~ msgstr "Nome:"
+#~ msgstr "Imię:"
 
+# nie wiem co to dokładnie znaczy
 #~ msgid "Instance:"
-#~ msgstr "Caso:"
+#~ msgstr "Przykład:"

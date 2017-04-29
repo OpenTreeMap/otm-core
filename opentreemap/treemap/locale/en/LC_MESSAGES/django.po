@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-07 17:55+0000\n"
+"POT-Creation-Date: 2017-03-05 20:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,422 +17,2140 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. Translators: 'Energy' is the name of an eco benefit
-#: views.py:310
-msgid "Energy"
+#: opentreemap/treemap/audit.py:683
+msgid "Invisible"
 msgstr ""
 
-#. Translators: 'Stormwater' is the name of an eco benefit
-#: views.py:312
-msgid "Stormwater"
+#: opentreemap/treemap/audit.py:684
+msgid "Read Only"
 msgstr ""
 
-#. Translators: 'Carbon Dioxide' is the name of an eco benefit
-#: views.py:314
-msgid "Carbon Dioxide"
+#: opentreemap/treemap/audit.py:685
+msgid "Pending Write Access"
 msgstr ""
 
-#. Translators: 'Air Quaility' is the name of an eco benefit
-#: views.py:316
-msgid "Air Quality"
+#: opentreemap/treemap/audit.py:686
+msgid "Full Write Access"
 msgstr ""
 
-#: templates/base.html:36 templates/instance_base.html:7
-#: templates/treemap/index.html:5
-msgid "Explore Trees"
-msgstr ""
-
-#: templates/base.html:37 templates/instance_base.html:8
-msgid "Add a Tree"
-msgstr ""
-
-#: templates/base.html:42 templates/registration/logout.html:4
-msgid "Logout"
-msgstr ""
-
-#: templates/base.html:44 templates/registration/login.html:4
-#: templates/registration/login.html:20
-msgid "Login"
-msgstr ""
-
-#: templates/base.html:45 templates/treemap/plot_detail.html:122
-msgid "Sign Up"
-msgstr ""
-
-#: templates/base.html:67
-msgid "Search by Species"
-msgstr ""
-
-#: templates/base.html:76
-msgid "Search by Location"
-msgstr ""
-
-#: templates/base.html:85
-msgid "Search"
-msgstr ""
-
-#: templates/base.html:88
-msgid "Advanced"
-msgstr ""
-
-#: templates/base.html:89
-msgid "Reset"
-msgstr ""
-
-#: templates/base.html:118
-msgid "Tree Key"
-msgstr ""
-
-#: templates/base.html:119
-msgid "Resources"
-msgstr ""
-
-#: templates/base.html:120
-msgid "FAQ"
-msgstr ""
-
-#: templates/base.html:121
-msgid "About"
-msgstr ""
-
-#: templates/base.html:122
-msgid "Contact"
-msgstr ""
-
-#: templates/registration/activate.html:8
-msgid "Account successfully activated"
-msgstr ""
-
-#: templates/registration/activate.html:10
-#: templates/registration/login.html:22
-#: templates/registration/password_reset_complete.html:8
-#: templates/registration/registration_form.html:33
-msgid "Log in"
-msgstr ""
-
-#: templates/registration/activate.html:14
-msgid "Account activation failed"
-msgstr ""
-
-#: templates/registration/activation_complete.html:5
-msgid "Your account is now activated."
-msgstr ""
-
-#: templates/registration/activation_email.txt:2
-msgid "Activate account at"
-msgstr ""
-
-#: templates/registration/activation_email.txt:6
-#, python-format
-msgid "Link is valid for %(expiration_days)s days."
-msgstr ""
-
-#: templates/registration/activation_email_subject.txt:1
-msgid "Account activation on"
-msgstr ""
-
-#: templates/registration/login.html:20
-msgid "Need an account?"
-msgstr ""
-
-#: templates/registration/login.html:27
-msgid "Forgot password"
-msgstr ""
-
-#: templates/registration/login.html:27
-msgid "Reset it"
-msgstr ""
-
-#: templates/registration/logout.html:8
-msgid "Logged out"
-msgstr ""
-
-#: templates/registration/password_change_done.html:5
-msgid "Password changed"
-msgstr ""
-
-#: templates/registration/password_change_form.html:9
-#: templates/registration/password_reset_confirm.html:12
-#: templates/registration/password_reset_form.html:9
-#: templates/registration/registration_form.html:28
-#: templates/treemap/plot_detail.html:119
-msgid "Submit"
-msgstr ""
-
-#: templates/registration/password_reset_complete.html:6
-msgid "Password reset successfully"
-msgstr ""
-
-#: templates/registration/password_reset_confirm.html:17
-msgid "Password reset failed"
-msgstr ""
-
-#: templates/registration/password_reset_done.html:5
-msgid "Email with password reset instructions has been sent."
-msgstr ""
-
-#: templates/registration/password_reset_email.html:2
-#, python-format
-msgid "Reset password at %(site_name)s"
-msgstr ""
-
-#: templates/registration/registration_closed.html:5
-msgid "Registration is currently closed."
-msgstr ""
-
-#: templates/registration/registration_complete.html:5
-msgid "You are now registered. Activation email sent."
-msgstr ""
-
-#: templates/registration/registration_form.html:4
-msgid "Register"
-msgstr ""
-
-#: templates/registration/registration_form.html:33
-msgid "Already have an account?"
-msgstr ""
-
-#: templates/treemap/partials/eco_benefits.html:15
-#, python-format
+#: opentreemap/treemap/audit.py:850
 msgid ""
-"\n"
-"    %(tree_count)s</span> tree,\n"
-"  "
-msgid_plural ""
-"\n"
-"    %(tree_count)s</span> trees,\n"
-"  "
-msgstr[0] ""
-msgstr[1] ""
+"Cannot retrieve permissions for {} with id {} because it does not have an "
+"instance associated with it."
+msgstr ""
 
-#: templates/treemap/partials/eco_benefits.html:22
+#: opentreemap/treemap/audit.py:1129
 #, python-format
+msgid "created a %(model)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1130
+#, python-format
+msgid "updated the %(model)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1131
+#, python-format
+msgid "deleted the %(model)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1132
+#, python-format
+msgid "approved an edit to the %(model)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1134
+#, python-format
+msgid "rejected an edit to the %(model)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1139 opentreemap/treemap/audit.py:1140
+#, python-format
+msgid "set %(field)s to %(value)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1141
+#, python-format
+msgid "deleted %(field)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1142
+#, python-format
+msgid "approved setting %(field)s to %(value)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1144
+#, python-format
+msgid "rejecting setting %(field)s to %(value)s"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1344
+msgid "Create"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1345
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:45
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:78
+#: opentreemap/treemap/templates/treemap/partials/photo.html:22
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:37
+msgid "Delete"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1346
+msgid "Update"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1347
+msgid "Approved Pending Edit"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1348
+msgid "Reject Pending Edit"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1349
+msgid "Rejected Edit"
+msgstr ""
+
+#: opentreemap/treemap/audit.py:1350
+msgid "Approved Edit"
+msgstr ""
+
+#. Translators: 'none' in this case refers to clearing the
+#. list. Should be a human-friendly translation of 'null'
+#: opentreemap/treemap/audit.py:1438
+msgid "none"
+msgstr ""
+
+#: opentreemap/treemap/decorators.py:173
+msgid "One or more of the specified values are invalid."
+msgstr ""
+
+#. Translators: 'Energy conserved' is the name of an eco benefit
+#: opentreemap/treemap/ecobenefits.py:434
+msgid "Energy conserved"
+msgstr ""
+
+#. Translators: 'Stormwater filtered' is the name of an eco benefit
+#: opentreemap/treemap/ecobenefits.py:436
+msgid "Stormwater filtered"
+msgstr ""
+
+#. Translators: 'Carbon dioxide removed' is the name of an eco benefit
+#: opentreemap/treemap/ecobenefits.py:438
+msgid "Carbon dioxide removed"
+msgstr ""
+
+#. Translators: 'Carbon dioxide stored' is the name of an eco benefit
+#: opentreemap/treemap/ecobenefits.py:440
+msgid "Carbon dioxide stored to date"
+msgstr ""
+
+#. Translators: 'Air quality improved' is the name of an eco benefit
+#: opentreemap/treemap/ecobenefits.py:442
+msgid "Air quality improved"
+msgstr ""
+
+#: opentreemap/treemap/images.py:59
+msgid "The uploaded image is too large"
+msgstr ""
+
+#: opentreemap/treemap/images.py:67
+msgid "Invalid image"
+msgstr ""
+
+#: opentreemap/treemap/images.py:100
+msgid "Image upload issue"
+msgstr ""
+
+#: opentreemap/treemap/instance.py:44
+#, python-format
+msgid "%(instancename)s is a reserved name and cannot be used"
+msgstr ""
+
+#: opentreemap/treemap/instance.py:111
+msgid "Can view \"External Link\" of a tree or map feature"
+msgstr ""
+
+#: opentreemap/treemap/instance.py:114
+msgid "Can View External Link"
+msgstr ""
+
+#: opentreemap/treemap/instance.py:195
 msgid ""
-"\n"
-"    %(plot_count)s</span> planting site\n"
-"  "
-msgid_plural ""
-"\n"
-"    %(plot_count)s</span> planting sites\n"
-"  "
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/treemap/map.html:4
-msgid "Map"
+"Must start with a letter and may only contain letters, numbers, or dashes "
+"(\"-\")"
 msgstr ""
 
-#: templates/treemap/map.html:27
-msgid "DBH Min:"
+#: opentreemap/treemap/instance.py:197
+msgid "Invalid URL name"
 msgstr ""
 
-#: templates/treemap/map.html:28
-msgid "DBH Max:"
+#: opentreemap/treemap/lib/external_link.py:51
+#: opentreemap/treemap/templates/treemap/unsupported.html:23
+msgid " or "
 msgstr ""
 
-#: templates/treemap/plot_detail.html:4
+#: opentreemap/treemap/lib/map_feature.py:34
+#, python-format
+msgid "I added a photo of this %s!"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:269
+msgid "Add a tree"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:271
+msgid "Add the diameter"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:273
+msgid "Add the species"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:275
+#: opentreemap/treemap/lib/map_feature.py:340
+msgid "Add a photo"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:427
+#, python-format
+msgid "%(feature)s on %(treemap)s"
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:434
+#, python-format
+msgid "This %(feature)s saves %(currency)s%(amount)s per year."
+msgstr ""
+
+#: opentreemap/treemap/lib/map_feature.py:442
+#, python-format
+msgid "This %(feature)s is mapped on %(treemap)s"
+msgstr ""
+
+#: opentreemap/treemap/models.py:44
+msgid "set the location"
+msgstr ""
+
+#: opentreemap/treemap/models.py:45
+msgid "updated the location"
+msgstr ""
+
+#: opentreemap/treemap/models.py:46
+msgid "deleted the location"
+msgstr ""
+
+#: opentreemap/treemap/models.py:47
+msgid "approved an edit of the location"
+msgstr ""
+
+#: opentreemap/treemap/models.py:48
+msgid "rejected an edit of the location"
+msgstr ""
+
+#: opentreemap/treemap/models.py:57
+msgid "read only"
+msgstr ""
+
+#: opentreemap/treemap/models.py:59
+msgid "editable"
+msgstr ""
+
+#: opentreemap/treemap/models.py:61 opentreemap/treemap/models.py:62
+#: opentreemap/treemap/models.py:63
+#, python-format
+msgid "made the tree %(value)s"
+msgstr ""
+
+#: opentreemap/treemap/models.py:64 opentreemap/treemap/models.py:65
+#, python-format
+msgid "approved making the tree %(value)s"
+msgstr ""
+
+#: opentreemap/treemap/models.py:99
+msgid "There is no content for this page yet."
+msgstr ""
+
+#: opentreemap/treemap/models.py:150
+msgid "Symbol is too long"
+msgstr ""
+
+#: opentreemap/treemap/models.py:167
+msgid "Values must be not be negative"
+msgstr ""
+
+#: opentreemap/treemap/models.py:256
+msgid "username"
+msgstr ""
+
+#: opentreemap/treemap/models.py:258
+msgid ""
+"Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
+msgstr ""
+
+#: opentreemap/treemap/models.py:263
+msgid "Enter a valid username."
+msgstr ""
+
+#: opentreemap/treemap/models.py:265
+msgid "email address"
+msgstr ""
+
+#: opentreemap/treemap/models.py:267
+msgid "staff status"
+msgstr ""
+
+#: opentreemap/treemap/models.py:268
+msgid "Designates whether the user can log into this admin site."
+msgstr ""
+
+#: opentreemap/treemap/models.py:271 opentreemap/treemap/views/photo.py:66
+msgid "active"
+msgstr ""
+
+#: opentreemap/treemap/models.py:272
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+
+#: opentreemap/treemap/models.py:274
+msgid "date joined"
+msgstr ""
+
+#: opentreemap/treemap/models.py:283
+msgid "user"
+msgstr ""
+
+#: opentreemap/treemap/models.py:284
+msgid "users"
+msgstr ""
+
+#: opentreemap/treemap/models.py:311
+msgid "first name"
+msgstr ""
+
+#: opentreemap/treemap/models.py:313
+msgid "last name"
+msgstr ""
+
+#: opentreemap/treemap/models.py:400
+msgid "Cannot have spaces in a username"
+msgstr ""
+
+#: opentreemap/treemap/models.py:564
+msgid "Address"
+msgstr ""
+
+#: opentreemap/treemap/models.py:566
+msgid "City"
+msgstr ""
+
+#: opentreemap/treemap/models.py:568
+msgid "Postal Code"
+msgstr ""
+
+#: opentreemap/treemap/models.py:576
+msgid "Last Updated"
+msgstr ""
+
+#: opentreemap/treemap/models.py:578
+msgid "Last Updated By"
+msgstr ""
+
+#: opentreemap/treemap/models.py:658
+msgid "Feature location is not specified"
+msgstr ""
+
+#: opentreemap/treemap/models.py:663
+#, python-format
+msgid "%(model)s must be created inside the map boundaries"
+msgstr ""
+
+#: opentreemap/treemap/models.py:777
+msgid "Missing Species"
+msgstr ""
+
+#: opentreemap/treemap/models.py:779
+msgid "Empty Planting Site"
+msgstr ""
+
+#: opentreemap/treemap/models.py:872
+#, python-format
+msgid "The %(field_name)s must be a decimal number"
+msgstr ""
+
+#: opentreemap/treemap/models.py:877
+#, python-format
+msgid "The %(field_name)s must be zero or greater"
+msgstr ""
+
+#: opentreemap/treemap/models.py:881
+#, python-format
+msgid "The %(field_name)s must be greater than zero"
+msgstr ""
+
+#: opentreemap/treemap/models.py:885
+#, python-format
+msgid "The %(field_name)s is too large"
+msgstr ""
+
+#: opentreemap/treemap/models.py:894
+msgid "Planting Site Width"
+msgstr ""
+
+#: opentreemap/treemap/models.py:896
+msgid "Planting Site Length"
+msgstr ""
+
+#: opentreemap/treemap/models.py:899
+msgid "Custom ID"
+msgstr ""
+
+#: opentreemap/treemap/models.py:904
 msgid "Planting Site"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:16
-msgid "Add Photos"
+#: opentreemap/treemap/models.py:905
+#: opentreemap/treemap/templates/instance_base.html:122
+msgid "Planting Sites"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:18
-msgid "Add to Favorites"
+#: opentreemap/treemap/models.py:916
+msgid "that have been"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:20
-msgid "Latest Update"
-msgstr ""
-
-#: templates/treemap/plot_detail.html:22
-msgid "Complete"
-msgstr ""
-
-#: templates/treemap/plot_detail.html:27
-msgid "Your Turn"
-msgstr ""
-
-#: templates/treemap/plot_detail.html:28
+#: opentreemap/treemap/models.py:930
 msgid ""
-"Our database of trees comes from public records and citizen foresters like "
-"you. Update the information for this tree and help us grow!"
+"Marking a planting site with an alert does not serve as a way to report "
+"problems with that site. If you have any emergency concerns, please contact "
+"your city directly."
 msgstr ""
 
-#: templates/treemap/plot_detail.html:30 templates/treemap/recent_edits.html:4
-#: templates/treemap/recent_edits.html:9 templates/treemap/user.html:13
-msgid "Recent Edits"
+#: opentreemap/treemap/models.py:935 opentreemap/treemap/models.py:1053
+msgid "with open alerts for"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:48
-msgid "General Tree Information"
+#: opentreemap/treemap/models.py:994
+msgid "Cannot delete plot with existing trees."
 msgstr ""
 
-#: templates/treemap/plot_detail.html:51
-msgid "Tree Number"
+#: opentreemap/treemap/models.py:1009
+#: opentreemap/treemap/templates/treemap/field/species_div.html:13
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:19
+msgid "Species"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:55
-msgid "Scientific Name"
+#: opentreemap/treemap/models.py:1013
+msgid "Tree Diameter"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:59
-msgid "Common Name"
-msgstr ""
-
-#: templates/treemap/plot_detail.html:63
-msgid "Trunk Diameter"
-msgstr ""
-
-#: templates/treemap/plot_detail.html:67
+#: opentreemap/treemap/models.py:1015
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:29
+#: opentreemap/treemap/views/misc.py:82
 msgid "Tree Height"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:71
+#: opentreemap/treemap/models.py:1017
 msgid "Canopy Height"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:80
-msgid "Yearly Ecosystem Services"
+#: opentreemap/treemap/models.py:1019
+msgid "Date Planted"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:83
-msgid "Stormwater Intercepted"
+#: opentreemap/treemap/models.py:1021
+msgid "Date Removed"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:88
-msgid "Energy Conserved"
+#: opentreemap/treemap/models.py:1048
+msgid ""
+"Marking a tree with an alert does not serve as a way to report problems with "
+"a tree. If you have any emergency tree concerns, please contact your city "
+"directly."
 msgstr ""
 
-#: templates/treemap/plot_detail.html:93
-msgid "Air pollutants removed"
+#: opentreemap/treemap/models.py:1065
+msgid "Tree"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:98
-msgid "Carbon dioxide reduced"
+#: opentreemap/treemap/models.py:1065
+#: opentreemap/treemap/templates/instance_base.html:121
+msgid "Trees"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:103
-msgid "Total Co2 stored to date"
+#: opentreemap/treemap/models.py:1189
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:48
+msgid "Photo"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:114
-msgid "Commments"
+#: opentreemap/treemap/models.py:1189
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:9
+msgid "Photos"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:122
-msgid "or"
+#: opentreemap/treemap/search_fields.py:50
+#: opentreemap/treemap/search_fields.py:63
+#: opentreemap/treemap/templates/treemap/partials/tree_section.html:8
+msgid "Tree Information"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:122
-msgid "log in"
+#: opentreemap/treemap/search_fields.py:54
+#: opentreemap/treemap/search_fields.py:69
+#: opentreemap/treemap/templates/treemap/partials/plot_section.html:8
+msgid "Planting Site Information"
 msgstr ""
 
-#: templates/treemap/plot_detail.html:122
-msgid "to add comments"
+#: opentreemap/treemap/search_fields.py:57
+msgid "Stewardship"
 msgstr ""
 
-#: templates/treemap/partials/plot_popup.html:2
-msgid "ID:"
+#: opentreemap/treemap/search_fields.py:78
+msgid "Must be a non-empty list"
 msgstr ""
 
-#: templates/treemap/partials/plot_popup.html:3
-msgid "Species:"
+#: opentreemap/treemap/search_fields.py:81
+msgid "Every mobile field group must have a non-empty header"
 msgstr ""
 
-#: templates/treemap/partials/plot_popup.html:4
-msgid "Nearby Address:"
+#: opentreemap/treemap/search_fields.py:84
+msgid ""
+"All mobile field groups must have either a \"field_keys\" or "
+"\"collection_udf_keys\" containing a non-empty list"
 msgstr ""
 
-#: templates/treemap/partials/plot_popup.html:5
-msgid "View all details"
+#: opentreemap/treemap/search_fields.py:88
+msgid ""
+"Mobile field groups cannot contain both \"field_keys\" and "
+"\"collection_udf_keys\" properties"
 msgstr ""
 
-#: templates/treemap/partials/plot_popup.html:6
-msgid "Edit details"
+#: opentreemap/treemap/search_fields.py:92
+msgid ""
+"Collection field groups must have a non-empty \"sort_key\" property defined"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:15
-msgid "Audit ID"
+#: opentreemap/treemap/search_fields.py:96
+msgid ""
+"Collection field groups can only contain existing custom collection fields"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:16
-msgid "Model"
+#: opentreemap/treemap/search_fields.py:100
+msgid ""
+"The \"sort_key\" property of a collection field group must be the name of a "
+"field on present on every collection field in the group"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:17
-msgid "Model #"
+#: opentreemap/treemap/search_fields.py:103
+msgid "Fields cannot be specified more than once"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:18
+#: opentreemap/treemap/search_fields.py:106
+msgid ""
+"Normal field groups need a model property of either \"tree\" or \"plot\""
+msgstr ""
+
+#: opentreemap/treemap/search_fields.py:110
+msgid "Normal field groups can only have keys that match their \"model\""
+msgstr ""
+
+#: opentreemap/treemap/search_fields.py:114
+msgid ""
+"Normal field groups may only contain existing fields. If you specify a "
+"custom field, it cannot be a collection field"
+msgstr ""
+
+#: opentreemap/treemap/search_fields.py:127
+msgid "empty planting sites"
+msgstr ""
+
+#: opentreemap/treemap/search_fields.py:133
+#, python-format
+msgid "Show %(models)s"
+msgstr ""
+
+#: opentreemap/treemap/search_fields.py:235
+#, python-format
+msgid "Show Missing %(field)s"
+msgstr ""
+
+#: opentreemap/treemap/templates/403.html:18
+msgid "Page Restricted!"
+msgstr ""
+
+#: opentreemap/treemap/templates/403.html:19
+msgid "Our apologies, but access to this page is limited."
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:18
+msgid "No trees here!"
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:20
+msgid "Sorry, we couldn't find the page you requested."
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:22
+msgid "Try"
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:23
+msgid "exploring trees"
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:24
+msgid "or feel free to"
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:26
+msgid "You're welcome to "
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:28
+msgid "contact support"
+msgstr ""
+
+#: opentreemap/treemap/templates/404.html:29
+msgid "if you believe you reached this page in error."
+msgstr ""
+
+#: opentreemap/treemap/templates/500.html:18
+msgid "That doesn't look right"
+msgstr ""
+
+#: opentreemap/treemap/templates/500.html:19
+msgid ""
+"Oh dear, it looks like something is broken on our end. We'll fix the problem "
+"shortly!"
+msgstr ""
+
+#: opentreemap/treemap/templates/503.html:18
+msgid "Service Unavailable"
+msgstr ""
+
+#: opentreemap/treemap/templates/503.html:19
+msgid ""
+"Looks like we're down for maintenance. We should be back online shortly."
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:61
+#: opentreemap/treemap/templates/treemap/index.html:10
+msgid "Explore Trees"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:66
+#: opentreemap/treemap/templates/instance_base.html:46
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:8
+#: opentreemap/treemap/templates/treemap/partials/add_plot_btn.html:13
+msgid "Adding trees is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:68
+#: opentreemap/treemap/templates/instance_base.html:54
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:7
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:16
+#: opentreemap/treemap/templates/treemap/partials/add_plot_btn.html:15
+msgid "Add a Tree"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:77
+#: opentreemap/treemap/templates/base.html:101
+msgid "My Account"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:85
+#: opentreemap/treemap/templates/base.html:109
+msgid "Logout"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:113
+#: opentreemap/treemap/templates/base.html:122
+#: opentreemap/treemap/templates/registration/login.html:6
+msgid "Login"
+msgstr ""
+
+#: opentreemap/treemap/templates/base.html:115
+#: opentreemap/treemap/templates/base.html:124
+#: opentreemap/treemap/templates/instance_base.html:94
+#: opentreemap/treemap/templates/instance_base.html:99
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:138
+msgid "Sign Up"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:61
+msgid "Explore Map"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:72
+msgid "Plan"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:81
+msgid "View Edits"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:87
+msgid "Manage"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:119
+msgid "General"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:123
+msgid "Missing"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:139
+msgid "Export Search Results"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:183
+#: opentreemap/treemap/templates/instance_base.html:185
+msgid "Advanced"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:190
+#: opentreemap/treemap/templates/treemap/edits.html:35
+msgid "Reset"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:193
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:11
+msgid "Search"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:207
+msgid "Tree ID"
+msgstr ""
+
+#: opentreemap/treemap/templates/instance_base.html:212
+msgid "Contact"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activate.html:8
+msgid "Account successfully activated"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activate.html:9
+#: opentreemap/treemap/templates/registration/login.html:39
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:11
+msgid "Log in"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activate.html:9
+msgid "to start exploring trees!"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activate.html:11
+msgid "Account Activation Issue"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activate.html:13
+#, python-format
+msgid ""
+"\n"
+"    <p>You may have clicked on the activation link twice or did not copy the "
+"entire URL into your web browser.  Please try <a href=\"%(login_url)s"
+"\">logging in.</a></p>\n"
+"    <p>If you cannot login successfully, <a href=\"mailto:%(support_email)s"
+"\">contact support</a> for assistance.</p>\n"
+"    "
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activation_complete.html:7
+msgid "Thanks for activating your account"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activation_complete.html:8
+msgid ""
+"Your OpenTreeMap account has been confirmed. Login to start exploring trees "
+"near you."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activation_email.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello,\n"
+"\n"
+"Thank you for creating a tree map account and joining our community. To "
+"activate your account, please click on the link below or copy and paste it "
+"into your web browser. The link is only valid for %(expiration_days)s days.\n"
+"\n"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activation_email.txt:13
+msgid ""
+"\n"
+"\n"
+"You can use your OpenTreeMap account to sign in to the tree map you "
+"registered on as well as any other map in the OpenTreeMap system. We hope "
+"you enjoy exploring the urban forest!\n"
+"\n"
+"- The OpenTreeMap Team\n"
+"\n"
+"If you did not request a tree map account or do not wish to finalize your "
+"account creation, please ignore this email. No additional action is "
+"required.\n"
+"\n"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/activation_email_subject.txt:1
+msgid "Activate your tree map account"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/login.html:14
+msgid "Log in to OpenTreeMap"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/login.html:26
+msgid "Recover my username"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/login.html:31
+msgid "Reset my password"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/login.html:45
+msgid "Don't have an account?"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/login.html:46
+#: opentreemap/treemap/templates/registration/registration_form.html:5
+msgid "Register"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_change_done.html:5
+msgid "Password changed"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_change_form.html:9
+msgid "Submit"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:8
+msgid "Password Reset"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_complete.html:9
+msgid "Your password was reset successfully"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:11
+msgid "Please enter and confirm a new password for your account."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:17
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:53
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:14
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:59
+#: opentreemap/treemap/templates/treemap/user.html:66
+msgid "Save"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_confirm.html:20
+msgid "Password reset failed"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_done.html:7
+msgid "Password Reset Instructions Sent"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_done.html:8
+#: opentreemap/treemap/templates/registration/password_reset_email_sent.html:5
+msgid "Please check your email for instructions on resetting your password."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_email.html:2
+msgid ""
+"Hello,\n"
+"\n"
+"We received a request to reset your tree map account password. To continue "
+"the password reset process, please click on the link below or copy and paste "
+"it into your web browser."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_email.html:7
+msgid ""
+"\n"
+"If you did not make a request to reset your password then no further action "
+"is required.\n"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_form.html:8
+msgid "Reset your Password"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_form.html:9
+msgid ""
+"Forgot the password for your tree map account? Enter your email address and "
+"click \\"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_form.html:14
+#: opentreemap/treemap/templates/treemap/forgot_username.html:19
+msgid "Send"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/password_reset_subject.txt:1
+msgid "Reset your tree map password"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_closed.html:7
+msgid "Registration is currently closed."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_complete.html:7
+msgid "Account created!"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_complete.html:8
+msgid ""
+"Your OpenTreeMap account has been created. You will receive an activation "
+"email shortly; please use it to confirm your account."
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_form.html:27
+msgid "Create an Account"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_form.html:28
+msgid "I already have an account"
+msgstr ""
+
+#: opentreemap/treemap/templates/registration/registration_form.html:42
+msgid "Create Account"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:7
+#: opentreemap/treemap/templates/treemap/edits.html:34
+msgid "Edits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:43
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:7
+msgid "Details"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:44
+msgid "Edit #"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:45
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:16
+msgid "Type"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:46
+msgid "Object ID"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:47
 msgid "Field"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:19
+#: opentreemap/treemap/templates/treemap/edits.html:48
 msgid "Old Value"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:20
+#: opentreemap/treemap/templates/treemap/edits.html:49
 msgid "Current Value"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:21
-msgid "Commit By"
+#: opentreemap/treemap/templates/treemap/edits.html:50
+msgid "Edited By"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:22
-msgid "Commit On"
+#: opentreemap/treemap/templates/treemap/edits.html:51
+msgid "Edited On"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:102
-#: templates/treemap/recent_edits.html:104
-#: templates/treemap/recent_user_edits.html:50
+#: opentreemap/treemap/templates/treemap/edits.html:59
+msgid "Detail"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:90
+#: opentreemap/treemap/templates/treemap/edits.html:97
+msgid "View Image"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/edits.html:160
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:39
 msgid "Previous"
 msgstr ""
 
-#: templates/treemap/recent_edits.html:108
-#: templates/treemap/recent_edits.html:110
-#: templates/treemap/recent_user_edits.html:58
+#: opentreemap/treemap/templates/treemap/edits.html:170
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:46
 msgid "Next"
 msgstr ""
 
-#: templates/treemap/recent_user_edits.html:5
-msgid "Action"
+#: opentreemap/treemap/templates/treemap/field/resource_tree.html:6
+msgid "No diameter"
 msgstr ""
 
-#: templates/treemap/recent_user_edits.html:6
-msgid "Item"
+#. Translators: This is in-between two date boxes for a range search
+#: opentreemap/treemap/templates/treemap/field/search.html:13
+msgid "through"
 msgstr ""
 
-#: templates/treemap/recent_user_edits.html:7
-msgid "Value Changed"
+#: opentreemap/treemap/templates/treemap/field/search.html:37
+msgid "Disabled while a search for this field is active"
 msgstr ""
 
-#: templates/treemap/recent_user_edits.html:8
-msgid "New Value"
+#: opentreemap/treemap/templates/treemap/field/search.html:41
+msgid "Disabled while a missing search for this field is active."
 msgstr ""
 
-#: templates/treemap/recent_user_edits.html:9
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:4
+msgid "Common Name"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/field/species_tr.html:9
+msgid "Scientific Name"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/field/species_typeahead.html:26
+msgid "Need help identifying the tree's species?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/field/tree_id_tr.html:6
+msgid "Tree Number"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/forgot_username.html:7
+msgid "Retrieve your Username"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/forgot_username.html:8
+msgid ""
+"Forgot the username for your tree map account? Enter your email address and "
+"click \\"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/forgot_username.html:12
+msgid "Email Address"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/forgot_username_done.html:7
+msgid "Email Sent"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/forgot_username_done.html:8
+#, python-format
+msgid ""
+"\n"
+"    <p>An email has been sent to %(email)s.</p>\n"
+"    <p>Please check your email to retrieve your username.  If you don't see "
+"it within 15 minutes, please check your spam folder.</p>\n"
+"    "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/instance_not_available.html:17
+msgid "The map you requested is not available to all users."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:12
+msgid "Add species and additional info"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:19
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:26
+#: opentreemap/treemap/views/map_feature.py:124
+msgid "Trunk Diameter"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:33
+msgid "Finalize this tree"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:40
+msgid "Nearby Address"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:42
+msgid "After I add this tree..."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:46
+msgid "Add another tree with these details"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:52
+msgid "Add another tree with new details"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:58
+msgid "Continue editing this tree"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-add-tree.html:64
+msgid "I'm done!"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:12
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:17
+msgid "More Details"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:19
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:53
+msgid "Editing of the tree details is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:20
+msgid "Quick Edit"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:32
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:39
+msgid "Editing a plot's location is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:53
+msgid "Eco Benefits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map-browse-trees.html:58
+msgid "Loading Ecobenefits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map.html:5
+msgid "Map"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:27
+msgid "Add a Photo"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:37
+msgid "Are you sure you want to delete this photo?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:44
+msgid "Deleting of photos is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:46
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:8
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:58
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:24
+#: opentreemap/treemap/templates/treemap/user.html:103
+msgid "Edit"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:55
+#: opentreemap/treemap/templatetags/form_extras.py:419
+msgid "Yes"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:56
+#: opentreemap/treemap/templatetags/form_extras.py:419
+msgid "No"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:77
+msgid "Adding tree photos is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:79
+msgid "Adding resource photos is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:81
+#: opentreemap/treemap/templates/treemap/user.html:57
+msgid "Add Photo"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:104
+msgid "Move Location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_detail.html:105
+msgid "Cancel Move Location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:10
+msgid "Map Feature Photo"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:11
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:25
+msgid "Photo uploaded on"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/map_feature_photo_detail.html:26
+msgid "View more details on the detail page"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:25
+#, python-format
+msgid "Adding %(resources)s is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/add_feature_menu.html:33
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:8
+msgid "Add a"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/display.html:6
+msgid "Display"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/fields.html:7
+msgid "disabled in Display"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/more.html:6
+msgid "More"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:7
+msgid "Tree Care"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:15
+msgid "I am looking for"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:64
+msgid "between"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/advanced_search/tree_care.html:69
+msgid "and"
+msgstr ""
+
+#. Translators: Money saved
+#: opentreemap/treemap/templates/treemap/partials/benefit_value_row.html:17
+#: opentreemap/treemap/templates/treemap/partials/benefit_value_row.html:22
+msgid "saved"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/canopy_filter_control.html:5
+msgid "Regional Canopy Filter"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:6
+msgid "Canopy"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:7
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:41
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:22
+msgid "Area"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/canopy_percentages.html:8
+msgid "Category"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/collectionudf.html:46
+msgid "No entries yet!"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:7
+msgid "Diameter"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:8
+msgid "Circumference"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:38
+msgid "Add another trunk?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:44
+msgid "Combined Diameter:"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/diameter_calculator.html:49
+msgid "Need help measuring the tree?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:14
+msgid "Tree Benefits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:25
+msgid "Benefits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:35
+#, python-format
+msgid ""
+"\n"
+"                        Based on %(used)s out of %(total)s total trees"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/eco_benefits.html:38
+#, python-format
+msgid ""
+"\n"
+"                            and %(used)s out of %(total)s total "
+"%(resources)s.\n"
+"                        "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/export.html:11
+msgid "Preparing your export..."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/export.html:12
+msgid ""
+"There was an error while generating your export. Please try again later."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/export.html:15
+#: opentreemap/treemap/templates/treemap/partials/form_buttons.html:11
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:60
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:87
+#: opentreemap/treemap/templates/treemap/partials/upload_file.html:27
+#: opentreemap/treemap/templates/treemap/user.html:67
+msgid "Cancel"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/export.html:16
+msgid "OK"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/forgot_username_email.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello,\n"
+"\n"
+"\"%(username)s\" is the username for the OpenTreeMap account with email "
+"%(email)s.\n"
+"If you didn't ask to recover your username, just ignore this email.  No "
+"additional action is required.\n"
+"\n"
+"If you want to reset your password, go to %(password_url)s\n"
+"\n"
+"- The OpenTreeMap Team\n"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:12
+#, python-format
+msgid " Select %(Resource)s Type "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:42
+msgid "Indicate Nearby Roof Area"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:51
+msgid "Indicate Polygon Area"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:63
+msgid "About this"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:75
+msgid "Finalize this"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:86
+msgid "Add another"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:91
+msgid "Continue editing this"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_add_resource.html:96
+msgid "I'm done"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_accordion.html:10
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:9
+msgid "Nearby Address:"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:32
+msgid "Remove from Favorites"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:33
+msgid "Add to Favorites"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:56
+msgid "Editing of the resource's details is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:68
+msgid "Deleting of trees is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:72
+msgid "Deleting of planting sites is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:74
+#, python-format
+msgid "Deleting of %(resources)s is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:86
+msgid "Confirm Deletion"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:103
+msgid "Comments"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:115
+msgid "Removed by Moderator"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:129
+msgid "This comment has been removed by a moderator."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
+msgid "or"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:139
+msgid "log in"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:140
+msgid "to add comments"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:148
+msgid ""
+"The comment system does not serve as a way to report problems with a tree."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_detail_base.html:150
+#, python-format
+msgid ""
+"\n"
+"                        The comment system does not serve as a way to report "
+"problems with a %(resource)s.\n"
+"                    "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/map_feature_popup.html:22
+msgid "Editing a tree's details is not available to all users"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo.html:21
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:32
+msgid "Archive"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo.html:24
+msgid "View Detail"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:18
+msgid "Photo number"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:21
+msgid "Delete photo number"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_carousel.html:29
+msgid "There are no photos"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:45
+msgid "Id"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:51
+msgid "Actions"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:54
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:12
 msgid "Date"
 msgstr ""
 
-#: templates/treemap/user.html:7
-msgid "Username:"
+#: opentreemap/treemap/templates/treemap/partials/photo_review.html:70
+#, python-format
+msgid ""
+"\n"
+"                    There are no %(filtered)s photos.\n"
+"                "
 msgstr ""
 
-#: templates/treemap/user.html:8
-msgid "Name:"
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:8
+msgid "Photo Added!"
 msgstr ""
 
-#: templates/treemap/user.html:9
-msgid "Email:"
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:11
+msgid "Would you like to share this photo?"
 msgstr ""
 
-#: templates/treemap/user.html:10
-msgid "Reputation:"
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:27
+msgid "Don't show me again"
 msgstr ""
 
-#: templates/treemap/user.html:11
-msgid "Instance:"
+#: opentreemap/treemap/templates/treemap/partials/photo_social_media_sharing.html:28
+msgid "No Thanks"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:21
+msgid "Yearly Ecosystem Services"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:27
+msgid ""
+"\n"
+"                        Ecosystem benefits are not available for tree maps "
+"in locations outside the\n"
+"                        United States. More info is available on the <a href="
+"\"https://opentreemap.org/faq/#03\">OpenTreeMap FAQ page.</a>\n"
+"                    "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:40
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:101
+msgid "Warning!"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:42
+msgid "You are about to delete this tree. Do you want to continue?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail.html:44
+msgid ""
+"You are about to delete this planting site. Once deleted, it will not be "
+"possible to view the details of this planting site or the trees it has "
+"contained in the past. Are you sure you want to continue?"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail_add_tree.html:8
+msgid "There is no tree for this planting site."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_detail_add_tree.html:11
+msgid "Add Tree"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:5
+msgid ""
+"\n"
+"      <p>Ecosystem benefits cannot be calculated for this species of tree in "
+"this location.</p>\n"
+"      <p>The tree's location falls within a climate region that does not "
+"support benefit calculations for this species.</p>\n"
+"      "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:10
+msgid ""
+"\n"
+"      <!-- TODO: When the ecoservice returns structured errors, replace this "
+"with real conditions -->\n"
+"      <!-- Or, maybe always leave this to avoid 500s -->\n"
+"      <p>We were unable to calculate ecosystem benefits for this tree.</p>\n"
+"      "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_eco.html:16
+msgid ""
+"Add the diameter of the tree and select a species to calculate the yearly "
+"ecosystem services."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/plot_section.html:13
+#, python-format
+msgid ""
+"\n"
+"                This tree is part of <a href=\"%(polygonal_url)s\">"
+"%(display_name)s #%(pmf_id)s.</a> For stewardship actions, please <a href="
+"\"%(polygonal_url)s\">go to the %(display_name)s detail page.</a>\n"
+"            "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:11
+msgid "Information"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:16
+msgid "number"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:46
+msgid "Ecosystem Services"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:63
+msgid "Associated Trees"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:88
+#, python-format
+msgid ""
+"\n"
+"                        This %(resource)s does not contain any trees.\n"
+"                    "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/resource_detail.html:102
+#, python-format
+msgid ""
+"\n"
+"            You are about to delete this %(resource)s. Do you want to "
+"continue?\n"
+"        "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/search_location.html:6
+msgid "Search by Location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/search_location.html:14
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:10
+msgid "Address, City, State"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/search_species.html:7
+msgid "Search by Species"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/search_species.html:20
+msgid "Disabled while missing species search is active"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:6
+msgid "Latest Update"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:17
+msgid "Complete"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:27
+#: opentreemap/treemap/templates/treemap/user.html:137
+msgid "Recent Edits"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:42
+msgid "Nearby Trees"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/sidebar.html:51
+msgid "There are no trees nearby"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:6
+msgid "Step"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:9
+msgid "of"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:15
+msgid "« Back"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:20
+msgid "Done"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_controls.html:20
+msgid "Next »"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
+msgid "Set the"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:4
+msgid "location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:13
+msgid "Use Current Location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:16
+msgid "Tap on the map, enter an address, or select \"Use Current Location.\""
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:19
+msgid ""
+"Choose a point on the map, enter an address with city, or select \"Use "
+"Current Location.\""
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:23
+msgid "Unable to locate this address."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:24
+msgid ""
+"Unable to locate this address. You may need to include a city and state."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:27
+msgid "Unable to determine current location"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/step_set_location.html:30
+msgid "Please move marker to exact location of the"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/udf_edit_field.html:16
+msgid "Today"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/partials/upload_file.html:12
+#, python-format
+msgid ""
+"\n"
+"            Maximum file size: %(max_image_size)sMB\n"
+"          "
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:8
+msgid "Action"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:9
+msgid "Item"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:10
+msgid "Value Changed"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/recent_user_edits.html:11
+msgid "New Value"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/unsupported.html:19
+msgid "OpenTreeMap currently requires Internet Explorer version 10 or higher."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/unsupported.html:20
+msgid ""
+"Internet Explorer 9 support is coming soon, we're still working out the "
+"kinks."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/unsupported.html:21
+msgid ""
+"If you cannot upgrade your version of Internet Explorer, we recommend using "
+"either"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:41
+msgid "Set a Photo"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:61
+msgid "User Profile"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:65
+msgid "Edit Profile"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:68
+msgid "Reset Password"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:80
+msgid "Reputation"
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:91
+msgid "Tree Map"
+msgid_plural "Tree Maps"
+msgstr[0] ""
+msgstr[1] ""
+
+#: opentreemap/treemap/templates/treemap/user.html:97
+msgid "Favorite"
+msgid_plural "Favorites"
+msgstr[0] ""
+msgstr[1] ""
+
+#: opentreemap/treemap/templates/treemap/user.html:129
+msgid "You have not starred any favorites yet."
+msgstr ""
+
+#: opentreemap/treemap/templates/treemap/user.html:131
+msgid "This person has not starred any favorites yet."
+msgstr ""
+
+#: opentreemap/treemap/templatetags/auth_extras.py:244
+msgid "Can't forward login if already logged in"
+msgstr ""
+
+#: opentreemap/treemap/templatetags/form_extras.py:506
+msgid "Please type a username"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:76
+msgid "invalid model type - must subclass UDFModel"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:150
+#, python-format
+msgid "created a %(model)s entry"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:151
+#, python-format
+msgid "updated the %(model)s entry"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:152
+#, python-format
+msgid "deleted the %(model)s entry"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:153
+#, python-format
+msgid "approved an edit to the %(model)s entry"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:155
+#, python-format
+msgid "rejected an edit to the %(model)s entry"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:358
+msgid "Can't change choices on a non-choice field"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:363
+#, python-format
+msgid "Choice '%(choice)s' not found"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:460 opentreemap/treemap/udf.py:498
+msgid "Name is required for collection fields"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:471 opentreemap/treemap/udf.py:535
+msgid "Name is allowed only for collection fields"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:545
+#, python-format
+msgid "Invalid model '%(model_type)s'"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:554
+msgid "Cannot use fields that already exist on the model"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:558
+msgid "Name cannot be blank"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:562
+msgid ""
+"A field name may not contain percent (%), period (.), underscore (_), or "
+"quote (\") characters."
+msgstr ""
+
+#: opentreemap/treemap/udf.py:576
+#, python-format
+msgid "There is already a custom %(model_type)s field with name '%(name)s'"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:595
+msgid "Name must not be empty"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:604
+msgid "Names must not be duplicates"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:609
+msgid "Id is an invalid name"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:625
+msgid "type required data type definition"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:630
+msgid "invalid datatype"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:636
+msgid "Missing choices key"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:640
+msgid "Choice must be a string"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:642
+msgid "Empty choice is not allowed"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:645
+msgid "There must be at least one choice"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:648
+msgid "Duplicate choices are not allowed"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:812
+#, python-format
+msgid "%(fieldname)s must be a real number"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:822 opentreemap/treemap/udf.py:831
+#, python-format
+msgid "%(fieldname)s must be an integer"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:836
+#, python-format
+msgid "%(fieldname)s user not found"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:846
+#, python-format
+msgid "%(fieldname)s must be formatted as YYYY-MM-DD"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:853
+#, python-format
+msgid "%(fieldname)s year must be >= 1900"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:862
+#, python-format
+msgid "Invalid choice (%(given)s). Expecting %(allowed)s"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:874
+#, python-format
+msgid "%(fieldname)s must be valid JSON"
+msgstr ""
+
+#: opentreemap/treemap/udf.py:1346 opentreemap/treemap/udf.py:1362
+msgid "Invalid user defined field name"
+msgstr ""
+
+#: opentreemap/treemap/units.py:73
+msgid "inches"
+msgstr ""
+
+#: opentreemap/treemap/units.py:74
+msgid "feet"
+msgstr ""
+
+#: opentreemap/treemap/units.py:75
+msgid "centimeters"
+msgstr ""
+
+#: opentreemap/treemap/units.py:76
+msgid "meters"
+msgstr ""
+
+#: opentreemap/treemap/units.py:77
+msgid "pounds per year"
+msgstr ""
+
+#: opentreemap/treemap/units.py:78
+msgid "kilograms per year"
+msgstr ""
+
+#: opentreemap/treemap/units.py:79
+msgid "pounds"
+msgstr ""
+
+#: opentreemap/treemap/units.py:80
+msgid "kilograms"
+msgstr ""
+
+#: opentreemap/treemap/units.py:81
+msgid "kilowatt-hours per year"
+msgstr ""
+
+#: opentreemap/treemap/units.py:82
+msgid "gallons"
+msgstr ""
+
+#: opentreemap/treemap/units.py:83
+msgid "gallons per year"
+msgstr ""
+
+#: opentreemap/treemap/units.py:84
+msgid "liters"
+msgstr ""
+
+#: opentreemap/treemap/units.py:85
+msgid "liters per year"
+msgstr ""
+
+#: opentreemap/treemap/units.py:86
+msgid "feet²"
+msgstr ""
+
+#: opentreemap/treemap/units.py:87
+msgid "meters²"
+msgstr ""
+
+#. Translators: "in" is an abbreviation for "inches"
+#: opentreemap/treemap/units.py:92
+msgid "in"
+msgstr ""
+
+#. Translators: "ft" is an abbreviation for "feet"
+#: opentreemap/treemap/units.py:94
+msgid "ft"
+msgstr ""
+
+#. Translators: "cm" is an abbreviation for "centimeters"
+#: opentreemap/treemap/units.py:96
+msgid "cm"
+msgstr ""
+
+#. Translators: "m" is an abbreviation for "meters"
+#: opentreemap/treemap/units.py:98
+msgid "m"
+msgstr ""
+
+#. Translators: "lbs/year" is an abbreviation for "pounds per year"
+#: opentreemap/treemap/units.py:100
+msgid "lbs/year"
+msgstr ""
+
+#. Translators: "kg/year" is an abbreviation for "kilograms per year"
+#: opentreemap/treemap/units.py:102
+msgid "kg/year"
+msgstr ""
+
+#. Translators: "lbs" is an abbreviation for "pounds"
+#: opentreemap/treemap/units.py:104
+msgid "lbs"
+msgstr ""
+
+#. Translators: "kg" is an abbreviation for "kilograms"
+#: opentreemap/treemap/units.py:106
+msgid "kg"
+msgstr ""
+
+#. Translators: "kwh/year" is an abbreviation for "kilowatt-hours per year"
+#: opentreemap/treemap/units.py:108
+msgid "kwh/year"
+msgstr ""
+
+#. Translators: "gal" is an abbreviation for "gallons"
+#: opentreemap/treemap/units.py:110
+msgid "gal"
+msgstr ""
+
+#. Translators: "gal/year" is an abbreviation for "gallons per year"
+#: opentreemap/treemap/units.py:112
+msgid "gal/year"
+msgstr ""
+
+#. Translators: "L" is an abbreviation for "liters"
+#: opentreemap/treemap/units.py:114
+msgid "L"
+msgstr ""
+
+#. Translators: "L/year" is an abbreviation for "liters per year"
+#: opentreemap/treemap/units.py:116
+msgid "L/year"
+msgstr ""
+
+#. Translators: "ft²" is an abbreviation for "square feet"
+#: opentreemap/treemap/units.py:118
+msgid "ft²"
+msgstr ""
+
+#. Translators: "m²" is an abbreviation for "square meters"
+#: opentreemap/treemap/units.py:120
+msgid "m²"
+msgstr ""
+
+#: opentreemap/treemap/util.py:46
+#, python-format
+msgid "invalid model type: \"%s\""
+msgstr ""
+
+#: opentreemap/treemap/views/misc.py:249
+msgid "URL or resource not found"
+msgstr ""
+
+#: opentreemap/treemap/views/misc.py:250
+msgid "An unhandled error occured"
+msgstr ""
+
+#: opentreemap/treemap/views/misc.py:251
+msgid "Resource is temporarily unavailable"
+msgstr ""
+
+#: opentreemap/treemap/views/photo.py:66
+msgid "Active"
+msgstr ""
+
+#: opentreemap/treemap/views/photo.py:67
+msgid "Archived"
+msgstr ""
+
+#: opentreemap/treemap/views/photo.py:67
+msgid "archived"
+msgstr ""
+
+#: opentreemap/treemap/views/tree.py:88
+msgid "Total annual benefits"
+msgstr ""
+
+#: opentreemap/treemap/views/tree.py:98
+msgid "tree"
+msgid_plural "trees"
+msgstr[0] ""
+msgstr[1] ""
+
+#: opentreemap/treemap/views/tree.py:100
+msgid "empty planting site"
+msgid_plural "empty planting sites"
+msgstr[0] ""
+msgstr[1] ""
+
+#: opentreemap/treemap/views/user.py:29
+msgid "First Name"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:33
+msgid "Last Name"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:37
+msgid "Organization"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:41
+msgid "Make Info Visible"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:46
+msgid "Email"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:50
+msgid "Email Updates"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:127
+msgid "Email field is required"
+msgstr ""
+
+#: opentreemap/treemap/views/user.py:139
+msgid "Account Recovery"
 msgstr ""

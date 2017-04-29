@@ -59,7 +59,7 @@ class UnitConverterTest(OTMTestCase):
         val, display_val = get_display_value(
             self.instance, 'test', 'unit_only', 1)
         self.assertAlmostEqual(val, 12)
-        self.assertEqual(display_val, '12.0')
+        self.assertEqual(display_val, '12,0')
 
     def test_get_display_value_no_unit_conversion_when_same_units(self):
         set_attr_on_json_field(
@@ -67,13 +67,13 @@ class UnitConverterTest(OTMTestCase):
         val, display_val = get_display_value(
             self.instance, 'test', 'unit_only', 1)
         self.assertEqual(val, 1)
-        self.assertEqual(display_val, '1.0')
+        self.assertEqual(display_val, '1,0')
 
     def test_get_display_value_float_formatting(self):
         val, display_val = get_display_value(
             self.instance, 'test', 'digit_only', 1)
         self.assertEqual(val, 1)
-        self.assertEqual(display_val, '1.00')
+        self.assertEqual(display_val, '1,00')
 
     def test_get_display_value_conversion(self):
         set_attr_on_json_field(
@@ -81,7 +81,7 @@ class UnitConverterTest(OTMTestCase):
         val, display_val = get_display_value(
             self.instance, 'test', 'both', 1)
         self.assertAlmostEqual(val, 12)
-        self.assertEqual(display_val, '12.000')
+        self.assertEqual(display_val, '12,000')
 
     def test_get_storage_value(self):
         set_attr_on_json_field(
@@ -93,7 +93,7 @@ class UnitConverterTest(OTMTestCase):
         val, display_val = get_display_value(
             self.instance, 'test', 'separate_units', 12)
         self.assertEqual(val, 1)
-        self.assertEqual(display_val, '1.0')
+        self.assertEqual(display_val, '1,0')
 
 
 INTEGRATION_TEST_DISPLAY_DEFAULTS = {
