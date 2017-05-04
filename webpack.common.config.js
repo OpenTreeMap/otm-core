@@ -61,7 +61,7 @@ module.exports = {
     },
     module: {
         loaders: [{
-            include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],
+            include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"]],
             loader: "imports?bootstrap"
         }, {
             test: /\.scss$/,
