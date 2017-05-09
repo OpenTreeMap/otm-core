@@ -107,7 +107,7 @@ class TreeImportRow(GenericImportRow):
         'date_planted': fields.trees.DATE_PLANTED,
         'date_removed': fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
-        # 'readonly': fields.trees.READ_ONLY
+        # 'readonly': fields.trees.READ_ONLY,
     }
 
     # plot that was created from this row
@@ -236,7 +236,8 @@ class TreeImportRow(GenericImportRow):
         for udf_def in tree_udf_defs:
             udf_column_name = ie.get_udf_column_name(udf_def)
             value = data.get(udf_column_name, None)
-            if value:
+            # Legitimate values could be falsey
+            if value is not None:
                 tree_edited = True
                 if tree is None:
                     tree = Tree(instance=plot.instance)
@@ -424,8 +425,12 @@ class TreeImportRow(GenericImportRow):
                     udf_def.clean_value(value)
                     self.cleaned[column_name] = value
                 except ValidationError as ve:
+                    message = str(ve)
+                    if isinstance(ve.message_dict, dict):
+                        message = '\n'.join(
+                            [unicode(m) for m in ve.message_dict.values()])
                     self.append_error(
-                        errors.INVALID_UDF_VALUE, column_name, str(ve))
+                        errors.INVALID_UDF_VALUE, column_name, message)
 
     def validate_row(self):
         """

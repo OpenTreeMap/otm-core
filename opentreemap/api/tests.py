@@ -12,8 +12,10 @@ import os
 import json
 import base64
 import datetime
+import psycopg2
 from unittest.case import skip
 
+from django.db import connection
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.test.utils import override_settings
@@ -28,9 +30,10 @@ from treemap.lib.udf import udf_create
 from treemap.models import Species, Plot, Tree, User, FieldPermission
 from treemap.instance import create_stewardship_udfs
 from treemap.audit import ReputationMetric, Audit
+from treemap.udf import UserDefinedFieldDefinition
 from treemap.tests import (make_user, make_request, set_invisible_permissions,
                            make_instance, LocalMediaTestCase, media_dir,
-                           make_commander_user)
+                           make_commander_user, set_write_permissions)
 from treemap.tests.base import OTMTestCase
 
 from exporter.tests import UserExportsTestCase
@@ -197,7 +200,7 @@ class PlotListing(OTMTestCase):
         self.client = Client()
 
     def test_edits(self):
-        #TODO: Test recent edits
+        # TODO: Test recent edits
         return None
         user = self.u
 
@@ -460,7 +463,7 @@ class CreatePlotAndTree(OTMTestCase):
                 "height": 10.0
             }}
 
-        ###TODO: Need to create reputation metrics
+        # TODO: Need to create reputation metrics
 
         plot_count = Plot.objects.count()
         reputation_count = self.user.get_reputation(self.instance)
@@ -566,6 +569,8 @@ class CreatePlotAndTree(OTMTestCase):
 
 class UpdatePlotAndTree(OTMTestCase):
     def setUp(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
         self.instance = setupTreemapEnv()
 
         self.user = User.objects.get(username="commander")
@@ -575,6 +580,19 @@ class UpdatePlotAndTree(OTMTestCase):
                               action=Audit.Type.Update, direct_write_score=2,
                               approval_score=5, denial_score=1)
         rm.save()
+
+    def _makeUdfd(self, name, data_type, model_type='Plot', choices=None):
+        set_write_permissions(self.instance, self.user, model_type,
+                              ['udf:' + name])
+        datatype_dict = {'type': data_type}
+        if choices:
+            datatype_dict['choices'] = choices
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type=model_type,
+            datatype=json.dumps(datatype_dict),
+            iscollection=False,
+            name=name)
 
     def test_invalid_plot_id_returns_404_and_a_json_error(self):
         response = put_json("%s/instance/%s/plots/0" %
@@ -617,6 +635,123 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(22, response_json['plot']['length'])
 
         assert_reputation(self, reputation_count + 6)
+
+    def test_update_plot_with_udfs(self):
+        self._makeUdfd('abc', 'choice', choices=['a', 'b', 'c'])
+        self._makeUdfd('def', 'choice', choices=['d', 'e', 'f'])
+        self._makeUdfd('multi-ghi', 'multichoice', choices=['g', 'h', 'i'])
+        self._makeUdfd('multi-jkl', 'multichoice', choices=['j', 'k', 'l'])
+        test_plot = mkPlot(self.instance, self.user)
+        test_plot.width = 1
+        test_plot.length = 2
+        test_plot.geocoded_address = 'foo'
+        test_plot.udfs['abc'] = 'a'
+        test_plot.udfs['multi-ghi'] = ['g', 'h']
+        test_plot.save_with_user(self.user)
+
+        self.assertEqual(test_plot.udfs['abc'], 'a')
+        self.assertEqual(test_plot.udfs['multi-ghi'], ['g', 'h'])
+        self.assertNotIn('def', test_plot.udfs)
+        self.assertNotIn('multi-jkl', test_plot.udfs)
+
+        # Include `updated_by` because the app does send it,
+        # and the endpoint must ignore it.
+        # Likewise, include `udf:def` set to empty string and
+        # `udf:multi-jkl` set to empty list, for the same reason.
+        updated_values = {'plot':
+                          {'geom': {'y': 0.001, 'x': 0.001, 'srid': 4326},
+                           'width': 11,
+                           'length': 22,
+                           'udf:abc': 'b',
+                           'udf:def': '',
+                           'udf:multi-ghi': '["g"]',
+                           'udf:multi-jkl': '[]',
+                           'updated_by': self.user.pk}}
+
+        response = put_json("%s/instance/%s/plots/%d" %
+                            (API_PFX, self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+
+        test_plot.refresh_from_db()
+
+        # It should have updated the plot.
+        self.assertEqual(test_plot.udfs['abc'], 'b')
+        # It should have sent the new value in the response.
+        self.assertEqual(response_json['plot']['udf:abc'], 'b')
+
+        self.assertEqual(test_plot.udfs['multi-ghi'], ['g'])
+        # It should have sent the new value in the response.
+        self.assertEqual(response_json['plot']['udf:multi-ghi'], ['g'])
+
+        # It should not have added 'def' to the plot udfs.
+        self.assertNotIn('def', test_plot.udfs)
+        self.assertEqual(response_json['plot']['udf:def'], None)
+
+        # It should not have added 'multi-jkl' to the plot udfs.
+        self.assertNotIn('multi-jkl', test_plot.udfs)
+        self.assertEqual(response_json['plot']['udf:multi-jkl'], None)
+
+    def test_update_tree_with_udfs(self):
+        self._makeUdfd('abc', 'choice', model_type='Tree',
+                       choices=['a', 'b', 'c'])
+        self._makeUdfd('def', 'choice', model_type='Tree',
+                       choices=['d', 'e', 'f'])
+        self._makeUdfd('multi-ghi', 'multichoice', model_type='Tree',
+                       choices=['g', 'h', 'i'])
+        self._makeUdfd('multi-jkl', 'multichoice', model_type='Tree',
+                       choices=['j', 'k', 'l'])
+
+        test_plot = mkPlot(self.instance, self.user)
+        test_plot = mkPlot(self.instance, self.user)
+        test_plot.width = 1
+        test_plot.length = 2
+        test_plot.geocoded_address = 'foo'
+        test_plot.save_with_user(self.user)
+
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
+        test_tree.udfs['abc'] = 'a'
+        test_tree.udfs['multi-ghi'] = ['g', 'h']
+        test_tree.save_with_user(self.user)
+
+        # and the endpoint must ignore it.
+        # Likewise, include `udf:def` set to empty string and
+        # `udf:multi-jkl` set to empty list, for the same reason.
+        updated_values = {'tree':
+                          {'udf:abc': 'b',
+                           'udf:def': '',
+                           'udf:multi-ghi': '["g"]',
+                           'udf:multi-jkl': '[]'}}
+
+        response = put_json("%s/instance/%s/plots/%d" %
+                            (API_PFX, self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+
+        test_tree.refresh_from_db()
+
+        # It should have updated the plot.
+        self.assertEqual(test_tree.udfs['abc'], 'b')
+        # It should have sent the new value in the response.
+        self.assertEqual(response_json['tree']['udf:abc'], 'b')
+
+        self.assertEqual(test_tree.udfs['multi-ghi'], ['g'])
+        # It should have sent the new value in the response.
+        self.assertEqual(response_json['tree']['udf:multi-ghi'], ['g'])
+
+        # It should not have added 'def' to the plot udfs.
+        self.assertNotIn('def', test_tree.udfs)
+        self.assertEqual(response_json['tree']['udf:def'], None)
+
+        # It should not have added 'multi-jkl' to the plot udfs.
+        self.assertNotIn('multi-jkl', test_tree.udfs)
+        self.assertEqual(response_json['tree']['udf:multi-jkl'], None)
 
     @skip("ignore pending")
     def test_update_plot_with_pending(self):
@@ -1072,7 +1207,7 @@ class UpdatePlotAndTree(OTMTestCase):
     def test_update_multichoice_v3(self):
         self._create_multichoice()
         test_plot = mkPlot(self.instance, self.user)
-        test_plot.udfs['multi'] = None
+        test_plot.udfs['multi'] = ['a']
         test_plot.save_with_user(self.user)
 
         updated_values = {'plot': {
@@ -1086,7 +1221,7 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(200, response.status_code)
 
         response_json = loads(response.content)
-        self.assertEqual(None, response_json['plot']['udf:multi'])
+        self.assertIsNone(response_json['plot']['udf:multi'])
 
         test_plot.udfs['multi'] = ['b', 'c']
         test_plot.save_with_user(self.user)
@@ -1103,6 +1238,36 @@ class UpdatePlotAndTree(OTMTestCase):
 
         response_json = loads(response.content)
         self.assertEqual(['b', 'c'], response_json['plot']['udf:multi'])
+
+        updated_values = {'plot': {
+            'geom': {'y': 0, 'x': 0, 'srid': 4326}, 'udf:multi': []}
+        }
+
+        response = put_json("/api/v3/instance/%s/plots/%d" %
+                            (self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+
+        # Make sure no change happens if we send an empty list
+        # when `udf:multi` does not exist in the plot
+        self.assertIsNone(response_json['plot']['udf:multi'])
+
+        updated_values = {'plot': {
+            'geom': {'y': 0, 'x': 0, 'srid': 4326}, 'udf:multi': []}
+        }
+
+        response = put_json("/api/v3/instance/%s/plots/%d" %
+                            (self.instance.url_name, test_plot.pk),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(200, response.status_code)
+
+        response_json = loads(response.content)
+
+        self.assertIsNone(response_json['plot']['udf:multi'])
 
 
 class Instance(LocalMediaTestCase):

@@ -185,7 +185,7 @@ def udf_context(instance, udf_def):
     else:
         Model = safe_get_udf_model_class(udf_def.model_type)
         udf_uses = Model.objects.filter(instance=instance)\
-                                .filter(udfs__contains=[udf_def.name])\
+                                .filter(udfs__has_key=udf_def.name)\
                                 .count()
 
     return {

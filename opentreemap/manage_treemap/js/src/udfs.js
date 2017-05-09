@@ -437,7 +437,8 @@ editForm.inEditModeProperty.onValue(function() {
 
 function addNewUdf(html) {
     var $created = $(html),
-        $model = $(dom.udfs).find('[data-model-type="' + $created.data('model-type') + '"]'),
+        model_type = $created.data('model-type'),
+        $model = $(dom.udfs).find('tbody[data-model-type="' + model_type + '"]'),
         $collections = $model.find(dom.udfContainer + '[data-is-collection="yes"]');
 
     if (0 < $collections.length) {
