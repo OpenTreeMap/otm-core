@@ -1,0 +1,148 @@
+{% extends "instance_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load partial %}
+
+{% block outermost_atts %}id="modeling"{% endblock %}
+
+{% block page_title %} | {% trans "Planning" %}{% endblock %}
+
+{% block activeexplore %}{% endblock %}
+{% block activemodeling %}active{% endblock %}
+
+{% block toolbar %}
+<div id="toolbar" style="float: left">
+    <div class="action-block">
+        <h4 style="display: inline;"><span id="model-name"></span></h4>
+        <span class="visibility" id="model-visibility">
+            <i class="icon-eye"></i>
+            <span id="model-visibility-text"></span>
+        </span>
+        <span class="private" id="autosave-message"></span>
+        <div class="actions">
+          <span><a href="javascript:;" class="open"><i class="icon-folder"></i>{% trans "Open plan" %}</a></span>
+          <span><a href="javascript:;" class="new-plan"><i class="icon-doc"></i>{% trans "New plan" %}</a></span>
+          <span><a href="javascript:;" class="edit"><i class="icon-cog"></i>{% trans "Edit details" %}</a></span>
+          <span><a href="javascript:;" class="save-as"><i class="icon-floppy"></i>{% trans "Save as" %}</a></span>
+          <span><a href="javascript:;" data-toggle="modal" data-target="#help"><i class="icon-info-circled-1"></i>{% trans "Help" %}</a></span>
+        </div>
+    </div>
+</div>
+{% endblock toolbar %}
+
+{% block search %}
+<div class="search-block-wrapper">
+    {% include "modeling/partials/search_location.html" %}
+    <a class="btn btn-default" id="perform-search"><i class="icon-search"></i></a>
+    <a class="btn btn-default" id="search-reset"><i class="icon-cancel"></i></a>
+</div>
+{% endblock search %}
+
+{% block searchoptions %}
+{% comment %} Hide "Search" buttons {% endcomment %}
+{% endblock searchoptions %}
+
+{% block subhead %}
+{% comment %} Hide subhead {% endcomment %}
+{% endblock subhead %}
+
+{% block searchscripts %}
+{% comment %} Disable redirect on location search {% endcomment %}
+{% endblock searchscripts %}
+
+{% block content %}
+<div id="view-switcher">
+    <div id="scenario-dropdown" class="btn-group pull-right">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="icon-menu"></i>
+        </button>
+      <ul class="dropdown-menu"></ul>
+    </div>
+    <div class="scenario-button-container">
+        <button class="btn add-scenario">
+            {% trans "+ Add scenario" %}
+        </button>
+        <div id="scenario-buttons"></div>
+    </div>
+</div>
+<div class="content map">
+    {% include 'modeling/partials/scenarios/sidebar.html' %}
+    <div id="map" class="map"
+        data-bounds="{{ request.instance.map_extent_as_json }}">
+        <div class="map-popover">
+            <button type="button" class="btn pull-right close">{% trans "Close" %}</button>
+            <button type="button" class="btn pull-right cancel-action">{% trans "Cancel" %}</button>
+            <button type="button" class="btn pull-right done">{% trans "Done" %}</button>
+            <span class="content"></span>
+        </div>
+    </div>
+</div>
+<div id="plan-list" class="slideUp">
+    {% partial modeling/partials/plans/plans.html plans %}
+</div>
+{% include 'modeling/partials/modals.html' %}
+{% endblock content %}
+
+{% block scripts %}
+{% include 'modeling/partials/scenarios/clientside_templates.html' %}
+<script src="https://maps.googleapis.com/maps/api/js?key={{ settings.GOOGLE_MAPS_API_KEY }}"></script>
+<script type="text/javascript">
+    var modelingOptions = {
+        config: otm.settings,
+        username: '{{ request.user.username }}',
+        instanceBounds: {{ instance_bounds }},
+        species: {{ species_for_planting | safe }},
+        defaultModelParams: {{ default_model_params | safe }},
+        urls: {
+            addPlanUrl: "{% url 'plans' instance_url_name=request.instance.url_name  %}",
+            boundariesAtPointUrl: "{% url 'boundaries_at_point' instance_url_name=request.instance.url_name %}",
+            planListUrl: "{% url 'plans' instance_url_name=request.instance.url_name %}",
+            calculateScenarioUrl: "{% url 'run_model' instance_url_name=request.instance.url_name %}"
+        },
+        strings: {
+            DEFAULT: "{% trans "Default" %}",
+            SQ_FT: "{% trans "sq/ft" %}",
+            NEW_PLAN: "{% trans "New Plan" %}",
+            CREATE_NEW_PLAN: "{% trans "Create New Plan" %}",
+            EDIT_PLAN_DETAILS: "{% trans "Edit Plan Details" %}",
+            UPDATE_DETAILS: "{% trans "Update Details" %}",
+            SAVE_PLAN_AS: "{% trans "Save Plan As" %}",
+            SAVE: "{% trans "Save" %}",
+            LOADING: "{% trans "Loading..." %}",
+            SAVING: "{% trans "Saving..." %}",
+            PLAN_SAVED: "{% trans "All changes saved" %}",
+            PLAN_DELETED: "{% trans "Plan deleted" %}",
+            SAVE_PLAN_UNKNOWN_ERROR: "{% trans "Error saving plan" %}",
+            LOAD_PLAN_ERROR: "{% trans "There was an error loading this plan. Please try again later." %}",
+            DELETE_PLAN_ERROR: "{% trans "There was an error deleting this plan. Please try again later." %}",
+            CANT_DELETE_CURRENT_PLAN: "{% trans "You cannot delete the plan you are currently editing." %}",
+            ONE_INDIVIDUAL_TREE: "{% trans "1 Individual tree" %}",
+            INDIVIDUAL_TREES: "{% trans "Individual trees" %}",
+            ONE_TREE_DISTRIBUTION: "{% trans "1 Tree Distribution" %}",
+            TREE_DISTRIBUTIONS: "{% trans "Tree Distributions" %}",
+            LC_ONE_TREE: "{% trans "1 tree" %}",
+            LC_TREES: "{% trans "trees" %}",
+            ONE_TREE: "{% trans "1 Tree" %}",
+            TREES: "{% trans "Trees" %}",
+            PROMPT_PLACE_TREE: "{% trans "Place your tree, then select its species and diameter from the left. When you're done, you can add more of this tree, or add a new type of tree." %}",
+            PROMPT_EDIT_TREE: "{% trans "Edit your tree's location and change the species and diameter on the left. You can also add more of this type, or add a whole new tree to the map." %}",
+            PROMPT_CLONE_TREE: "{% trans "Place your tree on the map. It will share the species and diameter of the tree you've already added &ndash; great for adding lots of trees on a block." %}",
+            PROMPT_DRAW_AREA: "{% trans "Click on the map to draw the area for your tree distributions. You can drag points to edit the shape, or double-click to close it when you're done." %}",
+            PROMPT_SELECT_AREA: "{% trans "Click on a neighborhood to use it as your distribution area. Once you've selected a neighborhood, you'll be able to edit the shape of this area." %}",
+            PROMPT_EDIT_AREA: "{% trans "Drag and drop points to edit the shape of your distribution area. Click on the mid-point of a line to add a new point." %}",
+            WARNING_NO_AREAS: "{% trans "There are no areas at that location." %}",
+            INVALID_DIAMETER: "{% trans "Invalid diameter" %}",
+            INVALID_QUANTITY: "{% trans "Invalid quantity" %}",
+            NEED_AT_LEAST_1_TREE: "{% trans "You need at least 1 tree to calculate scenario" %}",
+            TREE_MARKERS: "{% trans "Tree Markers" %}",
+            LAND_USE_DISTRIBUTION_AREA: "{% trans "Tree Distribution Area" %}",
+            CALCULATE_SCENARIO_UNKNOWN_ERROR: "{% trans "There was an error calculating your scenario." %}",
+            YEAR: "{% trans "Year" %}",
+            YEARS_SINCE_PLANTING: "{% trans "Years since planting" %}",
+            CUMULATIVE: "{% trans "Cumulative" %}",
+            TREE_COUNTS: "{% trans "Tree counts" %}"
+        }
+    };
+</script>
+{% render_bundle 'js/modeling/modeling' %}
+{% endblock scripts %}
