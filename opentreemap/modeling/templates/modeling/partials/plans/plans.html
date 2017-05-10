@@ -1,0 +1,80 @@
+{% load i18n %}
+{% load l10n %}
+{% load humanize %}
+{% load util %}
+{% load staticfiles %}
+
+<div class="plans-backdrop"></div>
+<div class="plans-content">
+    <div class="loading-content" style="display: none;">
+        <div class="plans-header">
+            <h3>Plans</h3>
+        </div>
+        <div class="plans-body">
+            <img class="spinner" src="{% static "img/spinner.gif" %}">
+        </div>
+    </div>
+    <div class="loaded-content">
+        <div class="plans-header">
+            <a href="javascript:;" class="btn close">&times; Close</a>
+            <h3>Plans</h3>
+            <div id="plan-filters">
+                {% for filter in filters %}
+                    {% include "modeling/partials/plans/filter_button.html" %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="plans-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr id="plans-column-headers">
+                        {% for column in columns %}
+                            {% include "modeling/partials/plans/column_header.html" %}
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for plan in plans %}
+                        <tr data-plan-id="{{ plan.id|unlocalize }}">
+                            <td class="col-sm-6">
+                                {% if current_filter == 'user'%}
+                                    <a href="javascript:;" class="load-plan">{{ plan.name }}</a>
+                                {% else %}
+                                    {{ plan.name }}
+                                {% endif %}
+                                <p>{{ plan.description }}</p>
+                            </td>
+                            <td>
+                                <a href="{{ plan.owner|detail_link }}">{{ plan.owner.username }}</a>
+                            </td>
+                            <td title="{{ plan.modified_time }}">{{ plan.modified_time|naturaltime }}</td>
+                            <!-- TODO: implement "Edit details"
+                            <td class="text-right">
+                                <a href="javascript:;" class="load-plan"><i class="icon-edit"></i>{% trans "Edit details" %}</a>
+                            </td>
+                            -->
+                            <td class="text-right">
+                                {% if current_filter == 'user'%}
+                                    <a href="javascript:;" class="delete-plan"
+                                       data-query-string="{{ query_string_for_delete }}"
+                                            >
+                                        <i class="icon-trash"></i>{% trans "Delete" %}
+                                    </a>
+                                {% else %}
+                                    <a href="javascript:;" class="load-plan">
+                                        <i class="icon-folder"></i>{% trans "Open a copy" %}
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div> <!-- /.table-responsive -->
+        </div> <!-- /.plans-body -->
+        <button class="btn new-plan">{% trans "New Plan" %}</button>
+        {% include 'treemap/partials/paging_controls.html' with paging=plans url=url_for_paging %}
+    </div> <!-- /.loaded-content -->
+</div> <!-- /.plans-content -->
