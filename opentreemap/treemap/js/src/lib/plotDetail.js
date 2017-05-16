@@ -24,8 +24,8 @@ var dom = {
 exports.init = function(form) {
     function excludeNullMap(obs, fn) {
         return obs.map(fn)
-            .filter(R.not(_.isUndefined))
-            .filter(R.not(_.isNull));
+            .filter(R.complement(_.isUndefined))
+            .filter(R.complement(_.isNull));
     }
     
     var treeId = $(dom.treeIdColumn).attr('data-tree-id'),

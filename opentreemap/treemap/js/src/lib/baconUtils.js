@@ -29,15 +29,15 @@ exports.not = function(staticValue, streamValue) {
     return staticValue !== streamValue;
 };
 
-var isDefined = exports.isDefined = R.not(_.isUndefined);
+var isDefined = exports.isDefined = R.complement(_.isUndefined);
 
-var isDefinedNonEmpty = exports.isDefinedNonEmpty = R.and(R.not(_.isUndefined), R.not(R.eq('')));
+var isDefinedNonEmpty = exports.isDefinedNonEmpty = R.both(R.complement(_.isUndefined), R.complement(R.equals('')));
 
 var isUndefined = exports.isUndefined = _.isUndefined;
 
-var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = R.or(_.isUndefined, R.eq(''));
+var isUndefinedOrEmpty = exports.isUndefinedOrEmpty = R.either(_.isUndefined, R.equals(''));
 
-var isNumber = exports.isNumber = R.and(R.not(_.isNaN), _.isNumber);
+var isNumber = exports.isNumber = R.both(R.complement(_.isNaN), _.isNumber);
 
 // Used to get object property values
 // Needed for keys with '.' in them, as Bacon will treat a '.' a in key as an
@@ -47,11 +47,11 @@ var getValueForKey = exports.getValueForKey = function(key) {
 };
 
 exports.isPropertyUndefined = function(key) {
-    return R.or(isUndefined, R.compose(isUndefined, getValueForKey(key)));
+    return R.either(isUndefined, R.compose(isUndefined, getValueForKey(key)));
 };
 
 exports.isPropertyDefined = function(key) {
-    return R.and(isDefined, R.compose(isDefined, getValueForKey(key)));
+    return R.both(isDefined, R.compose(isDefined, getValueForKey(key)));
 };
 
 exports.fetchFromIdStream = function (idStream, fetchFn, undefinedMapping, errorMapping) {
@@ -154,7 +154,7 @@ exports.leafletSingleClickStream = function(leafletThing, doubleClickTime) {
             .filter(function (clicks) {
                 return clicks.length < 2;
             })
-            .map(_.first);
+            .map(_.head);
     return singleClickStream;
 };
 

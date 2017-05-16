@@ -11,8 +11,8 @@ exports.init = function(options) {
         $addTreeControls = $(options.addTreeControls),
         $beginAddTree = $(options.beginAddTree),
         beginAddStream = $beginAddTree.asEventStream('click'),
-        enterEditModeStream = inEditModeProperty.filter(R.eq(true)),
-        exitEditModeStream = inEditModeProperty.filter(R.eq(false));
+        enterEditModeStream = inEditModeProperty.filter(R.equals(true)),
+        exitEditModeStream = inEditModeProperty.filter(R.equals(false));
 
     function updateForm (val) {
         var $editFields = $('[data-class="edit"]');

@@ -143,7 +143,7 @@ exports.makeZoomLatLngQuery = function(zoomLatLng) {
 exports.getPolygonDisplayArea = function(poly) {
     function totalAreaInMeters(collection) {
         if (_.isArray(collection[0])) {
-            return _.chain(collection)
+            return _(collection)
                     .map(totalAreaInMeters)
                     .reduce(function(sum, num) {
                         return sum + num;

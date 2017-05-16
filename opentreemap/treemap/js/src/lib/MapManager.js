@@ -70,7 +70,7 @@ MapManager.prototype = {
                 var shouldCheckForPolygon = function(e) {
                         return map.getZoom() >= MIN_ZOOM_OPTION.minZoom && e.data === null;
                     },
-                    plotUtfEventStream = baseUtfEventStream.filter(R.not(shouldCheckForPolygon)),
+                    plotUtfEventStream = baseUtfEventStream.filter(R.complement(shouldCheckForPolygon)),
                     emptyUtfEventStream = baseUtfEventStream.filter(shouldCheckForPolygon),
 
                     polygonDataStream = emptyUtfEventStream.map(function(e) {

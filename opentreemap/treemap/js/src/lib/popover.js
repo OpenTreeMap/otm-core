@@ -36,7 +36,7 @@ function showPopup (event) {
 exports.init = function ($container) {
     // any click inside a popup must stop propagating because it will clash
     // with the click behavior on its container
-    $container.on('click', dom.popup.outermostElement, R.func('stopPropagation'));
+    $container.on('click', dom.popup.outermostElement, R.invoker(0, 'stopPropagation'));
     $container.on('click', dom.popup.cancelButton, hideAssociatedPopup);
     $container.on('click', dom.popupTriggers, showPopup);
 

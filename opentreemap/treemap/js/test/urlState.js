@@ -20,7 +20,7 @@ function HistoryApiMock() {
 
     function pushUrl(url) {
         _url = url;
-        _.invoke(_callbacks, 'apply');
+        _.invokeMap(_callbacks, 'apply');
     }
 
     return {
