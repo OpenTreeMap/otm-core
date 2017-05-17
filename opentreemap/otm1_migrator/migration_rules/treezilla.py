@@ -55,6 +55,13 @@ MIGRATION_RULES['tree']['presave_actions'] = (MIGRATION_RULES['tree']
                                               .get('presave_actions', [])
                                               + [convert_tree_measurements])
 
+# The treezilla database stores species measurement maximums in meters
+MIGRATION_RULES['species']['value_transformers']['v_max_dbh'] = (
+    lambda x: x * METERS_TO_INCHES if x else 10000)
+
+MIGRATION_RULES['species']['value_transformers']['v_max_height'] = (
+    lambda x: x * METERS_TO_FEET if x else 10000)
+
 
 def create_override(species_obj, species_dict):
     itree_code = species_dict['fields'].get('itree_code', None)
