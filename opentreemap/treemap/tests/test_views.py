@@ -2017,7 +2017,6 @@ class InstanceListTest(OTMTestCase):
         self.assertIn('properties', instance_dict)
 
         self.assertEqual(self.i1.name, instance_dict['properties']['name'])
-        self.assertEqual(1, instance_dict['properties']['tree_count'])
         self.assertEqual(2, instance_dict['properties']['plot_count'])
 
     def test_instance_list_only_public(self):

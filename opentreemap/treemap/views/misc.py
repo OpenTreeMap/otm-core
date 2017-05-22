@@ -231,27 +231,13 @@ def public_instances_geojson(request):
                 'url': reverse(
                     'instance_index_view',
                     kwargs={'instance_url_name': instance.url_name}),
-                'tree_count': instance.tree_count,
-                'plot_count': instance.plot_count
+                'plot_count': instance.plot_count()
             }
         }
 
-    tree_query = "SELECT COUNT(*) FROM treemap_tree WHERE "\
-        "treemap_tree.instance_id = treemap_instance.id"
-
-    plot_query = "SELECT COUNT(*) FROM treemap_mapfeature"\
-        " WHERE treemap_mapfeature.instance_id = treemap_instance.id"\
-        " AND treemap_mapfeature.feature_type = 'Plot'"
-
-    # You might think you can do .annotate(tree_count=Count('tree'))
-    # But it is horribly slow due to too many group bys
     instances = (Instance.objects
                  .filter(is_public=True)
-                 .filter(get_viewable_instances_filter())
-                 .extra(select={
-                     'tree_count': tree_query,
-                     'plot_count': plot_query
-                 }))
+                 .filter(get_viewable_instances_filter()))
 
     return [instance_geojson(instance) for instance in instances]
 
