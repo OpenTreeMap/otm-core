@@ -147,8 +147,7 @@ exports.getPolygonDisplayArea = function(poly) {
                     .map(totalAreaInMeters)
                     .reduce(function(sum, num) {
                         return sum + num;
-                    })
-                    .value();
+                    });
         } else {
             return L.GeometryUtil.geodesicArea(collection);
         }
