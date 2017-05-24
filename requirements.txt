@@ -1,7 +1,7 @@
 # For outdated module report see https://requires.io/github/OpenTreeMap/otm-core/requirements/?branch=develop
 # Changelog URL shown below if not linked on above page
 
-boto==2.46.1                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
+boto==2.47.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
 # https://docs.djangoproject.com/en/1.10/releases/#id2
 Django==1.8.18  # rq.filter: >=1.8,<1.9
 django-apptemplates==1.2
