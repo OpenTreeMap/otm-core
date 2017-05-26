@@ -327,11 +327,19 @@ class TreeImportRow(GenericImportRow):
                                (point.x + offset, point.y - offset),
                                (point.x - offset, point.y - offset)))
 
+        # This gets called while committing each row.
+        # Assume that the creator of the csv knows best,
+        # and avoid proximity checks against other plots in the same csv.
+        already_committed = self.import_event.rows()\
+            .filter(plot_id__isnull=False)\
+            .values_list('plot_id')
+
         # Using MapFeature directly avoids a join between the
         # treemap_plot and treemap_mapfeature tables.
         nearby = MapFeature.objects\
                            .filter(instance=self.import_event.instance)\
                            .filter(feature_type='Plot')\
+                           .exclude(pk__in=already_committed)\
                            .filter(geom__intersects=nearby_bbox)
 
         nearby = nearby.distance(point).order_by('distance')[:5]
