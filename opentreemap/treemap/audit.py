@@ -536,12 +536,48 @@ class Dictable(object):
 
 
 class UserTrackable(Dictable):
+    '''
+    Track `tracked_fields` with `Audit` records.
+
+    Leaf classes should implement an `__init__` method, and
+    call `self.populate_previous_state()` after initialization
+    is otherwise complete.
+
+    If changes to a model instance fail to produce `Audit` records,
+    chances are the model's `__init__` did not call
+    `self.populate_previous_state()`.
+
+    Rationale (tl;dr)
+    -----------------
+
+    `populate_previous_state` calls `as_dict`.
+
+    If a class further down the `super` chain has not been initialized,
+    `as_dict` may raise an `AttributeError` due to attributes not
+    having been set yet.
+
+    After the leaf class calls `super(...).__init__()`, it can be
+    assured that all super classes have initialized themselves,
+    at which point `as_dict` will succeed.
+
+    There are ways to get around this, such as subclassing
+    a field to have a `contribute_to_class` method that
+    sets a descriptor on the model class.
+
+    That approach is very deep tinkering with the model
+    instantiation procedure, and is best avoided by preventing
+    circular dependencies in the initialization process
+    in the first place.
+    '''
     def __init__(self, *args, **kwargs):
         # _do_not_track returns the static do_not_track set unioned
         # with any fields that are added during instance initialization.
         self._do_not_track = self.do_not_track
         super(UserTrackable, self).__init__(*args, **kwargs)
-        self.populate_previous_state()
+
+        # It is the leaf class' responsibility to call
+        # `self.populate_previous_state()` after initialization is
+        # otherwise complete.
 
     def apply_change(self, key, orig_value):
         # TODO: if a field has a default value, don't
@@ -955,7 +991,7 @@ class Authorizable(UserTrackable):
             for field in self._updated_fields():
                 if field not in self._get_writable_perms_set(user):
                     raise AuthorizeException("Can't edit field %s on %s" %
-                                            (field, self._model_name))
+                                             (field, self._model_name))
 
         # If `WRITE_WITH_AUDIT` (i.e. pending write) is resurrected,
         # this test will prevent `_PendingAuditable` from getting called
@@ -1206,8 +1242,7 @@ class _PendingAuditable(Auditable):
 
         is_insert = self.pk is None
 
-        if ((self.user_can_create(user)
-             or not is_insert or auth_bypass)):
+        if ((self.user_can_create(user) or not is_insert or auth_bypass)):
             # Auditable will make the audits for us (including pending audits)
             return super(_PendingAuditable, self).save_with_user(
                 user, updates=updates, *args, **kwargs)
@@ -1382,8 +1417,8 @@ class Audit(models.Model):
                     datatype = udf_def.datatype_by_field[field_name]
             else:
                 udf_def = next((udfd for udfd in udfds
-                                if udfd.name == field_name
-                                and udfd.model_type == self.model), None)
+                                if udfd.name == field_name and
+                                udfd.model_type == self.model), None)
                 if udf_def is not None:
                     datatype = udf_def.datatype_dict
             if udf_def is not None:
@@ -1395,7 +1430,7 @@ class Audit(models.Model):
 
         cls = get_auditable_class(self.model)
         field_query = cls._meta.get_field_by_name(self.field)
-        field_cls, fk_model_cls, is_local, m2m = field_query
+        field_cls, __, __, __ = field_query
         field_modified_value = field_cls.to_python(value)
 
         # handle edge cases

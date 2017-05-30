@@ -10,9 +10,6 @@ from itertools import groupby, chain
 
 from django.db.models import Q
 
-from django.contrib.gis.measure import Distance
-from django.contrib.gis.geos import Point
-
 from opentreemap.util import dotted_split
 
 from treemap.lib.dates import DATETIME_FORMAT
@@ -141,7 +138,6 @@ def create_filter(instance, filterstr, mapping):
                    | 'EXCLUSIVE'
                    | 'IN'
                    | 'IS'
-                   | 'WITHIN_RADIUS'
                    | 'IN_BOUNDARY'
                    | 'LIKE'
                    | 'ISNULL'
@@ -177,7 +173,8 @@ def _parse_filter(query, mapping):
 
 
 def _parse_query_dict(query_dict, mapping):
-    # Separate the collection udf queries from the scalar queries,
+    # given a query_dict and a mapping similar to DEFAULT_MAPPING,
+    # separate the collection udf queries from the scalar queries,
     # handle them distinctly, and then combine back together.
 
     # A search for {
@@ -198,12 +195,57 @@ def _parse_query_dict(query_dict, mapping):
 
 
 def _parse_scalar_predicate(query, mapping):
-    qs = [_parse_scalar_predicate_pair(*kv, mapping=mapping)
+
+    parse_dict_props = partial(_parse_dict_props_for_mapping, PREDICATE_TYPES)
+
+    def parse_scalar_predicate_pair(key, value, mapping):
+        model, prefix, search_key = _parse_predicate_key(key, mapping)
+
+        if not isinstance(value, dict):
+            query = {prefix + search_key: value}
+        else:
+            props_by_pred = parse_dict_props(value)
+
+            query = {}
+
+            for pred, props in props_by_pred.iteritems():
+
+                lookup_tail, rhs = _parse_prop(props, value, pred, value[pred])
+
+                cast = rhs if props['udf_cast'] else None
+
+                lookup_key = _lookup_key(
+                    prefix, search_key,
+                    lookup_name=lookup_tail, cast=cast)
+
+                query[lookup_key] = rhs
+
+        return FilterContext(basekey=model, **query)
+
+    qs = [parse_scalar_predicate_pair(*kv, mapping=mapping)
           for kv in query.iteritems()]
     return _apply_combinator('AND', qs)
 
 
 def _parse_by_is_collection_udf(query_dict, mapping):
+    '''
+    given a `dict` query_dict mapping keys to individual predicates,
+    and a mapping similar to DEFAULT_MAPPING,
+
+    return a `dict` mapping keys to lists of queries for the key.
+
+    The keys in the return `dict` are collection udf identifiers
+    of the form  'udf:<model name>:<udfd>.<field name>', and
+    '*' for all scalars, udf or otherwise.
+
+    The values are lists of queries of the form: {
+        'type': same as 'model' for collections, '*' for scalars,
+        'model': the part of an identifier before the dot,
+        'field': field name to be queried - 'id', possibly prefixed,
+        'key': the original identifier,
+        'value': a predicate `dict`
+    }
+    '''
     query_dict_list = [dict(value=v, **_parse_by_key_type(k, mapping=mapping))
                        for k, v in query_dict.items()]
     grouped = groupby(sorted(query_dict_list, key=lambda qd: qd['type']),
@@ -212,9 +254,18 @@ def _parse_by_is_collection_udf(query_dict, mapping):
 
 
 def _parse_by_key_type(key, mapping):
-    model, field = _parse_predicate_key(key, mapping)
+    '''
+    given a string key, and a mapping similar to DEFAULT_MAPPING,
+    return dict with keys 'type', 'model', 'field', 'key'.
+
+    Collection UDF keys are returned as the dict 'type' value.
+
+    Scalar keys, UDF or regular, return '*' as the dict 'type' value.
+    '''
+    model, prefix, field = _parse_predicate_key(key, mapping)
     typ = model if _is_udf(model) else '*'
-    return {'type': typ, 'model': model, 'field': field, 'key': key}
+    return {'type': typ, 'prefix': prefix, 'model': model,
+            'field': field, 'key': key}
 
 
 def _unparse_scalars(scalars):
@@ -223,38 +274,104 @@ def _unparse_scalars(scalars):
 
 
 def _parse_collections(by_type, mapping):
+    '''
+    given a `dict` keyed by collection identifiers,
+    and a mapping similar to DEFAULT_MAPPING,
+
+    return a `FilterContext` that ANDs together a `FilterContext`
+    for each collection identifier.
+
+    Each inner `FilterContext` represents a subquery on
+    `UserDefinedCollectionValue`s for the `UserDefinedFieldDefinition`
+    id in the collection identifier.
+    '''
+    def parse_collection_subquery(identifier, field_parts, mapping):
+        # identifier looks like 'udf:<model type>:<udfd id>'
+        __, model, udfd_id = identifier.split(':', 2)
+
+        return FilterContext(
+            basekey=model, **{
+                mapping[model] + 'id__in': UserDefinedCollectionValue.objects
+                .filter(_parse_udf_collection(udfd_id, field_parts))
+                .values_list('model_id', flat=True)})
+
     return _apply_combinator(
-        'AND', [_parse_collection_subquery(identifier, field_parts, mapping)
+        'AND', [parse_collection_subquery(identifier, field_parts, mapping)
                 for identifier, field_parts in by_type.items()])
 
 
-def _parse_collection_subquery(identifier, field_parts, mapping):
-    # identifier looks like 'udf:<model type>:<udfd id>'
-    __, model, udfd_id = identifier.split(':', 2)
-
-    return FilterContext(
-        basekey=model, **{
-            mapping[model] + 'id__in': UserDefinedCollectionValue.objects
-            .filter(_parse_udf_collection(udfd_id, field_parts))
-            .values_list('model_id', flat=True)})
-
-
 def _parse_udf_collection(udfd_id, query_parts):
+    '''
+    given a `UserDefinedFieldDefinition` id, and a list of `query_parts`,
+
+    return a `FilterContext` that ANDs together `Q` queries intended
+    to query the `UserDefinedCollectionValue` fields corresponding to
+    the `UserDefinedFieldDefinition`.
+    '''
+
+    parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
+                                   COLLECTION_HSTORE_PREDICATE_TYPES)
+
+    def parse_collection_udf_dict(key, value):
+        __, field = _split_key(key)
+        if isinstance(value, dict):
+            preds = parse_udf_dict_value(value)
+            query = {_lookup_key('data__', field, k):
+                     v for (k, v) in preds.iteritems()}
+        else:
+            query = {_lookup_key('data__', field): value}
+        return query
+
     return _apply_combinator(
-        'AND', list(chain([Q(field_definition=udfd_id)],
-                          [Q(**_parse_udf_dict(part['key'], part['value']))
+        'AND', list(chain([Q(field_definition_id=udfd_id)],
+                          [Q(**parse_collection_udf_dict(
+                              part['key'], part['value']))
                            for part in query_parts])))
 
 
+def _lookup_key(prefix, field, lookup_name='', cast=None):
+    '''
+    given a string prefix such as 'tree__' or 'data__',
+    a custom field name such as 'Action', 'Date', or 'udf:Root Depth',
+    an optional lookup_name such as '__lt' or '__contains',
+    and an optional cast such as '__float',
+
+    return a string lookup key.
+    '''
+    if _is_udf(field):
+        field = _lookup_key('udfs__', field[4:])
+        if isinstance(cast, float):
+            cast = '__float'
+        else:
+            cast = ''
+    else:
+        cast = ''
+    return '{}{}{}{}'.format(prefix, field, cast, lookup_name)
+
+
 def _parse_predicate_key(key, mapping):
-    format_string = 'Keys must be in the form of "model.field", not "%s"'
-    model, field = dotted_split(key, 2,
-                                failure_format_string=format_string,
-                                cls=ParseException)
+    '''
+    given a key and a mapping,
+    where key is a string, and mapping is similar to DEFAULT_MAPPING,
+    return tuple(model_name, prefix, field_name)
+
+    collection UDF search keys look like 'udf:<model>:<udfd>.<field>',
+    yielding (<model>, mapping[<model>], <field>).
+
+    A scalar UDF search key looks like '<model>.udf:<field>',
+    yielding (<model>, mapping[<model>], udf:<field>).
+
+    A regular field looks like '<model>.<field>',
+    yielding (<model>, mapping[<model>], <field>).
+
+    Raises `ParseException` if the key does not contain exactly one dot.
+    Raises `ModelParseException` if the model part of the key is not found
+    in the mapping argument.
+    '''
+    model, field = _split_key(key)
 
     if _is_udf(model):
         __, mapping_model, __ = model.split(':')
-        field = 'id'
     else:
         mapping_model = model
 
@@ -263,7 +380,14 @@ def _parse_predicate_key(key, mapping):
             'Valid models are: %s or a collection UDF, not "%s"' %
             (mapping.keys(), model))
 
-    return model, mapping[mapping_model] + field
+    return model, mapping[mapping_model], field
+
+
+def _split_key(key):
+    format_string = 'Keys must be in the form of "model.field", not "%s"'
+
+    return dotted_split(key, 2, failure_format_string=format_string,
+                        cls=ParseException)
 
 
 def _parse_value(value):
@@ -277,32 +401,32 @@ def _parse_value(value):
         return [_parse_value(v) for v in value]
 
     # warning: order matters here, because datetimes
-    # can actually actually parse into float values.
+    # can actually parse into float values.
     try:
         return datetime.strptime(value, DATETIME_FORMAT)
     except (ValueError, TypeError):
+        # TODO: Is this still a concern?
+        #
         # We have do this because it is possible for postgres
         # to interpret numeric search values as integers when
         # they are actually being compared to hstore values stored
-        # as floats. Since django-hstore will cast the LHS to the
-        # type of the RHS, it fail to parse a string representation
+        # as floats. Since the hstore extension could cast the LHS to the
+        # type of the RHS, it could fail to parse a string representation
         # of a float into an integer.
-        #
-        # TODO: submit a fix to django-hstore to handle this.
         try:
             return float(value)
         except ValueError:
             return value
 
 
-def _parse_min_max_value_fn(operator):
+def _parse_min_max_value_fn(operator, is_hstore=True):
     """
     returns a function that produces singleton
     dictionary of django operands for the given
     query operator.
     """
 
-    def fn(predicate_value, field=None):
+    def fn(predicate_value):
         # a min/max predicate can either take
         # a value or a dictionary that provides
         # a VALUE and EXCLUSIVE flag.
@@ -322,59 +446,30 @@ def _parse_min_max_value_fn(operator):
 
         value = _parse_value(raw_value)
 
-        if field:  # implies hstore
+        if is_hstore:
             if isinstance(value, datetime):
-                date_value = value.date().isoformat()
-                inner_value = {field: date_value}
-            elif isinstance(value, float):
-                inner_value = {field: value}
-            else:
+                value = value.date().isoformat()
+            elif not isinstance(value, float):
                 raise ParseException(
                     "Cannot perform min/max comparisons on "
                     "non-date/numeric hstore fields at this time.")
-        else:
-            inner_value = value
 
-        return {key: inner_value}
+        return {key: value}
 
     return fn
 
 
-def _parse_within_radius_value(predicate_value, field=None):
-    """
-    buildup the geospatial value for the RHS of an
-    on orm call and pair it with the LHS
-    """
-    radius = _parse_value(predicate_value['RADIUS'])
-    x = _parse_value(predicate_value['POINT']['x'])
-    y = _parse_value(predicate_value['POINT']['y'])
-    point = Point(x, y, srid=3857)
-
-    return {'__dwithin': (point, Distance(m=radius))}
-
-
-def _parse_in_boundary(boundary_id, field=None):
+def _parse_in_boundary(boundary_id):
     boundary = Boundary.all_objects.get(pk=boundary_id)
     return {'__within': boundary.geom}
 
 
-def _parse_isnull_hstore(value, field):
-    if value:
-        return {'__contains': {field: None}}
-    return {'__contains': [field]}
-
-
 def _simple_pred(key):
-    return (lambda value, _: {key: value})
+    return (lambda value: {key: value})
 
 
-def _hstore_contains_predicate(val, field):
-    """
-    django_hstore builds different sql for the __contains predicate
-    depending on whether the input value is a list or a single item
-    so this works for both 'IN' and 'IS'
-    """
-    return {'__contains': {field: val}}
+def _hstore_exact_predicate(val):
+    return {'__exact': val}
 
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
@@ -383,122 +478,117 @@ def _hstore_contains_predicate(val, field):
 PREDICATE_TYPES = {
     'MIN': {
         'combines_with': {'MAX'},
+        'udf_cast': True,
         'predicate_builder': _parse_min_max_value_fn('__gt'),
     },
     'MAX': {
         'combines_with': {'MIN'},
+        'udf_cast': True,
         'predicate_builder': _parse_min_max_value_fn('__lt'),
     },
     'IN': {
         'combines_with': set(),
+        'udf_cast': False,
         'predicate_builder': _simple_pred('__in'),
     },
     'IS': {
         'combines_with': set(),
+        'udf_cast': False,
         'predicate_builder': _simple_pred('')
     },
     'LIKE': {
         'combines_with': set(),
+        'udf_cast': False,
         'predicate_builder': _simple_pred('__icontains')
     },
     'ISNULL': {
         'combines_with': set(),
+        'udf_cast': False,
         'predicate_builder': _simple_pred('__isnull')
-    },
-    'WITHIN_RADIUS': {
-        'combines_with': set(),
-        'predicate_builder': _parse_within_radius_value,
     },
     'IN_BOUNDARY': {
         'combines_with': set(),
+        'udf_cast': False,
         'predicate_builder': _parse_in_boundary
     }
 }
 
 
-HSTORE_PREDICATE_TYPES = {
+COLLECTION_HSTORE_PREDICATE_TYPES = {
     'MIN': {
         'combines_with': {'MAX'},
-        'predicate_builder': _parse_min_max_value_fn('__gt'),
+        'udf_cast': False,
+        'predicate_builder': _parse_min_max_value_fn('__gt', is_hstore=True),
     },
     'MAX': {
         'combines_with': {'MIN'},
-        'predicate_builder': _parse_min_max_value_fn('__lt'),
-    },
-    'IN': {
-        'combines_with': set(),
-        'predicate_builder': _hstore_contains_predicate,
+        'udf_cast': False,
+        'predicate_builder': _parse_min_max_value_fn('__lt', is_hstore=True),
     },
     'IS': {
         'combines_with': set(),
-        'predicate_builder': _hstore_contains_predicate,
-    },
-    'ISNULL': {
-        'combines_with': set(),
-        'predicate_builder': _parse_isnull_hstore
+        'udf_cast': False,
+        'predicate_builder': _hstore_exact_predicate,
     },
 }
 
 
-def _parse_dict_value_for_mapping(mapping, valuesdict, field=None):
+def _parse_dict_value_for_mapping(mapping, valuesdict):
     """
-    Loops over the keys provided and returns predicate pairs
-    if all the keys validate.
+    given a mapping, valuesdict
 
-    Supported keys are:
-    'MIN', 'MAX', 'IN', 'IS', 'WITHIN_RADIUS', 'IN_BOUNDARY'
+    `mapping` is a dict mapping predicate types to rules.
+    `valuesdict` maps predicate types to the values to search for.
+
+    returns predicate pairs, if all the keys validate.
+
+    Supported `mapping` and `valuesdict` keys are:
+    'MIN', 'MAX', 'IN', 'IS', 'ISNULL', 'LIKE', 'IN_BOUNDARY'
 
     All predicates except MIN/MAX are mutually exclusive
     """
 
+    props = _parse_dict_props_for_mapping(mapping, valuesdict)
+
+    return _parse_props(props, valuesdict)
+
+
+def _parse_props(props, valuesdict):
+
     params = {}
+
+    for key, val in valuesdict.items():
+        lookup, rhs = _parse_prop(props[key], valuesdict, key, val)
+        params[lookup] = rhs
+
+    return params
+
+
+def _parse_prop(predicate_props, valuesdict, key, val):
+        valid_values = predicate_props['combines_with'].union({key})
+        if not valid_values.issuperset(set(valuesdict.keys())):
+            raise ParseException(
+                'Cannot use these keys together: %s vs %s' %
+                (valuesdict.keys(), valid_values))
+
+        predicate_builder = predicate_props['predicate_builder']
+        param_pair = predicate_builder(val)
+        # Return a 2-tuple rather than a single-key dict
+        return param_pair.items()[0]
+
+
+def _parse_dict_props_for_mapping(mapping, valuesdict):
+
+    props = {}
 
     for value_key in valuesdict:
         if value_key not in mapping:
             raise ParseException(
                 'Invalid key: %s in %s' % (value_key, valuesdict))
         else:
-            predicate_props = mapping[value_key]
-            valid_values = predicate_props['combines_with'].union({value_key})
-            if not valid_values.issuperset(set(valuesdict.keys())):
-                raise ParseException(
-                    'Cannot use these keys together: %s in %s' %
-                    (valuesdict.keys(), valuesdict))
-            else:
-                predicate_builder = predicate_props['predicate_builder']
-                param_pair = predicate_builder(valuesdict[value_key], field)
-                params.update(param_pair)
+            props[value_key] = mapping[value_key]
 
-    return params
-
-
-_parse_dict_value = partial(_parse_dict_value_for_mapping, PREDICATE_TYPES)
-_parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
-                                HSTORE_PREDICATE_TYPES)
-
-
-def _parse_scalar_predicate_pair(key, value, mapping):
-    try:
-        model, search_key = _parse_predicate_key(key, mapping)
-    except ModelParseException:
-        raise
-
-    query = {search_key + k: v for (k, v)
-             in _parse_dict_value(value).iteritems()} \
-        if isinstance(value, dict) \
-        else {search_key: value}
-
-    return FilterContext(basekey=model, **query)
-
-
-def _parse_udf_dict(key, value):
-    __, field = key.split('.')
-    if isinstance(value, dict):
-        preds = _parse_udf_dict_value(value, field)
-        query = {'data' + k: v for (k, v) in preds.iteritems()}
-    else:
-        query = {'data__contains': {field: value}}
-    return query
+    return props
 
 
 def _apply_combinator(combinator, predicates):
@@ -551,5 +641,5 @@ def _apply_tree_display_filter(q, display_filter, mapping):
     return q
 
 
-def _is_udf(model_name):
-    return model_name.startswith('udf:')
+def _is_udf(name):
+    return name.startswith('udf:')

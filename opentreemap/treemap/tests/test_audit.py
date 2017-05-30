@@ -657,6 +657,7 @@ class PendingInsertTest(OTMTestCase):
         self.assertRaises(IntegrityError, approve_or_reject_audit_and_apply,
                           insert_audit, self.commander_user, True)
 
+    @skip('Pending udfs are not implemented')
     def test_pending_udf_audits(self):
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,

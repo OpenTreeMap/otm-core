@@ -24,9 +24,7 @@ from treemap.lib.udf import udf_create
 from treemap.instance import create_stewardship_udfs
 from treemap.udf import UserDefinedFieldDefinition
 from treemap.models import Instance, Plot, User
-from treemap.audit import (AuthorizeException, FieldPermission, Role,
-                           approve_or_reject_audit_and_apply,
-                           approve_or_reject_audits_and_apply)
+from treemap.audit import AuthorizeException, FieldPermission, Role
 from treemap.tests.base import OTMTestCase
 
 
@@ -51,8 +49,10 @@ def make_collection_udf(instance, name='Stewardship', model='Plot',
         name=name)
 
 
-class ScalarUDFFilterTest(OTMTestCase):
+class ScalarUDFTestCase(OTMTestCase):
     def setUp(self):
+        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
         self.p = Point(0, 0)
         self.instance = make_instance(point=self.p)
         self.commander_user = make_commander_user(self.instance)
@@ -98,10 +98,25 @@ class ScalarUDFFilterTest(OTMTestCase):
             iscollection=False,
             name='Test float')
 
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({
+                'type': 'multichoice',
+                'choices': [
+                    'a',
+                    'contains a',
+                    'also does']}),
+            iscollection=False,
+            name='Test multichoice')
+
         self.plot = Plot(geom=self.p, instance=self.instance)
         self.plot.save_with_user(self.commander_user)
 
-        psycopg2.extras.register_hstore(connection.cursor(), globally=True)
+
+class ScalarUDFFilterTest(ScalarUDFTestCase):
+    def setUp(self):
+        super(ScalarUDFFilterTest, self).setUp()
 
         def create_and_save_with_choice(c, n=1):
             plots = []
@@ -118,16 +133,34 @@ class ScalarUDFFilterTest(OTMTestCase):
         self.choice_c = create_and_save_with_choice('c', n=7)
 
     def test_filtering_on_string_and_choice_using_count(self):
-        plots = Plot.objects.filter(**{'udf:Test choice': 'a'})
+        plots = Plot.objects.filter(**{'udfs__Test choice': 'a'})
         self.assertEqual(
             len(self.choice_a),
             plots.count())
 
     def test_filtering_on_value_works(self):
-        plots = Plot.objects.filter(**{'udf:Test choice': 'b'})
+        plots = Plot.objects.filter(**{'udfs__Test choice': 'b'})
         self.assertEqual(
             self.choice_b,
             {plot.pk for plot in plots})
+
+    def test_filter_on_multichoice_value_works(self):
+        plot = Plot(geom=self.p, instance=self.instance)
+        plot.udfs['Test multichoice'] = ['a']
+        plot.save_with_user(self.commander_user)
+
+        plot = Plot(geom=self.p, instance=self.instance)
+        plot.udfs['Test multichoice'] = ['contains a']
+        plot.save_with_user(self.commander_user)
+
+        plot = Plot(geom=self.p, instance=self.instance)
+        plot.udfs['Test multichoice'] = ['also does']
+        plot.save_with_user(self.commander_user)
+
+        # Requires the double quotes in order to not find the other two.
+        plots_with_a = Plot.objects.filter(
+            **{'udfs__Test multichoice__contains': '"a"'})
+        self.assertEqual(plots_with_a.count(), 1)
 
     def test_combine_with_geom(self):
         plot_a = Plot.objects.get(pk=self.choice_a.pop())
@@ -143,13 +176,13 @@ class ScalarUDFFilterTest(OTMTestCase):
         plot_b.geom = p
         plot_b.save_with_user(self.commander_user)
 
-        a_in_poly = Plot.objects.filter(**{'udf:Test choice': 'a'})\
+        a_in_poly = Plot.objects.filter(**{'udfs__Test choice': 'a'})\
                                 .filter(geom__contained=poly)
 
         self.assertEqual({plot.pk for plot in a_in_poly},
                          {plot_a.pk, })
 
-        b_in_poly = Plot.objects.filter(**{'udf:Test choice': 'b'})\
+        b_in_poly = Plot.objects.filter(**{'udfs__Test choice': 'b'})\
                                 .filter(geom__contained=poly)
 
         self.assertEqual({plot.pk for plot in b_in_poly},
@@ -168,7 +201,7 @@ class ScalarUDFFilterTest(OTMTestCase):
             return {plot.pk
                     for plot
                     in Plot.objects.filter(
-                        **{'udf:Test string' + sfx: val})}
+                        **{'udfs__Test string' + sfx: val})}
 
         self.assertEqual(set(), run('', 'also'))
 
@@ -204,72 +237,89 @@ class ScalarUDFFilterTest(OTMTestCase):
 
         return dates
 
-    def test_date_ordering_normal(self):
+    def test_has_key(self):
         dates = self._setup_dates()
-        plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('MapFeature.udf:Test date')
-
-        dates.sort()
-
-        selected_dates = [plot.udfs['Test date']
-                          for plot in plots]
-        self.assertEqual(dates, selected_dates)
-
-    def test_date_ordering_reverse(self):
-        dates = self._setup_dates()
-        plots = Plot.objects.filter(**{'udf:Test date__isnull': False})\
-                            .order_by('-MapFeature.udf:Test date')
-
-        dates.sort()
-        dates.reverse()
-
-        selected_dates = [plot.udfs['Test date']
-                          for plot in plots]
-        self.assertEqual(dates, selected_dates)
-
-    def test_date_ordering_gt(self):
-        self._setup_dates()
-        adate = datetime(2011, 1, 1)
-
-        plots = Plot.objects.filter(**{'udf:Test date__gt': adate})
-        self.assertEqual(len(plots), 5)
-
-        plots = Plot.objects.filter(**{'udf:Test date__lt': adate})
-        self.assertEqual(len(plots), 4)
+        plots = Plot.objects.filter(**{'udfs__has_key': 'Test date'})
+        self.assertEqual(len(plots), len(dates))
 
     def test_integer_gt_and_lte_constraints(self):
+        '''
+        The straightforward test
+        plots = Plot.objects.filter(**{'udfs__Test int__gt': 20,
+                                       'udfs__Test int__lte': 50})
+        fails because it does a lexical comparison, not numerical.
+
+        In order to get it to do an integer comparison,
+        it is necessary to add a Transform to cast both the
+        LHS and RHS of the comparison to `int`.
+
+        So...
+        udfs__Test int__gt becomes
+        udfs__Test int__int__gt, where
+                        ^ this __int is the casting Transform.
+        '''
         def create_plot_with_num(anint):
             plot = Plot(geom=self.p, instance=self.instance)
             plot.udfs['Test int'] = anint
             plot.save_with_user(self.commander_user)
             return plot
 
-        for i in xrange(0, 7):
-            create_plot_with_num(i)
+        # in range
+        create_plot_with_num(21)
+        create_plot_with_num(50)
+        # out of range numerically, but in range lexically
+        create_plot_with_num(3)
+        create_plot_with_num(300)
+        # out of range either way
+        create_plot_with_num(2)
+        create_plot_with_num(20)
 
-        plots = Plot.objects.filter(**{'udf:Test int__gt': 2,
-                                       'udf:Test int__lte': 4})
+        plots = Plot.objects.filter(**{'udfs__Test int__int__gt': 20,
+                                       'udfs__Test int__int__lte': 50})
         self.assertEqual(len(plots), 2)
 
     def test_float_gt_and_lte_constraints(self):
+        '''
+        The straightforward test
+        plots = Plot.objects.filter(**{'udfs__Test float__gt': 20.5,
+                                       'udfs__Test float__lte': 50.0})
+        fails because it does a lexical comparison, not numerical.
+
+        In order to get it to do a float comparison,
+        it is necessary to add a Transform to cast both the
+        LHS and RHS of the comparison to `float`.
+
+        So...
+        udfs__Test float__gt becomes
+        udfs__Test float__float__gt, where
+                          ^ this __float is the casting Transform.
+
+        '''
         def create_plot_with_num(afloat):
             plot = Plot(geom=self.p, instance=self.instance)
             plot.udfs['Test float'] = afloat
             plot.save_with_user(self.commander_user)
             return plot
 
-        # creates 1.0 through 3.0 moving by tenths
-        for i in xrange(10, 30):
-            create_plot_with_num(float(i)/10.0)
+        # in range
+        create_plot_with_num(20.6)
+        create_plot_with_num(50.0)
+        # out of range numerically, but in range lexically
+        create_plot_with_num(3.1)
+        create_plot_with_num(300.1)
+        # out of range either way
+        create_plot_with_num(2.5)
+        create_plot_with_num(20.5)
 
-        plots = Plot.objects.filter(**{'udf:Test float__gt': 1.5,
-                                       'udf:Test float__lte': 2.0})
+        plots = Plot.objects.filter(
+            **{'udfs__Test float__float__gt': 20.5,
+               'udfs__Test float__float__lte': 50.0})
 
-        self.assertEqual(len(plots), 5)  # 1.6, 1.7, 1.8, 1.9, 2.0
+        self.assertEqual(len(plots), 2)
 
     def test_using_q_objects(self):
-        qb = Q(**{'udf:Test choice': 'b'})
-        qc = Q(**{'udf:Test choice': 'c'})
+        qb = Q(**{'udfs__Test choice': 'b'})
+        qc = Q(**{'udfs__Test choice': 'c'})
 
         q = qb | qc
 
@@ -376,43 +426,6 @@ class UDFAuditTest(OTMTestCase):
         self.assertRaises(AuthorizeException,
                           self.plot.save_with_user, self.commander_user)
 
-    def test_create_and_apply_pending(self):
-        pending = self.plot.audits().filter(requires_auth=True)
-
-        self.assertEqual(len(pending), 0)
-
-        role = self.commander_user.get_role(self.instance)
-        fp, __ = FieldPermission.objects.get_or_create(
-            model_name='Plot', field_name='udf:Test unauth',
-            permission_level=FieldPermission.WRITE_WITH_AUDIT,
-            role=role, instance=self.instance)
-
-        self.plot.udfs['Test unauth'] = 'c'
-        self.plot.save_with_user(self.commander_user)
-
-        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
-
-        self.assertEqual(
-            reloaded_plot.udfs['Test unauth'],
-            None)
-
-        pending = self.plot.audits().filter(requires_auth=True)
-
-        self.assertEqual(len(pending), 1)
-
-        fp.permission_level = FieldPermission.WRITE_DIRECTLY
-        fp.save()
-
-        approve_or_reject_audit_and_apply(pending[0],
-                                          self.commander_user,
-                                          True)
-
-        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
-
-        self.assertEqual(
-            reloaded_plot.udfs['Test unauth'],
-            'c')
-
     def test_create_invalid_pending_collection(self):
         pending = self.plot.audits().filter(requires_auth=True)
 
@@ -428,47 +441,6 @@ class UDFAuditTest(OTMTestCase):
             {'a choice': 'invalid choice', 'a string': 's'}]
         self.assertRaises(ValidationError,
                           self.plot.save_with_user, self.commander_user)
-
-    def test_create_and_apply_pending_collection(self):
-        pending = self.plot.audits().filter(requires_auth=True)
-
-        self.assertEqual(len(pending), 0)
-
-        role = self.commander_user.get_role(self.instance)
-        fp, __ = FieldPermission.objects.get_or_create(
-            model_name='Plot', field_name='udf:Test collection',
-            permission_level=FieldPermission.WRITE_WITH_AUDIT,
-            role=role, instance=self.instance)
-
-        self.plot.udfs['Test collection'] = [
-            {'a choice': 'a', 'a string': 's'}]
-        self.plot.save_with_user(self.commander_user)
-
-        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
-
-        self.assertEqual(
-            reloaded_plot.udfs['Test collection'],
-            [])
-
-        pending = self.plot.audits().filter(requires_auth=True)
-
-        # Expecting 'model_id', 'id', 'field def id'
-        # and two udf fields ('a string' and 'a choice')
-        self.assertEqual(len(pending), 5)
-
-        fp.permission_level = FieldPermission.WRITE_DIRECTLY
-        fp.save()
-
-        approve_or_reject_audits_and_apply(pending,
-                                           self.commander_user,
-                                           True)
-
-        reloaded_plot = Plot.objects.get(pk=self.plot.pk)
-
-        col = reloaded_plot.udfs['Test collection']
-        self.assertEqual(len(col), 1)
-        self.assertEqual(col[0]['a choice'], 'a')
-        self.assertEqual(col[0]['a string'], 's')
 
 
 class UDFDefTest(OTMTestCase):
@@ -844,7 +816,7 @@ class ScalarUDFTest(OTMTestCase):
                 iscollection=False,
                 name='Test %s' % dtype)
 
-        allowed_types = 'float', 'int', 'string', 'user', 'date'
+        allowed_types = 'float', 'int', 'string', 'date'
 
         addl_fields = ['udf:Test %s' % ttype for ttype in allowed_types]
         addl_fields.append('udf:Test choice')
@@ -889,6 +861,7 @@ class ScalarUDFTest(OTMTestCase):
 
     def test_int_datatype(self):
         self._test_datatype('Test int', 4)
+        self.assertEqual(getattr(self.plot, 'udf:Test int', None), 4)
 
     def test_int_validation_non_integer(self):
         self.assertRaises(ValidationError,
@@ -899,6 +872,7 @@ class ScalarUDFTest(OTMTestCase):
 
     def test_float_datatype(self):
         self._test_datatype('Test float', 4.4)
+        self.assertEqual(getattr(self.plot, 'udf:Test float', None), 4.4)
 
     def test_float_validation(self):
         self.assertRaises(ValidationError,
@@ -917,6 +891,39 @@ class ScalarUDFTest(OTMTestCase):
         self.assertRaises(ValidationError,
                           self.choice_udfd.update_choice,
                           'WHAT?????', 'm')
+
+    def test_multiple_invalid_choices(self):
+        self.plot.udfs['Test int'] = 'not an integer'
+        self.plot.udfs['Test float'] = 'not a float'
+
+        with self.assertRaises(ValidationError) as ve:
+            self.plot.save_with_user(self.commander_user)
+
+        self.assertValidationErrorDictContainsKey(
+            ve.exception, 'udf:Test int')
+        self.assertValidationErrorDictContainsKey(
+            ve.exception, 'udf:Test float')
+
+    def test_empty_choice_deletes_field(self):
+        self._test_datatype('Test choice', 'a')
+        self.assertEqual(getattr(self.plot, 'udf:Test choice', None), 'a')
+
+        count = Plot.objects.filter(**{
+            'udfs__Test choice': 'a'}).count()
+        self.assertEqual(count, 1)
+
+        # should remove the udf
+        self.plot.udfs['Test choice'] = ''
+        self.plot.save_with_user(self.commander_user)
+
+        self.plot = Plot.objects.get(pk=self.plot.pk)
+
+        self.assertIsNone(self.plot.udfs['Test choice'])
+        self.assertEqual(getattr(self.plot, 'udf:Test choice', None), None)
+
+        count = Plot.objects.filter(**{
+            'udfs__has_key': 'Test choice'}).count()
+        self.assertEqual(count, 0)
 
     def test_delete_choice_value(self):
         self.plot.udfs['Test choice'] = 'a'
@@ -1045,9 +1052,6 @@ class ScalarUDFTest(OTMTestCase):
         self.assertRaises(ValidationError,
                           self._test_datatype, 'Test choice', 'bad choice')
 
-    def test_user_datatype(self):
-        self._test_datatype('Test user', self.commander_user)
-
     def test_date_datatype(self):
         d = datetime.now().replace(microsecond=0)
 
@@ -1056,19 +1060,9 @@ class ScalarUDFTest(OTMTestCase):
     def test_string_datatype(self):
         self._test_datatype('Test string', 'Sweet Plot')
 
-    def test_user_validation_invalid_id(self):
-        self.assertRaises(ValidationError,
-                          self._test_datatype, 'Test user', 349949)
-
-    def test_user_validation_non_integer(self):
-        self.assertRaises(ValidationError,
-                          self._test_datatype, 'Test user', 'zztop')
-
     def test_in_operator(self):
-        self.assertEqual('Test string' in self.plot.udfs,
-                         True)
-        self.assertEqual('RanDoM NAme' in self.plot.udfs,
-                         False)
+        self.assertNotIn('Test string', self.plot.udfs)
+        self.assertNotIn('RanDoM NAme', self.plot.udfs)
 
     def test_returns_none_for_empty_but_valid_udfs(self):
         self.assertEqual(self.plot.udfs['Test string'],
@@ -1144,7 +1138,7 @@ class CollectionUDFTest(OTMTestCase):
         audits = [a.current_value for a in
                   plot.audits().filter(field='udf:action')]
 
-        self.assertEqual(self._get_udf_actions(plot), {'', 'prune'})
+        self.assertEqual(self._get_udf_actions(plot), {'prune'})
         self.assertEqual(audits, ['prune'])
 
     def test_can_get_and_set(self):

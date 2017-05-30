@@ -1394,7 +1394,6 @@ class TreeIntegrationTests(IntegrationTests):
         # csv = """
         # | point x | point y | date planted | read only |
         # | 25.00   | 25.00   | 2012-02-03   | true      |
-        # """
         csv = """
         | point x | point y | date planted |
         | 25.00   | 25.00   | 2012-02-03   |

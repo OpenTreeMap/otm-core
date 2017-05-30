@@ -7,6 +7,7 @@ import json
 import psycopg2
 
 from datetime import datetime
+from functools import partial
 
 from django.db.models import Q
 from django.db.models.query import ValuesListQuerySet
@@ -14,7 +15,6 @@ from django.db import connection
 from django.utils.tree import Node
 
 from django.contrib.gis.geos import Point, MultiPolygon
-from django.contrib.gis.measure import Distance
 
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
@@ -127,34 +127,27 @@ def _create_tree_and_plot(instance, user, point,
 
 
 class FilterParserScalarTests(OTMTestCase):
+    def setUp(self):
+        self.parse_dict_value = partial(
+            search._parse_dict_value_for_mapping,
+            search.PREDICATE_TYPES)
+
     def test_key_parser_plots(self):
         # Plots searches on plot go directly to a field
         match = search._parse_predicate_key('plot.width',
                                             mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('plot', 'width'))
-
-    def test_key_parser_plots_with_tree_map(self):
-        # Plots searches on tree go require a prefix
-        match = search._parse_predicate_key('plot.width',
-                                            mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('plot', 'width'))
+        self.assertEqual(match, ('plot', '', 'width'))
 
     def test_udf_fields_look_good(self):
         match = search._parse_predicate_key('plot.udf:The 1st Planter',
                                             mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('plot', 'udf:The 1st Planter'))
+        self.assertEqual(match, ('plot', '', 'udf:The 1st Planter'))
 
     def test_key_parser_trees(self):
         # Tree searches on plot require a prefix and the field
         match = search._parse_predicate_key('tree.dbh',
                                             mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('tree', 'tree__dbh'))
-
-    def test_key_parser_trees_with_tree_map(self):
-        # Tree searches on tree go directly to the field
-        match = search._parse_predicate_key('tree.dbh',
-                                            mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('tree', 'tree__dbh'))
+        self.assertEqual(match, ('tree', 'tree__', 'dbh'))
 
     def test_key_parser_invalid_model(self):
         # Invalid models should raise an exception
@@ -219,80 +212,70 @@ class FilterParserScalarTests(OTMTestCase):
             category='whatever',
             sort_order=1)
 
-        inparams = search._parse_dict_value({'IN_BOUNDARY': b.pk})
+        inparams = self.parse_dict_value({'IN_BOUNDARY': b.pk})
         self.assertEqual(inparams,
                          {'__within': b.geom})
 
     def test_constraints_in(self):
-        inparams = search._parse_dict_value({'IN': [1, 2, 3]})
+        inparams = self.parse_dict_value({'IN': [1, 2, 3]})
         self.assertEqual(inparams,
                          {'__in': [1, 2, 3]})
 
     def test_constraints_isnull(self):
-        inparams = search._parse_dict_value({'ISNULL': True})
+        inparams = self.parse_dict_value({'ISNULL': True})
         self.assertEqual(inparams, {'__isnull': True})
 
     def test_constraints_is(self):
         # "IS" is a special case in that we don't need to appl
         # a suffix at all
-        isparams = search._parse_dict_value({'IS': 'what'})
+        isparams = self.parse_dict_value({'IS': 'what'})
         self.assertEqual(isparams,
                          {'': 'what'})
 
     def test_constraints_invalid_groups(self):
         # It is an error to combine mutually exclusive groups
         self.assertRaises(search.ParseException,
-                          search._parse_dict_value,
+                          self.parse_dict_value,
                           {'IS': 'what', 'IN': [1, 2, 3]})
 
         self.assertRaises(search.ParseException,
-                          search._parse_dict_value,
+                          self.parse_dict_value,
                           {'IS': 'what', 'MIN': 3})
 
     def test_constraints_invalid_keys(self):
         self.assertRaises(search.ParseException,
-                          search._parse_dict_value,
+                          self.parse_dict_value,
                           {'EXCLUSIVE': 9})
 
         self.assertRaises(search.ParseException,
-                          search._parse_dict_value,
+                          self.parse_dict_value,
                           {'IS NOT VALID KEY': 'what'})
 
     def test_contraint_min(self):
-        const = search._parse_dict_value({'MIN': 5})
+        const = self.parse_dict_value({'MIN': 5})
         self.assertEqual(const, {'__gte': 5})
 
     def test_contraint_max(self):
-        const = search._parse_dict_value({'MAX': 5})
+        const = self.parse_dict_value({'MAX': 5})
         self.assertEqual(const, {'__lte': 5})
 
     def test_contraint_max_with_exclusive(self):
-        const = search._parse_dict_value(
+        const = self.parse_dict_value(
             {'MAX': {'VALUE': 5,
                      'EXCLUSIVE': True}})
         self.assertEqual(const, {'__lt': 5})
 
-        const = search._parse_dict_value(
+        const = self.parse_dict_value(
             {'MAX': {'VALUE': 5,
                      'EXCLUSIVE': False}})
         self.assertEqual(const, {'__lte': 5})
 
     def test_constraints_min_and_max(self):
-        const = search._parse_dict_value(
+        const = self.parse_dict_value(
             {'MIN': 5,
              'MAX': {'VALUE': 9,
                      'EXCLUSIVE': False}})
         self.assertEqual(const, {'__lte': 9, '__gte': 5})
-
-    def test_within_radius(self):
-        const = search._parse_dict_value(
-            {'WITHIN_RADIUS': {
-                "RADIUS": 5,
-                "POINT": {
-                    "x": 100,
-                    "y": 50}}})
-        self.assertEqual(const,
-                         {'__dwithin': (Point(100, 50), Distance(m=5))})
 
     def test_parse_species_predicate(self):
         pred = search._parse_scalar_predicate(
@@ -450,13 +433,13 @@ class FilterParserCollectionTests(OTMTestCase):
         # UDF searches go on the specified model's id
         match = search._parse_predicate_key('udf:tree:52.action',
                                             mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('udf:tree:52', 'tree__id'))
+        self.assertEqual(match, ('udf:tree:52', 'tree__', 'action'))
 
     def test_key_parser_plot_collection_udf(self):
         # UDF searches go on the specified model's id
         match = search._parse_predicate_key('udf:plot:52.action',
                                             mapping=search.DEFAULT_MAPPING)
-        self.assertEqual(match, ('udf:plot:52', 'id'))
+        self.assertEqual(match, ('udf:plot:52', '', 'action'))
 
     def test_parse_collection_udf_simple_predicate(self):
         self._setup_tree_and_collection_udf()
@@ -537,6 +520,9 @@ class SearchTests(OTMTestCase):
         self.p1 = Point(0, 0)
         self.instance = make_instance(point=self.p1)
         self.commander = make_commander_user(self.instance)
+        self.parse_dict_value = partial(
+            search._parse_dict_value_for_mapping,
+            search.PREDICATE_TYPES)
 
     def create_tree_and_plot(self, plotudfs=None, treeudfs=None):
         plot = Plot(geom=self.p1, instance=self.instance)
@@ -811,39 +797,6 @@ class SearchTests(OTMTestCase):
                for p in plots}
 
         self.assertEqual(ids, {p1.pk})
-
-    def test_within_radius_integration(self):
-        test_point = Point(0, 0)
-        near_point = Point(1, 1)
-        far_point = Point(250, 250)
-
-        near_plot = Plot(geom=near_point, instance=self.instance)
-        near_plot.save_with_user(self.commander)
-        near_tree = Tree(plot=near_plot, instance=self.instance)
-        near_tree.save_with_user(self.commander)
-
-        # just to make sure that the geospatial
-        # query actually filters by distance
-        far_plot = Plot(geom=far_point, instance=self.instance)
-        far_plot.save_with_user(self.commander)
-        far_tree = Tree(plot=far_plot, instance=self.instance)
-        far_tree.save_with_user(self.commander)
-
-        radius_filter = json.dumps(
-            {'plot.geom':
-             {
-                 'WITHIN_RADIUS': {
-                     'POINT': {'x': test_point.x, 'y': test_point.y},
-                     'RADIUS': 10
-                 }
-             }})
-
-        plots = search.Filter(radius_filter, '', self.instance)\
-                      .get_objects(Plot)
-
-        ids = {p.pk for p in plots}
-
-        self.assertEqual(ids, {near_plot.pk})
 
     def test_diameter_range_filter(self):
         p1, p2, p3, p4 = self.setup_diameter_test()

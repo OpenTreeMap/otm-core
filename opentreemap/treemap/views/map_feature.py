@@ -230,6 +230,19 @@ def update_map_feature(request_dict, user, feature):
         # We're going to always work in display units here
         feature.convert_to_display_units()
 
+    def value_is_redundant(model, field_name, value):
+        # The iOS app sends a key in `data` for every udf definition,
+        # even if it hasn't changed.
+        # If it is trying to delete a custom field that is not defined
+        # for the model, flag it as redundant,
+        # to avoid a `KeyError` when the update tries to delete them.
+        if field_name.startswith('udf:') and \
+                value in [[], '[]', '', None]:
+            udf_name = field_name.replace('udf:', '')
+            if udf_name not in model.udfs:
+                return True
+        return False
+
     def set_attr_on_model(model, attr, val):
         field_classname = \
             model._meta.get_field_by_name(attr)[0].__class__.__name__
@@ -275,6 +288,7 @@ def update_map_feature(request_dict, user, feature):
             return package_field_errors(thing._model_name, e)
 
     tree = None
+    errors = {}
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom
@@ -283,7 +297,7 @@ def update_map_feature(request_dict, user, feature):
         object_name, field = dotted_split(identifier, 2,
                                           failure_format_string=split_template)
         if (object_name not in feature_object_names + ['tree']):
-            raise Exception(split_template % identifier)
+            raise ValueError(split_template % identifier)
 
         tree_udfc_names = [fdef.canonical_name
                            for fdef in udf_defs(feature.instance, 'Tree')
@@ -311,10 +325,11 @@ def update_map_feature(request_dict, user, feature):
             elif field == 'plot' and value == unicode(feature.pk):
                 value = feature
         else:
-            raise Exception(
+            raise ValueError(
                 'Malformed request - invalid model %s' % object_name)
 
-        set_attr_on_model(model, field, value)
+        if not value_is_redundant(model, field, value):
+            set_attr_on_model(model, field, value)
 
         field_class = model._meta.get_field_by_name(field)[0]
         if isinstance(field_class, GeometryField):
@@ -322,8 +337,6 @@ def update_map_feature(request_dict, user, feature):
             rev_updates.append('eco_rev')
         elif identifier in ['tree.species', 'tree.diameter']:
             rev_updates.append('eco_rev')
-
-    errors = {}
 
     if feature.fields_were_updated():
         errors.update(save_and_return_errors(feature, user))
