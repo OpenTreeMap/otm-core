@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from unittest.case import skip
 
 from django.contrib.gis.geos import Point
+from django.test.utils import override_settings
 
 from treemap.models import (Tree, Plot, MapFeature, Species, TreePhoto)
 from treemap.instance import Instance
@@ -18,6 +19,9 @@ from treemap.views.map_feature import update_map_feature
 from stormwater.models import Bioswale
 
 
+# this decorator is necessary in order to `add_map_feature_types(['Bioswale'])`
+# in `test_create_bioswale`.
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class GeoAndEcoRevIncr(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
@@ -52,7 +56,6 @@ class GeoAndEcoRevIncr(OTMTestCase):
             request_dict = {'plot.geom': {'x': 0, 'y': 0}}
             update_map_feature(request_dict, self.user, plot)
 
-    @skip('Disabling until we figure out why it is failing on CI server')
     def test_create_bioswale(self):
         self.instance.add_map_feature_types(['Bioswale'])
         with self._assert_updates_geo_and_eco_rev():
