@@ -1,0 +1,5 @@
+{% extends "manage_treemap/partials/fields/udf_choice_item.html" %}
+{% load i18n %}
+
+{% block choice_attrs %}data-udf-choice="{{ choice }}"{% endblock %}
+{% block input_attrs %}value="{{ choice }}"{% endblock %}

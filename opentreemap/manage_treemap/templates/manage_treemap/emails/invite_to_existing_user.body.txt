@@ -1,0 +1,11 @@
+{% load i18n %}
+
+{% trans "Check it out at:" %}
+
+<a href="{{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'map' instance_url_name=instance.url_name %}">
+  {{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'map' instance_url_name=instance.url_name %}
+</a>
+
+<br/>
+<br/>
+<br/>

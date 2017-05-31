@@ -1,0 +1,28 @@
+<div class="field-view"
+     data-field="instance.config.map_feature_config.{{ setting.model_name }}.diversion_rate"
+     data-class="display"
+     data-value="{{ setting.diversion_rate }}"
+     data-type="float">
+    {{ setting.diversion_rate }}
+</div>
+<div class="field-edit"
+     style="display: none;"
+     data-field="instance.config.map_feature_config.{{ setting.model_name }}.diversion_rate"
+     data-class="edit"
+     data-value="{{ setting.diversion_rate }}"
+     data-type="float">
+    <input name="instance.config.map_feature_config.{{ setting.model_name }}.diversion_rate"
+           value="{{ setting.diversion_rate }}"
+        {% if not setting.diversion_rate_applies %}
+           disabled="disabled"
+        {% endif %}
+           type="text"
+           class="form-control">
+</div>
+<div class="text-danger"
+     style="display: none;"
+     data-class="error"
+     data-field="instance.config.map_feature_config.{{ setting.model_name }}.diversion_rate"
+     data-value="{{ setting.diversion_rate }}"
+     data-type="float">
+</div>

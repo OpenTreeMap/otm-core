@@ -1,0 +1,53 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Branding" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="branding">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Branding" %}</h1>
+            </div>
+            {% if request.instance|feature_enabled:"custom_colors" or request.instance|feature_enabled:"custom_logo" %}
+                {% include "treemap/partials/form_buttons.html" %}
+            {% endif %}
+        </div>
+
+        <div class="content">
+            <form>
+                <fieldset>
+                    {% if request.instance|feature_enabled:"custom_colors" %}
+                        {% for label, identifier in branding.color_fields %}
+                            {% with class="color {pickerPosition:\'right\'}" %}
+                                {% field label from identifier withtemplate "treemap/field/div.html" %}
+                            {% endwith %}
+                        {% endfor %}
+                    {% endif %}
+                </fieldset>
+            </form>
+            {% if request.instance|feature_enabled:"custom_logo" %}
+                <a data-toggle="modal" data-target="#upload-panel" data-class="display" class="btn">{% trans "Upload Logo" %}</a>
+            {% endif %}
+            <a data-class="edit" class="btn js-use-default-colors" style="display: none;">
+                {% trans "Use Default Colors" %}
+            </a>
+        </div>
+
+    </div>
+{% endblock tab_content %}
+
+{% block endbody %}
+    {% trans "Upload Logo" as upload_title %}
+    {% include "treemap/partials/upload_file.html" with title=upload_title upload_url=logo_endpoint %}
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/branding' %}
+{% endblock scripts %}

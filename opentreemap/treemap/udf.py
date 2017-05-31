@@ -647,6 +647,11 @@ class UserDefinedFieldDefinition(models.Model):
             if len(choices) != len(set(choices)):
                 raise ValidationError(_('Duplicate choices are not allowed'))
 
+            if datatype['type'] == 'multichoice':
+                if 0 < len([c for c in choices if '"' in c]):
+                    raise ValidationError(_('Double quotes are not allowed'
+                                            'in multiple choice fields'))
+
         if 'default' in datatype:
             try:
                 self.clean_value(datatype['default'], datatype)
@@ -760,13 +765,6 @@ class UserDefinedFieldDefinition(models.Model):
             datatypes[datatype_dict['name']] = datatype_dict
 
         return datatypes
-
-    @property
-    def permissions_for_udf(self):
-        return FieldPermission.objects.filter(
-            instance=self.instance,
-            model_name=self.model_type,
-            field_name=self.canonical_name)
 
     def reverse_clean(self, value):
         if self.datatype_dict['type'] == 'user':

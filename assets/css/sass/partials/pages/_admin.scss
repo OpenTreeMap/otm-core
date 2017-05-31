@@ -1,5 +1,5 @@
 // Partial: Admin
-#management {
+#management,.management-container {
 
     .management-container {
         display: block;
@@ -812,7 +812,7 @@
 }
 
 #add-udf-panel {
-    .modal-dialog,.col-xs-12,.col-xs-6,.col-xs-0 {
+    .col-xs-12,.col-xs-6,.col-xs-0 {
         transition: width 0.5s ease, margin 0.5s ease, padding 0.5s ease;
     }
     #udf-create-choices {
@@ -876,9 +876,49 @@
     min-height: 195px;
     position: relative;
 
-    .choice-item input {
-        border: 1px dashed #ccc;
-        box-shadow: none;
+    .choice-item {
+        input {
+            border: 1px dashed #ccc;
+            box-shadow: none;
+        }
+        margin-bottom: 4px;
+        // Error messagees normally hidden
+        div.error {
+            display: none;
+        }
+        &.empty-error {
+            [data-item="empty"] {
+                display: block;
+            }
+        }
+        &.blank-error {
+            [data-item="blank"] {
+                display: block;
+            }
+        }
+        &.no-double-quotes-error {
+            [data-item="no-double-quotes"] {
+                display: block;
+            }
+        }
+        &.reused-error {
+            [data-item="reused"] {
+                display: block;
+            }
+            // Only display one message at a time
+            [data-item="blank"] {
+                display: none;
+            }
+        }
+        &.duplicate-error {
+            [data-item="duplicate"] {
+                display: block;
+            }
+            // Only display one message at a time
+            [data-item="reused"], [data-item="blank"] {
+                display: none;
+            }
+        }
     }
     &:after {
         position: absolute;
@@ -891,5 +931,53 @@
         border-right: solid 10px #f8f3df;
         border-top: solid 10px transparent;
         border-bottom: solid 10px transparent;
+    }
+}
+
+// When editing a choice custom field,
+// hide the choice trash-can button on the sole remaining pre-existing choice.
+.udf-choices .choice-item:first-child:nth-last-child(2) [data-action="delete"] {
+    display: none;
+}
+
+// Requires all this specificity to override base style
+#management .admin-table tr[data-udf] {
+    td {
+        vertical-align: top;
+    }
+    .choice-udf-choices {
+        padding-left: 0;
+        margin: 0;
+        li {
+            display: block;
+        }
+        a.show-all {
+            font-weight: 400;
+            color: darken($secondary-color, 5%);
+            &:nth-child(-n+4) {
+                display: none;
+            }
+        }
+        &.less {
+            li.less-more:nth-child(n+4) {
+                display: none;
+            }
+            .show-all .more {
+                display: none;
+            }
+        }
+        &.more {
+            .show-all .less {
+                display: none;
+            }
+        }
+    }
+}
+
+#save-udf-panel ul {
+    padding-left: 0;
+    margin: 0;
+    li {
+        display: block;
     }
 }

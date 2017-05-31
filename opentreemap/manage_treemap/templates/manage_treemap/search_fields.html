@@ -1,0 +1,32 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Search Fields" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="search-configuration">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Search Fields" %}</h1>
+            </div>
+            {% if request.instance|feature_enabled:"set_advanced_search" %}
+                {% include "treemap/partials/form_buttons.html" %}
+            {% endif %}
+        </div>
+
+        <div class="content">
+            <div id="search-config-container">
+                {% include "manage_treemap/partials/fields/search_fields.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/searchConfig' %}
+{% endblock scripts %}

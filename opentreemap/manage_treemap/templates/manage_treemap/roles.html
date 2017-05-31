@@ -1,0 +1,69 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Roles" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="roles-pane">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Roles" %}</h1>
+            </div>
+            {% include "manage_treemap/partials/form_buttons_roles.html" %}
+        </div>
+
+        <div class="content">
+            {% if udf_notifications %}
+                <div class="alert alert-warning clearfix" id="new-fields-alert">
+                    <span class="role-fields-alert">
+                        <i class="icon-attention"></i>
+                        {% trans "New fields have been added and are highlighted below. You may want to change the default permissions." %}
+                    </span>
+                    <a class="btn btn-warning pull-right" id="new-fields-dismiss"
+                       href="{% url 'clear_udf_notifications' instance_url_name=request.instance.url_name %}">
+                        {% trans "Dismiss" %}
+                    </a>
+                </div>
+            {% endif %}
+            <div id="role-info">
+                {% include "manage_treemap/partials/roles.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block endbody %}
+    <div id="add-role-modal" class="modal modal-primary fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3>{% trans "Add Role" %}</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">{% trans "Name of new role:" %}</label>
+                        <input id="new_role_name" type="text" class="form-control" style="width:100%;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn dismiss-cancel" data-dismiss="modal">
+                        {% trans "Cancel" %}
+                    </button>
+                    <button id="create_new_role" class="btn btn-primary pull-right" data-dismiss="modal">
+                        {% trans "Create Role" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/roles' %}
+{% endblock scripts %}

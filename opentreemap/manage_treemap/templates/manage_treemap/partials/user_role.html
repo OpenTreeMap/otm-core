@@ -1,0 +1,55 @@
+{% load i18n %}
+{% load l10n %}
+{% load instance_config %}
+
+{% with field=type|add:"-"|add:user.id %}
+<tr data-user-id="{{ user.id|unlocalize }}">
+    <td>
+    {% if type == 'user' %}
+        <a href="{% url 'user' user.username %}">{{ user.username }}</a>
+    {% else %}
+        {{ user.username }}
+    {% endif %}
+    </td>
+    <td>
+        <span data-class="display" data-field="{{ field }}-role" data-value="{{ user.role_id|unlocalize }}">
+            {{ user.role_name|title }}
+        </span>
+
+        <select data-class="edit" style="display: none" data-field="{{ field }}-role"
+                name="{{ field }}-role" data-value="{{ user.role_id|unlocalize }}">
+        {% for irole in instance_roles %}
+            <option value="{{ irole.id|unlocalize }}"
+                    {% if role == irole %}selected="selected"{% endif %}>
+                {{ irole.name|title }}
+            </option>
+        {% endfor %}
+        </select>
+    </td>
+    <td>
+    {% if user.is_owner %}
+        <input type="checkbox" data-field="{{ field }}-admin" data-class="edit" style="display: none"
+               disabled="disabled" checked="checked" />
+        <span data-class="display" data-field="{{ field }}-admin">
+                {% trans "Yes" %}
+        </span>
+    {% else %}
+        <input type="checkbox" data-field="{{ field }}-admin" data-value="{{ user.admin }}"
+               name="{{ field }}-admin" data-class="edit" style="display: none"
+               {% if user.admin %}checked="checked"{% endif %} />
+        <span data-class="display"
+              data-type="bool"
+              data-bool-true-text="{% trans "Yes" %}"
+              data-bool-false-text="{% trans "No" %}"
+              data-field="{{ field }}-admin"
+              data-value="{{ user.admin }}">
+            {% if user.admin %}
+                {% trans "Yes" %}
+            {% else %}
+                {% trans "No" %}
+            {% endif %}
+        </span>
+    {% endif %}
+    </td>
+</tr>
+{% endwith %}

@@ -23,7 +23,7 @@
       &.title {
         list-style: none;
         margin-top: 10px;
-        
+
         a {
           font-weight: 700;
         }
@@ -34,5 +34,13 @@
         font-size: 1.3rem;
       }
     }
+  }
+  dt {
+    float: left;
+    margin-right: 20px;
+    font-weight: bold;
+  }
+  dd {
+    margin: 0 0 20px 30px;
   }
 }

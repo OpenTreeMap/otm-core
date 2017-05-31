@@ -1,0 +1,172 @@
+{% extends "instance_base.html" %}
+{% load l10n %}
+{% load i18n %}
+{% load auth_extras %}
+{% load instance_config %}
+{% load is_current_view %}
+
+{% block page_title %} | {% trans "Manage" %} | {% block admin_title %}{% endblock %}{% endblock %}
+
+{% block activeexplore %}
+{% endblock %}
+
+{% block activemanagement %}
+    active
+{% endblock %}
+
+{% block header %}
+{% endblock header %}
+{% block subhead %}
+{% endblock subhead %}
+
+{% block content %}
+    <div class="image-background"></div>
+    <div id="management" data-update-url="{% url 'admin_counts' instance_url_name=request.instance.url_name %}">
+        <div  class="management-container">
+            <div class="management-sidebar tab-list" id="tab-list">
+                <table class="map-switcher">
+                    <tbody>
+                    <tr>
+                        <td class="brand-icon-container">
+                            <div class="brand-icon">
+                                <i class="icon-tree"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="full-section brand">
+                                {{ request.instance.name }}
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="nav nav-list">
+                    <tbody>
+                    {% with is_active=request|is_current_view:"site_config green_infrastructure branding embed external_link" %}
+                        <tr {% if is_active %}class="active"{% endif %}>
+                            <td>
+                                {% include "manage_treemap/partials/admin_icon_link.html" with view="site_config" icon="icon-cog" %}
+                            </td>
+                            <td>
+                                <div class="full-section">
+                                    <a class="section-title" data-toggle="collapse" data-target="#nav-general">
+                                        {% trans "General" %}
+                                        {% if is_active %}
+                                            <i class="icon-down-open"></i>
+                                        {% else %}
+                                            <i class="icon-left-open"></i>
+                                        {% endif %}
+                                    </a>
+                                    <ul class="nav collapse {% if is_active %}in{% endif %}" id="nav-general">
+                                        {% include "manage_treemap/partials/nested_link.html" with view="site_config" title=_("Basic Information") %}
+                                        {% if request.instance|feature_enabled:"green_infrastructure" %}
+                                            {% include "manage_treemap/partials/nested_link.html" with view="green_infrastructure" title=_("Green Infrastructure") %}
+                                        {% endif %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="branding" title=_("Branding") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="embed" title=_("Embed") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="external_link" title=_("External Link") %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
+                    {% block extra_menu_items %}
+                    {% endblock extra_menu_items %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="user_roles" title=_("Users") icon="icon-users-1" %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="roles_endpoint" title=_("Roles") icon="icon-lock" notification="udfs" %}
+
+                    {% with is_active=request|is_current_view:"comment_moderation_admin photo_review_admin" %}
+                        <tr {% if is_active %}class="active"{% endif %}>
+                            <td>
+                                {% include "manage_treemap/partials/admin_icon_link.html" with view="comment_moderation_admin" icon="icon-flag" notification="community" %}
+                            </td>
+                            <td>
+                                <div class="full-section">
+                                    <a class="section-title" data-toggle="collapse" data-target="#nav-community">
+                                        {% trans "Community Management" %}
+                                        {% if is_active %}
+                                            <i class="icon-down-open"></i>
+                                        {% else %}
+                                            <i class="icon-left-open"></i>
+                                        {% endif %}
+                                    </a>
+                                    <ul class="nav collapse {% if is_active %}in{% endif %}" id="nav-community">
+                                        {% include "manage_treemap/partials/nested_link.html" with view="comment_moderation_admin" title=_("Comments") notification="comments" %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="photo_review_admin" title=_("Photos") notification="photos" %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="importer" title=_("Bulk Uploader") icon="icon-tools" %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="benefits" title=_("Ecosystem Benefits") icon="icon-leaf" %}
+
+                    {% include "manage_treemap/partials/admin_link.html" with view="units_endpoint" title=_("Units") icon="icon-book" %}
+
+                    {% with is_active=request|is_current_view:"udfs field_configs search_config_admin" %}
+                        <tr {% if is_active %}class="active"{% endif %}>
+                            <td>
+                                {% include "manage_treemap/partials/admin_icon_link.html" with view="udfs" icon="icon-brush" %}
+                            </td>
+                            <td>
+                                <div class="full-section">
+                                    <a class="section-title" data-toggle="collapse" data-target="#nav-fields">
+                                        {% trans "Field Configuration" %}
+                                        {% if is_active %}
+                                            <i class="icon-down-open"></i>
+                                        {% else %}
+                                            <i class="icon-left-open"></i>
+                                        {% endif %}
+                                    </a>
+                                    <ul class="nav collapse {% if is_active %}in{% endif %}" id="nav-fields">
+                                        {% include "manage_treemap/partials/nested_link.html" with view="udfs" title=_("Custom Fields") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="search_config_admin" title=_("Search Fields") %}
+                                        {% include "manage_treemap/partials/nested_link.html" with view="field_configs" title=_("Data Fields") %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endwith %}
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="management-content tab-content">
+                {% block tab_content %}
+                {% endblock tab_content %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block templates %}
+    {{ block.super }}
+
+    {# No search on management pages #}
+    {% block searchscripts %}
+    {% endblock searchscripts %}
+
+    {% verbatim %}
+    <script id="field-error-template" type="text/x-mustache-template">
+        <ul class="list-unstyled">
+            {{#errors}}
+            <li>{{field}}: {{message}}</li>
+            {{/errors}}
+        </ul>
+    </script>
+
+    <script id="global-errors-template" type="text/x-mustache-template">
+        <ul class="list-unstyled">
+            {{#globalErrors}}
+            <li>{{.}}</li>
+            {{/globalErrors}}
+        </ul>
+    </script>
+    {% endverbatim %}
+{% endblock templates %}

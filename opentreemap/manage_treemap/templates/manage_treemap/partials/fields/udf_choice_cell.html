@@ -1,0 +1,26 @@
+{% load i18n %}
+{% load l10n %}
+
+{# Refer to treemap/field/td.html with field=udf.datatype_dict.choices #}
+{% with id=udf.id|unlocalize %}
+<div data-class="display" data-field="{{ udf.pk|unlocalize }}">
+    <ul class="choice-udf-choices less">
+        {% for choice in choices %}
+            <li class="less-more" data-choice="{{ choice }}">{{ choice }}</li>
+        {% endfor %}
+        {# Keep link within ul to make it easy to hide when there are fewer than 4 .less-more items before it #}
+        <a class="show-all less" data-less-more href="javascript:void(0)">
+            <span class="less">{% trans 'Show All...' %}</span>
+            <span class="more">{% trans 'Show Less...' %}</span>
+        </a>
+    </ul>
+</div>
+{# Collection udfs only ever have one subfield, although in theory they could have more. #}
+<div class="choice-container" data-class="edit" data-field="{{ udf.pk|unlocalize }}" data-item="choices-list"  data-subfield="{{ name }}" data-add-prefix="{{ udf.pk|unlocalize|add:'+' }}" style="display: none;">
+    {% for choice in choices %}
+        {% include "manage_treemap/partials/fields/udf_choice_existing.html" with data_field_id=udf.pk|unlocalize|add:':'|add:choice %}
+    {% endfor %}
+    {% include "manage_treemap/partials/fields/udf_choice_add_another.html" %}
+</div>
+<div class="hidden" data-item="deleted-choices"></div>
+{% endwith %}

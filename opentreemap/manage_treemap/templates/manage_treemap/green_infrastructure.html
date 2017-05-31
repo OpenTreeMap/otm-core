@@ -1,0 +1,141 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+{% load instance_config %}
+{% load util %}
+
+{% block admin_title %}{% trans "Green Infrastructure" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="gsi">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Green Infrastructure" %}</h1>
+            </div>
+            {% include "treemap/partials/form_buttons.html" %}
+        </div>
+
+        <div class="content">
+
+            <form>
+                {% if request.instance|feature_enabled:"green_infrastructure" %}
+                    <p class="alert alert-info" data-class="edit" style="display:none">
+                        {% blocktrans %}
+                            If a green infrastructure resource is deactivated, those resources will be hidden from your map but the data will not be deleted. Please check the box to reactivate that resource.
+                        {% endblocktrans %}
+                    </p>
+                    <h3 class="management-header">{% trans "Green Infrastructure Resources" %}</h3>
+                    <table class="table admin-table">
+                        <thead>
+                        <tr>
+                            <th>{% trans "Active" %}</th>
+                            <th>{% trans "Resource" %}</th>
+                            <th>{% trans "Singular" %}</th>
+                            <th>{% trans "Plural" %}</th>
+                            <th>
+                                {% trans "Show Ecobenefits" %}
+                                <i class="icon-info-circled"
+                                   title="{% trans 'Display the ecobenefits publicly on the map' %}"
+                                   data-toggle="tooltip"
+                                   data-container="body"
+                                   data-placement="top"></i>
+                            </th>
+                            <th>
+                                {% trans "Runoff Coefficient" %}
+                                {% captureas helptext %}
+                                    {% blocktrans with resource=term.Resource.singular %}
+                                        Fraction of runoff that reaches the {{resource}} due to slope and material.
+                                        Between 0 and 1.
+                                    {% endblocktrans %}
+                                {% endcaptureas %}
+                                <i class="icon-info-circled"
+                                   title="{{ helptext }}"
+                                   data-toggle="tooltip"
+                                   data-container="body"
+                                   data-placement="top"></i>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for setting in gsi_model_fields %}
+                            <tr>
+                                <td>{% include "manage_treemap/partials/map_feature_type_checkbox.html" %}</td>
+                                <td>{{ setting.label }}</td>
+                                {% for field in setting.fields %}
+                                    {% include "treemap/field/td.html" %}
+                                {% endfor %}
+                                <td>{% include "manage_treemap/partials/should_show_eco.html"%}</td>
+                                <td>{% include "manage_treemap/partials/diversion_rate.html"%}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+                <h3 class="management-header">{% trans "Terminology" %}</h3>
+                <p>
+                    {% blocktrans %}
+                        Enter the text you would like to use to refer to green infrastructure features. The default is "Resource", which appears in "Add a Resource" and other places on your tree map.
+                    {% endblocktrans %}
+                </p>
+                <table class="table admin-table">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Term" %}</th>
+                        <th>{% trans "Singular" %}</th>
+                        <th>{% trans "Plural" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for label, fields in terminology_fields.items %}
+                        <tr>
+                            <td>{{ label }}</td>
+                            {% for field in fields %}
+                                {% include "treemap/field/td.html" %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <h3 class="management-header">{% trans "Annual Rainfall" %}</h3>
+                <p>
+                    {% blocktrans %}
+                        Enter the total you would like to use to refer to annual rainfall.
+                    {% endblocktrans %}
+                </p>
+                <table class="table admin-table">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Term" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>
+                            {% trans "Unit" %}
+                            <i class="icon-info-circled"
+                               title="{% trans 'The Unit can be changed on the Units admin screen' %}"
+                               data-toggle="tooltip"
+                               data-container="body"
+                               data-placement="top"></i>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for label, field, units in annual_rainfall_fields %}
+                        <tr>
+                            <td>{{ label }}</td>
+                            {% include "treemap/field/td.html" %}
+                            <td>{{ units }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/greenInfrastructure' %}
+{% endblock scripts %}

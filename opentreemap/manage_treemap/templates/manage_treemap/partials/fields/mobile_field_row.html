@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% if field.label %}
+    <li data-field="{{ field.identifier }}" data-sortable class="field-row-container">
+        <div class="field-row">
+            <div class="field-controls hidden" data-class="edit">
+                <i data-action="field-handle" class="icon-resize-full-alt handle"></i>
+                <a href="javascript:" data-action="up"><i class="icon-up-big"></i></a>
+                <a href="javascript:" data-action="down"><i class="icon-down-big"></i></a>
+            </div>
+
+            <span class="mobile-field-label">{{ field.label }}</span>
+
+            <label data-class="edit" class="pull-right checkbox hidden">
+                <input data-action="field-toggle" type="checkbox" {% if not disabled %}checked="checked"{% endif %}>
+                {% trans "Display" %}
+            </label>
+        </div>
+    </li>
+{% endif %}

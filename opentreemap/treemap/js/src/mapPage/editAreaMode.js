@@ -16,7 +16,8 @@ var map,
 var dom = {
     editArea: '.edit-area',
     saveArea: '.save-area',
-    cancelEdit: '.cancel-edit'
+    cancelEdit: '.cancel-edit',
+    searchTriggers: '#perform-search, #species-typeahead'
 };
 
 function init(options) {
@@ -35,6 +36,7 @@ function init(options) {
 function activate() {
     setTooltips(customTooltip);
     locationSearchUI.showEditAreaControls();
+    enableSearch(false);
 
     polygonFeatureGroup.addLayer(boundarySelect.getCurrentLayer());
     editor.enable();
@@ -65,12 +67,17 @@ function cancelEditing() {
 function deactivate() {
     setTooltips(originalTooltip);
     locationSearchUI.showCustomAreaControls();
+    enableSearch(true);
     if (!editsSaved) {
         editor.revertLayers();
     }
     polygonFeatureGroup.clearLayers();
     editor.disable();
     $(document).off('keydown', onKeyDown);
+}
+
+function enableSearch(shouldEnable) {
+    $(dom.searchTriggers).prop("disabled", !shouldEnable);
 }
 
 function formatTooltip(strings) {

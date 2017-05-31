@@ -1,0 +1,133 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Custom Fields" %}{% endblock %}
+
+{% block tab_content %}
+<div id="udfs">
+    <div class="page-header">
+        <div class="page-header-toggles">
+            <i class="icon-menu" id="toggle-sidebar"></i>
+        </div>
+        <div class="page-header-title">
+            <h1>{% trans "Custom Fields" %}</h1>
+        </div>
+        <div class="page-header-actions">
+            {% if request.instance|feature_enabled:"custom_fields" %}
+                {% include "manage_treemap/partials/form_buttons_udfs.html" %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="alert alert-danger messages"></div>
+        <div id="udf-info">
+            {% for model in udf_models %}
+                {% include "manage_treemap/partials/fields/udfs_table.html" with spec=model %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block endbody %}
+<div id="delete-udf-panel" class="modal fade"></div>
+<div id="add-udf-panel" class="modal fade modal-primary">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>{% trans "Create Custom Field" %}</h3>
+            </div>
+            <div class="modal-body">
+                <div id="udf-create" class="container-fluid">
+                    <form class="row" onsubmit="return false;">
+                        <div id="udf-create-errors" class="alert alert-danger"></div>
+                        <div class="col-xs-12" id="udf-create-fields">
+                            <div class="form-group">
+                                <label class="control-label">{% trans "Field Name:" %}</label>
+                                <input type="text" class="form-control" data-key="udf.name" tabindex="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">{% trans "Feature Type:" %}</label>
+                                <select id="udf-model" data-key="udf.model" class="form-control" tabindex="2">
+                                {% for model in udf_models %}
+                                    <option value="{{ model.name }}">{{ model.display_name }}</option>
+                                {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label">{% trans "Field Type:" %}</label>
+                                <select id="udf-type" data-key="udf.type" class="form-control" tabindex="3">
+                                    <option value="float">{% trans "Decimal Number" %}</option>
+                                    <option value="int">{% trans "Integer Number" %}</option>
+                                    <option value="string">{% trans "Text" %}</option>
+                                    <option value="choice">{% trans "List of Choices" %}</option>
+                                    <option value="multichoice">{% trans "List of Choices (Select Multiple)" %}</option>
+                                    <option value="date">{% trans "Date" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xs-0" id="udf-create-choices">
+                            <label class="control-label">{% trans "List of Choices" %}</label>
+                            <div class="choice-container" data-item="choices-list">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary pull-right" id="create-new-udf">{% trans "Finish" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="save-udf-panel" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content management-container">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h2>{% trans "Confirm changes" %}</h2>
+            </div>
+            <div class="modal-body">
+                <div class="rename-warning">
+                    <p>{% trans "Are you sure you want to rename choices?" %}</p>
+                    <div class="alert alert-danger">{% trans "This change will impact the data for any places where a renamed choice is currently being used. The change cannot be undone." %}</div>
+                </div>
+                <div class="change-info"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:void(0)" class="btn dismiss-cancel" data-dismiss="modal">
+                    {% trans "Cancel" %}
+                </a>
+                <a href="javascript:void(0)"
+                    class="btn btn-danger dismiss-ok"
+                    data-dismiss="modal"
+                    data-action="save">
+                    {% trans "Confirm Changes" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/underscore" id="choice-template">
+    {% include "manage_treemap/partials/fields/udf_choice_item.html" %}
+</script>
+<script type="text/underscore" id="display-choice-template">
+    <li class="less-more" data-choice="<%= choice %>"><%= choice %></li>
+</script>
+<script type="text/underscore" id="confirmer-model-template">
+    <h3 class="management-header"><%= udfName %></h3>
+    <ul><%= changes %></ul>
+</script>
+<script type="text/underscore" id="confirmer-change-template">
+    <li><%= originalValue %> <i class="icon-left"></i> <em><%= newValue %></em></li>
+</script>
+{% endblock %}
+
+{% block scripts %}
+{% render_bundle 'js/manage_treemap/udfs' %}
+{% endblock scripts %}

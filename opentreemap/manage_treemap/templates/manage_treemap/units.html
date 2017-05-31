@@ -1,0 +1,31 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+
+{% block admin_title %}{% trans "Units" %}{% endblock %}
+
+{% block tab_content %}
+<div id="units">
+    <div class="page-header">
+        <div class="page-header-toggles">
+            <i class="icon-menu" id="toggle-sidebar"></i>
+        </div>
+        <div class="page-header-title">
+            <h1>{% trans "Units" %}</h1>
+        </div>
+        {% include "treemap/partials/form_buttons.html" %}
+    </div>
+
+    <div class="content">
+        <form onsubmit="return false;">
+          {% for spec in value_specs %}
+            {% include "manage_treemap/partials/units_table.html" %}
+          {% endfor %}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% render_bundle 'js/manage_treemap/units' %}
+{% endblock scripts %}

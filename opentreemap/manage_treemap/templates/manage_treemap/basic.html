@@ -1,0 +1,49 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+
+{% block admin_title %}{% trans "Basic Information" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="basic-info">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Basic Information" %}</h1>
+            </div>
+            {% include "treemap/partials/form_buttons.html" %}
+        </div>
+        <div class="content">
+            {% block messages %}
+            {% endblock %}
+            <form>
+                <fieldset>
+                    <label>{% trans "URL" %}</label>
+                    <div class="field-view">{{site_config.url}}</div>
+                    {% for label, identifier in site_config.fields %}
+                        {% field label from identifier in request.instance withtemplate "treemap/field/div.html" %}
+                    {% endfor %}
+                    <label>{% trans "i-Tree Regions" %}</label>
+                    <div class="field-view">
+                        {% with itree_regions=request.instance.itree_regions %}
+                            {% if itree_regions %}
+                                {% for itree_region in itree_regions %}
+                                    {{ itree_region }}{% if not forloop.last %},&nbsp;{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% trans "None" %}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+{% endblock tab_content %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/basicInfo' %}
+{% endblock scripts %}

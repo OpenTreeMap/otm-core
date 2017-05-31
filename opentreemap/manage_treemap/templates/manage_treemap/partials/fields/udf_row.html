@@ -1,0 +1,36 @@
+{% load instance_config %}
+{% load i18n %}
+{% load l10n %}
+{% load util %}
+
+<tr data-udf="{{ udf.pk|unlocalize }}"
+        data-model-type="{{ udf.model_type }}"
+        data-is-collection="{{ udf.iscollection|yesno }}"
+        data-datatype="{{ udf.datatype_dict.type }}">
+    <td>{{ udf.model_type|display_name:request.instance }} {{ udf.name }}</td>
+    <td>{{ datatype }}</td>
+    <td class="udf-choices">
+        {% if not udf.iscollection and not udf.datatype_dict.choices %}
+            N/A
+        {% endif %}
+        {% if not udf.iscollection and udf.datatype_dict.choices %}
+            {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=udf.datatype_dict.choices %}
+        {% endif %}
+        {% if udf.iscollection %}
+            {% if request.instance|feature_enabled:"edit_collection_udfs" or udf.model_type in editable_gsi_models %}
+                {% with datatype=udf.datatype_dict|first %}
+                    {% if datatype.choices %}
+                        {% include "manage_treemap/partials/fields/udf_choice_cell.html" with choices=datatype.choices name=datatype.name %}
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        {% endif %}
+    </td>
+    <td>
+        {% if not udf.iscollection %}
+            <a class="btn btn-danger btn-xs"
+               data-class="edit" style="display: none;" href="javascript:void(0)"
+               data-udf-delete-popup>{% trans 'Delete Field' %}</a>
+        {% endif %}
+    </td>
+</tr>

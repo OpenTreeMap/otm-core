@@ -1,0 +1,28 @@
+{% extends "treemap/partials/form_buttons.html" %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block other_buttons %}
+    <a class="btn btn-default" data-class="display" data-toggle="modal" data-target="#add-user-modal">
+        <i class="icon-user-add"></i>{% trans "Add User" %}
+    </a>
+    <div class="btn-group">
+        <button data-class="display" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% trans "Export" %} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+            <li>
+                <a href="javascript:;"
+                   data-export-start-url="{% url 'management_begin_export_users' instance_url_name=instance.url_name data_format='csv' %}">
+                    {% trans "Export Users as CSV" %}
+                </a>
+            </li>
+            <li>
+                <a href="javascript:;"
+                   data-export-start-url="{% url 'management_begin_export_users' instance_url_name=instance.url_name data_format='json' %}">
+                    {% trans "Export Users as JSON" %}
+                </a>
+            </li>
+        </ul>
+    </div>
+{% endblock other_buttons %}

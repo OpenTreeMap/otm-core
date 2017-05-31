@@ -43,7 +43,7 @@ from treemap.views.map_feature import (update_map_feature, delete_map_feature,
                                        delete_photo)
 from treemap.views.user import (user_audits, upload_user_photo, update_user,
                                 forgot_username, user, users)
-from treemap.views.photo import approve_or_reject_photos
+from manage_treemap.views.photo import approve_or_reject_photos
 from treemap.views.tree import delete_tree
 from treemap.tests import (ViewTestCase, make_instance, make_officer_user,
                            make_commander_user, make_apprentice_user,
@@ -106,6 +106,8 @@ class StaticPageViewTest(ViewTestCase):
 
         self.assertIsNotNone(rslt['content'])
         self.assertIsNotNone(rslt['title'])
+        self.assertEqual(len(rslt['content']),
+                         len(StaticPage.DEFAULT_CONTENT['about']))
 
 
 class BoundaryViewTest(ViewTestCase):
@@ -1000,11 +1002,11 @@ class PlotViewProgressTest(PlotViewTestCase):
         wo_tree_context = self.get_plot_context(self.plot_wo_tree)
         w_tree_context = self.get_plot_context(self.plot_w_tree)
 
-        self.assertTrue(len(wo_tree_context['progress_messages'])
-                        > len(w_tree_context['progress_messages']))
+        self.assertTrue(len(wo_tree_context['progress_messages']) >
+                        len(w_tree_context['progress_messages']))
         # Adding a tree without and details does not add progress
-        self.assertTrue(wo_tree_context['progress_percent']
-                        == w_tree_context['progress_percent'])
+        self.assertTrue(wo_tree_context['progress_percent'] ==
+                        w_tree_context['progress_percent'])
 
     def test_progress_increases_when_diameter_is_added(self):
         tree = self.plot_w_tree.current_tree()
@@ -2015,7 +2017,6 @@ class InstanceListTest(OTMTestCase):
         self.assertIn('properties', instance_dict)
 
         self.assertEqual(self.i1.name, instance_dict['properties']['name'])
-        self.assertEqual(1, instance_dict['properties']['tree_count'])
         self.assertEqual(2, instance_dict['properties']['plot_count'])
 
     def test_instance_list_only_public(self):

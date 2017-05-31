@@ -83,9 +83,9 @@ ga('set', 'page', pathname);
 </li>
 {% endif %}
 
-{% if settings.MANAGEMENT_VIEW_NAME and last_effective_instance_user.admin %}
+{% if last_effective_instance_user.admin %}
 <li class="hidden-xs {% block activemanagement %}{% endblock %}">
-  <a href="{% url settings.MANAGEMENT_VIEW_NAME instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
+  <a href="{% url "management" instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
 </li>
 {% endif %}
 {% endblock instancetopnav %}
@@ -190,8 +190,8 @@ ga('set', 'page', pathname);
     <button id="search-reset" class="btn btn-default btn-sm"
         data-event-category="search" data-event-action="reset">{% trans "Reset" %}</button>
   </div>
-  <a id="perform-search" class="btn btn-primary btn-lg btn-block"
-        data-event-category="search" data-event-action="do-search">{% trans "Search" %}</a>
+  <button id="perform-search" class="btn btn-primary btn-lg btn-block"
+        data-event-category="search" data-event-action="do-search">{% trans "Search" %}</button>
 </div>
 {% endblock searchoptions %}
 

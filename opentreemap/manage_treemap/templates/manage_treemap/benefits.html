@@ -1,0 +1,48 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load form_extras %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Ecosystem Benefits" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="benefits">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Ecosystem Benefits" %}</h1>
+            </div>
+            {% if request.instance_supports_ecobenefits %}
+                {% include "treemap/partials/form_buttons.html" %}
+            {% endif %}
+        </div>
+
+        <div class="content">
+            {% if request.instance_supports_ecobenefits %}
+                <form>
+                    <fieldset>
+                        {% trans "Currency Symbol" as currency_symbol %}
+                        {% field currency_symbol from "benefitCurrencyConversion.currency_symbol" withtemplate "treemap/field/div.html" %}
+                        {% for group_title, group_fields in benefit_fields.items %}
+                            <h3 class="management-header">{{ group_title }}</h3>
+                            {% for label, fieldname in group_fields %}
+                                {% field label from fieldname withtemplate "treemap/field/div.html" %}
+                            {% endfor %}
+                        {% endfor %}
+                    </fieldset>
+                </form>
+            {% else %}
+                <div class="well">
+                    {% include "manage_treemap/partials/benefits_warning.html" %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/benefits' %}
+{% endblock scripts %}

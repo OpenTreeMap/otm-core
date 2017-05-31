@@ -16,9 +16,10 @@ UITEST_SETUP_FUNCTION = None
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# This email is shown in various contact/error pages
-# throughout the site
+# This email is shown in various contact/error pages throughout the site
 SUPPORT_EMAIL_ADDRESS = 'support@yoursite.com'
+# This email is used as the "from" address when sending messages
+DEFAULT_FROM_EMAIL = 'noreply@yoursite.com'
 SYSTEM_USER_ID = -1
 
 #
@@ -275,6 +276,7 @@ MANAGED_APPS = (
     'importer',
     'appevents',
     'stormwater',
+    'manage_treemap',
 )
 
 UNMANAGED_APPS = (

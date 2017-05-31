@@ -8,6 +8,7 @@ from functools import partial
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import etag
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import (route, json_api_call, render_template,
@@ -17,10 +18,9 @@ from django_tinsel.decorators import (route, json_api_call, render_template,
 from treemap.decorators import (login_or_401, return_400_if_validation_errors,
                                 require_http_method, requires_feature,
                                 creates_instance_user, instance_request,
-                                admin_instance_request, json_api_edit)
+                                json_api_edit)
 
 import treemap.views.user as user_views
-import treemap.views.photo as photo_views
 import treemap.views.tree as tree_views
 import treemap.views.misc as misc_views
 import treemap.views.map_feature as feature_views
@@ -48,6 +48,7 @@ index_page = instance_request(misc_views.index)
 
 map_page = do(
     instance_request,
+    ensure_csrf_cookie,
     render_template('treemap/map.html'),
     misc_views.get_map_view_context)
 
@@ -270,25 +271,3 @@ users = do(
     json_api_call,
     return_400_if_validation_errors,
     user_views.users)
-
-#####################################
-# photo
-#####################################
-
-photo_review = do(
-    require_http_method("GET"),
-    admin_instance_request,
-    render_template('treemap/photo_review.html'),
-    photo_views.photo_review)
-
-photo_review_partial = do(
-    require_http_method("GET"),
-    admin_instance_request,
-    render_template('treemap/partials/photo_review.html'),
-    photo_views.photo_review)
-
-approve_or_reject_photos = do(
-    require_http_method("POST"),
-    admin_instance_request,
-    render_template('treemap/partials/photo_review.html'),
-    photo_views.approve_or_reject_photos)

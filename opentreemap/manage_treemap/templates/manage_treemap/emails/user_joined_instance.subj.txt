@@ -1,0 +1,2 @@
+{% load i18n %}
+{{ user.username }} {% trans "has joined your tree map!" %}

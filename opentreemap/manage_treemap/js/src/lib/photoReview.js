@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     BU = require('treemap/lib/baconUtils.js'),
-    batchModeration = require('treemap/lib/batchModeration.js');
+    batchModeration = require('manage_treemap/lib/batchModeration.js');
 
 var csrf = require('treemap/lib/csrf.js');
 $.ajaxSetup(csrf.jqueryAjaxSetupOptions);

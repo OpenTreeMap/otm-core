@@ -1,0 +1,60 @@
+{% extends "manage_treemap/partials/role_group.html" %}
+{% load i18n %}
+{% load l10n %}
+{% load roles %}
+
+{% block title %}{% blocktrans with name=group.name %}{{ name }} Permissions{% endblocktrans %}{% endblock %}
+
+{% block row_labels %}
+    {% for perm_list in group.role_model_perms %}
+        {% with perm=perm_list|first %}
+            <tr {% if perm.codename in udf_notifications %}class="active"{% endif %}>
+                <td>{{ perm.label }}</td>
+            </tr>
+        {% endwith %}
+    {% endfor %}
+    {% for perm_list in group.role_photo_perms %}
+        {% with perm=perm_list|first %}
+            <tr {% if perm.codename in udf_notifications %}class="active"{% endif %}>
+                <td>{{ perm.label }}</td>
+            </tr>
+        {% endwith %}
+    {% endfor %}
+    {% for perm_list in group.role_field_perms %}
+        {% with perm=perm_list|first %}
+            <tr {% if perm.full_name in udf_notifications %}class="active"{% endif %}>
+                <td>{{ perm.display_field_name }}</td>
+            </tr>
+        {% endwith %}
+    {% endfor %}
+{% endblock %}
+
+{% block row_settings %}
+    {% for perm_list in group.role_model_perms %}
+        {% include "manage_treemap/partials/role_permission.html" %}
+    {% endfor %}
+    {% for perm_list in group.role_photo_perms %}
+        {% include "manage_treemap/partials/role_permission.html" %}
+    {% endfor %}
+    {% for perm_list in group.role_field_perms %}
+        <tr {% if perm_list.0.full_name in udf_notifications %}class="active"{% endif %}>
+        {% for perm in perm_list %}
+            <td>
+                <span data-class="display" data-field="{{ perm.full_name }}.{{ forloop.counter }}"
+                      data-value="{{ perm.permission_level }}">
+                    {{ perm.get_permission_level_display }}
+                </span>
+                <select data-class="edit" style="display: none;" data-role-id="{{ perm.role.pk|unlocalize }}"
+                    name="{{ perm.full_name }}.{{ forloop.counter }}" data-value="{{ perm.permission_level }}"
+                    data-field="{{ perm.full_name }}.{{ forloop.counter }}" data-name="{{ perm.full_name }}">
+                {% for name, uid in perm|options_for_permission %}
+                    <option value="{{ uid|unlocalize }}" {% if uid == perm.permission_level %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+                </select>
+            </td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+{% endblock %}

@@ -48,7 +48,7 @@ class CommentReviewUITest(CommentTestMixin, TreemapUITestCase):
                      """)
 
         self.login_workflow(user=self.admin)
-        self.comments_url = reverse('comment_moderation_full',
+        self.comments_url = reverse('comment_moderation_admin',
                                     args=(self.instance.url_name,))
         self.browse_to_url(self.comments_url)
 

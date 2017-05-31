@@ -1,0 +1,55 @@
+{% load i18n %}
+{% load sort %}
+
+<input type="hidden" id="search-url" value="{{ search_url }}">
+
+<div class="well" data-class="edit" style="display: none;">{% trans 'Checking "Management Access" for a user means they can access management pages but cannot manage billing or subscription plan selection.' %}</div>
+
+<h3 class="management-header">{% trans "Invited tree map users" %}</h3>
+<div>
+    <table class="table table-hover admin-table">
+        <thead>
+            <tr>
+                <th data-sort>
+                    <a href="{{ invite_sort_url }}&invite_sort={{ 'email'|reverse_if_current:invite_sort }}">{% trans "Username" %}</a>
+                </th>
+                <th data-sort>
+                    <a href="{{ invite_sort_url }}&invite_sort={{ 'role__name'|reverse_if_current:invite_sort }}">{% trans "Role" %}</a>
+                </th>
+                <th data-sort>
+                    <a href="{{ invite_sort_url }}&invite_sort={{ 'admin'|reverse_if_current:invite_sort }}">{% trans "Management Access" %}</a>
+                </th>
+            </tr>
+        </thead>
+        <tbody id="invite-role-list">
+        {% for user in invited_users %}
+            {% include "manage_treemap/partials/user_role.html" with type="invite" %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h3 class="management-header">{% trans "Active tree map users" %}</h3>
+<div>
+    <table class="table table-hover admin-table">
+        <thead>
+            <tr>
+                <th data-sort>
+                    <a href="{{ user_sort_url }}&user_sort={{ 'user__username'|reverse_if_current:user_sort }}">{% trans "Username" %}</a>
+                </th>
+                <th data-sort>
+                    <a href="{{ user_sort_url }}&user_sort={{ 'role__name'|reverse_if_current:user_sort }}">{% trans "Role" %}</a>
+                </th>
+                <th data-sort>
+                    <a href="{{ user_sort_url }}&user_sort={{ 'admin'|reverse_if_current:user_sort }}">{% trans "Management Access" %}</a>
+                </th>
+            </tr>
+        </thead>
+        <tbody id="user-role-list">
+        {% for user in instance_users %}
+            {% include "manage_treemap/partials/user_role.html" with type="user" %}
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include "treemap/partials/paging_controls.html" with paging=paged_instance_users url=page_url %}
+</div>
