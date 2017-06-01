@@ -57,7 +57,7 @@ var makeQueryStringFromFilters = exports.makeQueryStringFromFilters = function(f
 // search parameters, so that they can be used to put a search on the
 // dom or a dom into the search.
 function buildElems() {
-    return _.object(_.map($(SEARCH_FIELD_SELECTOR), function (el) {
+    return _.fromPairs(_.map($(SEARCH_FIELD_SELECTOR), function (el) {
         var $el = $(el),
             name = $el.attr('name') || $el.attr('data-search-identifier'),
             type = $el.attr('data-search-type'),
@@ -128,7 +128,7 @@ function applyDisplayListToDom(displayList) {
     if (displayList) {
         $('[data-search-display]').prop('checked', false);
         _.each(displayList, checkDisplayFilter);
-        if (_.contains(displayList, 'Plot')) {
+        if (_.includes(displayList, 'Plot')) {
             _.each(TREE_MODELS, checkDisplayFilter);
         }
     } else {
@@ -175,7 +175,7 @@ function buildFilterObject () {
                 if ($elem.is(":checked")) {
                     val = textToBool(val);
                 }
-            } else if (_.contains(['MIN', 'MAX'], key_and_pred.pred)) {
+            } else if (_.includes(['MIN', 'MAX'], key_and_pred.pred)) {
                 // range searches (min and max) are the only type in which
                 // comparison as text will yield undesirable results for
                 // numbers. Casting to float is satisfactory because it

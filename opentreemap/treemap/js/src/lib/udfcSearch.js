@@ -56,13 +56,13 @@ var nameTemplate = _.template('udf:<%= modelName %>:<%= udfFieldDefId %>.<%= fie
             reset: resetExtraClauses
         }
     },
-    emptyState = _.chain(widgets)
-        .pluck('stateModifiers')
+    emptyState = _(widgets)
+        .map('stateModifiers')
         .map(_.keys)
         .flatten()
         .uniq()
         .map(function (key) { return [key, null]; })
-        .object()
+        .fromPairs()
         .value();
 
 function makeNameAttribute (state, fieldKey) {
@@ -73,7 +73,7 @@ function makeNameAttribute (state, fieldKey) {
                           state.udfFieldDefIds],
         udfFieldDefId;
 
-    if (_.any(requiredFields, R.or(_.isUndefined, _.isNull))) {
+    if (_.some(requiredFields, R.either(_.isUndefined, _.isNull))) {
         return '';
     }
 
@@ -207,8 +207,8 @@ function applyFilterObjectToDom(bus, filterObject) {
                 return null;
             }
         })),
-        modelName = _.uniq(_.pluck(parsed, 'modelName'))[0],
-        udfFieldDefId = _.uniq(_.pluck(parsed, 'fieldDefId'))[0],
+        modelName = _.uniq(_.map(parsed, 'modelName'))[0],
+        udfFieldDefId = _.uniq(_.map(parsed, 'fieldDefId'))[0],
         eligibleModelNames = _.map(
             $(widgets.modelName.selector)
                 .find('option')
@@ -225,7 +225,7 @@ function applyFilterObjectToDom(bus, filterObject) {
 
     // don't attempt to populate if invalid data provided
     cleanModelName = modelName.substring(4);
-    if (!_.contains(eligibleModelNames, cleanModelName)) { return; }
+    if (!_.includes(eligibleModelNames, cleanModelName)) { return; }
     state.modelName = cleanModelName;
 
     var $typeEl = $(widgets.type.selector)
@@ -241,9 +241,9 @@ function applyFilterObjectToDom(bus, filterObject) {
     state.type = $typeEl.attr('data-type');
 
     // set the model name in the model selector and initialize fields
-    state.action = _.where(parsed, {hStoreMember: state.actionFieldKey})[0].IS;
+    state.action = _.filter(parsed, {hStoreMember: state.actionFieldKey})[0].IS;
 
-    date = _.where(parsed, {hStoreMember: state.dateFieldKey})[0];
+    date = _.filter(parsed, {hStoreMember: state.dateFieldKey})[0];
     if (!_.isUndefined(date)) {
         state.dateMin = _.isString(date.MIN) ? date.MIN : null;
         state.dateMax = _.isString(date.MAX) ? date.MAX : null;

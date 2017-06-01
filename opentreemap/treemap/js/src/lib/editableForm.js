@@ -153,7 +153,7 @@ exports.init = function(options) {
         },
 
         hideAndShowElements = function (fields, actions, action) {
-            if (_.contains(actions, action)) {
+            if (_.includes(actions, action)) {
                 $(fields).show();
             } else {
                 if (action === exports.editStartAction) {

@@ -72,7 +72,7 @@ var performAdd = function (e, activateTheMode) {
         var href = btn.href,
             parsedHref = url.parse(href, true),
             currentLocation = url.parse(location.href, true),
-            adjustedQuery = _.chain({})
+            adjustedQuery = _({})
                 .assign(currentLocation.query, parsedHref.query)
                 .omit('embed')
                 .value();

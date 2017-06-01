@@ -131,7 +131,7 @@ lessMoreStream.onValue(function($showAll) {
 });
 
 $udfType.on('change', function(e) {
-    var showChoices = _.contains(['choice', 'multichoice'], $(e.currentTarget).val());
+    var showChoices = _.includes(['choice', 'multichoice'], $(e.currentTarget).val());
     $(dom.createUdfPopup).children('.modal-dialog').toggleClass('modal-lg', showChoices);
     $(dom.udfFieldsContainer).toggleClass('col-xs-12', !showChoices).toggleClass('col-xs-6', showChoices);
     $(dom.addChoiceContainer).toggleClass('col-xs-0', !showChoices).toggleClass('col-xs-6', showChoices);
@@ -309,12 +309,12 @@ function getChoiceChanges() {
     });
 
     var changes = $changed.toArray();
-    var byId = _.chain(changes)
+    var byId = _(changes)
         .groupBy('id')
         .map(function(changes, id) {
             return {
                 id: id,
-                changes: _.pluck(changes, 'change')
+                changes: _.map(changes, 'change')
             };
         })
         .value();

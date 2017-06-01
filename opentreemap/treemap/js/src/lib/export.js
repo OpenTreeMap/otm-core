@@ -42,7 +42,7 @@ function getQueryStringObject () {
 }
 
 function isComplete (resp) { return resp.status === 'COMPLETE'; }
-function isFailed (resp) { return !_.contains(['COMPLETE', 'PENDING'], resp.status); }
+function isFailed (resp) { return !_.includes(['COMPLETE', 'PENDING'], resp.status); }
 
 function getJobStartStream () {
     // Some exportable links are added to the page dynamically with AJAX

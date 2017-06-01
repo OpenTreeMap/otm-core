@@ -112,7 +112,7 @@ exports.init = function(options) {
                             $tds = $row.find('td'),
                             id = $row.attr('data-value-id'),
 
-                            rowData = _.object(headers, $tds
+                            rowData = _.zipObject(headers, $tds
                                         .map(function() {
                                             return $.trim($(this).attr('data-value'));
                                         }));
@@ -240,14 +240,14 @@ exports.init = function(options) {
             .map('.globalErrors'),
 
         unhandledErrorStream = responseErrorStream
-            .filter(R.and(BU.isPropertyUndefined('fieldErrors'),
-                          BU.isPropertyUndefined('globalErrors')))
+            .filter(R.both(BU.isPropertyUndefined('fieldErrors'),
+                           BU.isPropertyUndefined('globalErrors')))
             .map('.unstructuredError'),
 
         editStartStream = actionStream.filter(isEditStart),
 
         inEditModeProperty = actionStream.map(function (event) {
-            return _.contains(eventsLandingInEditMode, event);
+            return _.includes(eventsLandingInEditMode, event);
         })
             .toProperty()
             .skipDuplicates(),
@@ -255,7 +255,7 @@ exports.init = function(options) {
         saveOKFormDataStream = saveOkStream.map('.formData'),
 
         eventsLandingInDisplayModeStream =
-            actionStream.filter(_.contains, eventsLandingInDisplayMode),
+            actionStream.filter(_.includes, eventsLandingInDisplayMode),
 
         shouldBeInEditModeStream = options.shouldBeInEditModeStream || Bacon.never(),
         modeChangeStream = shouldBeInEditModeStream
