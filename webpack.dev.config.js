@@ -6,11 +6,10 @@ var webpack = require('webpack'),
     host = process.env.WEBPACK_DEV_SERVER || 'http://localhost:6062/';
 
 // Add webpack-dev-server to the common entry bundle
-config.entry['js/treemap/base'] = [
+config.entry['demo'] = [
+    config.entry['demo'],
     'webpack-dev-server/client?' + host,
-    'webpack/hot/dev-server',
-    './opentreemap/treemap/js/src/base.js'
-];
+    'webpack/hot/dev-server'];
 
 config.output.publicPath = host + 'static/';
 config.output.pathInfo = true;
@@ -22,11 +21,6 @@ config.devtool = 'eval';
 config.plugins = config.plugins.concat([
     new webpack.HotModuleReplacementPlugin()
 ]);
-
-// Allows require-ing the global variable created by django-js-reverse
-config.externals = {
-    reverse: "Urls"
-};
 
 config.watchOptions = {
     poll: 1000,

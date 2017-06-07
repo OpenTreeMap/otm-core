@@ -4,6 +4,7 @@
         opacity: 0;
         position: absolute;
         width: 0;
+        user-select: none;
 
         & + label {
             margin: 0;
@@ -20,8 +21,6 @@
             opacity: 0.4;
             cursor: default;
         }
-
-        @include select-none;
     }
     input[type='radio']:checked + label {
         background-image: url(#{$staticUrl}img/radio.png);

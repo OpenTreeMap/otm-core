@@ -1,42 +1,5 @@
 // Partial: Map Page
 
-// Keep these colors in sync with otm-tiler/style/canopy.mms
-$light-to-dark-green: #ffffff 10%,
-                      #f6f9f4 10%, #f6f9f4 20%,
-                      #d7ebc7 20%, #d7ebc7 30%,
-                      #b8dd9b 30%, #b8dd9b 40%,
-                      #99cf6f 40%, #99cf6f 50%,
-                      #7ac143 50%, #7ac143 60%,
-                      #5ba63b 60%, #5ba63b 70%,
-                      #3d8c33 70%, #3d8c33 80%,
-                      #1e722b 80%, #1e722b 90%,
-                      #005824 90%;
-
-#streetview {
-    width: 200px;
-    height: 180px;
-    position: absolute;
-    left: 20px;
-    bottom: 40px;
-    background: gray;
-    z-index: 10000;
-    text-align: center;
-    padding: 70px 60px;
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #AAA;
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
-
-    @media #{$screen-xs} {
-        display: none !important;
-    }
-}
-
-#streetview img {
-    border: none !important;
-    max-width: none !important;
-}
-
 .map {
     left: 0;
     background: $well-color;
@@ -45,22 +8,6 @@ $light-to-dark-green: #ffffff 10%,
     top: 0;
     right: 350px;
     z-index: 1;
-
-    @media #{$screen-xs} {
-        right: 0;
-    }
-}
-
-.leaflet-base-map-pane {
-	z-index: 50;
-}
-
-.leaflet-searched-boundary-pane {
-	z-index: 100;
-}
-
-.boundary-polygon {
-    cursor: inherit;
 }
 
 .leaflet-control-container {
@@ -73,6 +20,7 @@ $light-to-dark-green: #ffffff 10%,
         }
     }
 }
+
 .leaflet-control {
 
     &.leaflet-control-attribution {
@@ -118,48 +66,6 @@ $light-to-dark-green: #ffffff 10%,
     60% { opacity: 1; }
 }
 
-.leaflet-marker-icon {
-
-    &.animated {
-        animation: pulse 2s infinite;
-    }
-}
-
-.leaflet-popup-close-button {
-    margin-top: 6px;
-    margin-right: 4px;
-}
-
-.leaflet-popup-content {
-    margin: 18px 20px;
-
-    .popup-content {
-        margin-bottom: 15px;
-    }
-    h4 {
-        margin: 0 0 0.5em;
-    }
-    table {
-        margin: 9px -4px 0 -4px;
-    }
-    th, td {
-        padding: 0 4px;
-    }
-}
-
-.leaflet-editing-icon {
-    border-radius: 5px;  // Make 10x10 vertex icon into a circle
-}
-
-@media #{$screen-xs} {
-    .leaflet-popup-pane {
-        display: none;
-    }
-    .leaflet-control-zoom {
-        display: none;
-    }
-}
-
 // fix typeaheads in input-groups
 .input-group {
     .twitter-typeahead {
@@ -174,12 +80,6 @@ $light-to-dark-green: #ffffff 10%,
             width: 100%;
         }
     }
-}
-
-// fix typeaheads in form-inline
-.form-inline .twitter-typeahead {
-    float: left;
-    margin-right: 4px;
 }
 
 .tt-menu {
@@ -229,38 +129,4 @@ $light-to-dark-green: #ffffff 10%,
             }
         }
     }
-}
-
-.external-help-link {
-    font-size: 1.2rem;
-    font-weight: 400 !important;
-}
-
-.canopy-filter {
-    background: #fff;
-    padding: 10px;
-
-    .from-label,
-    .to-label {
-        position: absolute;
-        top: 30px;
-        font-size: smaller;
-    }
-    .from-label {
-        left: 10px;
-    }
-    .to-label {
-        right: 10px;
-    }
-
-   .color-ramp {
-       display: inline-block;
-       width: 150px;
-       height: 10px;
-       border: 1px solid #ddd;
-
-       &.light-to-dark-green {
-           background: linear-gradient(90deg, $light-to-dark-green);
-       }
-   }
 }

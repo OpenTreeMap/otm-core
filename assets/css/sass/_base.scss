@@ -20,37 +20,3 @@ $well-color                     : #d1d2d4; // Well gray color
 $main-text-color                : #231f20; // Black text color
 $subtext-color                  : #799397; // Midtone gray text color
 $light-gray-color               : #f1f2f2; // Light gray color
-
-// Button Colors
-$button-default                 : #f1f2f2;
-$button-primary                 : #8baa3d;
-$button-success                 : #add142;
-$button-info                    : #5bc0de;
-$button-warning                 : #f0ad4e;
-$button-danger                  : #df4425;
-$button-inverse                 : #231f20;
-
-// Background Image
-$background-image               : url('#{$staticUrl}img/default-background.jpg') !default; // Standard tree background
-
-//Management
-$body-management                : #f1f4f9;
-$dark-primary                   : #3d404f;
-$dark-secondary                 : #55555e;
-$table-gray                     : #DFE2E8;
-
-
-// Media Queries
-$screen-xs    : "(max-width: 767px)";
-$screen-gtxs  : "(min-width: 768px)";
-$screen-sm    : "(min-width: 768px) and (max-width: 991px)";
-$screen-gtsm  : "(min-width: 992px)";
-$screen-ltmd  : "(max-width: 991px)";
-$screen-md    : "(min-width: 992px) and (max-width: 1199px)";
-$screen-ltlg  : "(max-width: 1199px)";
-$screen-lg    : "(min-width: 1200px)";
-
-// Dimensions
-$search-button-group-width        : 128px;
-$mobile-search-button-group-width : 137px;
-$navbar-height                    :  45px;
