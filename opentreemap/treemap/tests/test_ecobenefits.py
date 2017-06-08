@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.test import override_settings
 
 from treemap.models import (Plot, Tree, Species, ITreeRegion,
-                            ITreeCodeOverride)
+                            ITreeCodeOverride, BenefitCurrencyConversion)
 from treemap.tests import (make_instance, make_commander_user, make_request,
                            OTMTestCase)
 from treemap.tests.test_urls import UrlTestCase
@@ -27,7 +27,7 @@ from treemap.ecocache import (get_cached_benefits, get_cached_plot_count,
                               invalidate_ecoservice_cache_if_stale)
 
 
-class EcoTest(UrlTestCase):
+class EcoTestCase(UrlTestCase):
     def setUp(self):
         # Example url for
         # CEAT, 1630 dbh, NoEastXXX
@@ -57,7 +57,22 @@ class EcoTest(UrlTestCase):
         region = ITreeRegion.objects.get(code='NoEastXXX')
         p = region.geometry.point_on_surface
 
+        converter = BenefitCurrencyConversion(
+            currency_symbol='$',
+            electricity_kwh_to_currency=1.0,
+            natural_gas_kbtu_to_currency=1.0,
+            co2_lb_to_currency=1.0,
+            o3_lb_to_currency=1.0,
+            nox_lb_to_currency=1.0,
+            pm10_lb_to_currency=1.0,
+            sox_lb_to_currency=1.0,
+            voc_lb_to_currency=1.0,
+            h20_gal_to_currency=1.0)
+        converter.save()
+
         self.instance = make_instance(is_public=True, point=p)
+        self.instance.eco_benefits_conversion = converter
+        self.instance.save()
         self.user = make_commander_user(self.instance)
 
         self.species = Species(otm_code='CEAT',
@@ -69,6 +84,21 @@ class EcoTest(UrlTestCase):
 
         self.species.save_with_user(self.user)
 
+        self.origBenefitFn = ecobackend.json_benefits_call
+        ecobackend.json_benefits_call = mockbenefits
+
+    def tearDown(self):
+        ecobackend.json_benefits_call = self.origBenefitFn
+
+    def assert_benefit_value(self, bens, benefit, unit, value):
+        self.assertEqual(bens[benefit]['unit'], unit)
+        self.assertEqual(int(float(bens[benefit]['value'])), value)
+
+
+class EcoTest(EcoTestCase):
+    def setUp(self):
+        super(EcoTest, self).setUp()
+        p = self.instance.center
         self.plot = Plot(geom=p, instance=self.instance)
 
         self.plot.save_with_user(self.user)
@@ -80,16 +110,6 @@ class EcoTest(UrlTestCase):
                          diameter=1630)
 
         self.tree.save_with_user(self.user)
-
-        self.origBenefitFn = ecobackend.json_benefits_call
-        ecobackend.json_benefits_call = mockbenefits
-
-    def tearDown(self):
-        ecobackend.json_benefits_call = self.origBenefitFn
-
-    def assert_benefit_value(self, bens, benefit, unit, value):
-        self.assertEqual(bens[benefit]['unit'], unit)
-        self.assertEqual(int(float(bens[benefit]['value'])), value)
 
     def test_eco_benefit_sanity(self):
         rslt, basis, error = TreeBenefitsCalculator()\

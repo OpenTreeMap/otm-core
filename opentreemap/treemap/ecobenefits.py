@@ -30,6 +30,14 @@ class BenefitCategory(object):
 
     GROUPS = (ENERGY, STORMWATER, AIRQUALITY, CO2, CO2STORAGE)
 
+    is_annual_table = {
+        ENERGY: True,
+        STORMWATER: True,
+        AIRQUALITY: True,
+        CO2: True,
+        CO2STORAGE: False
+    }
+
 
 class BenefitCalculator(object):
     """
