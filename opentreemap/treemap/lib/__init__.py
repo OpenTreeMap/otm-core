@@ -30,7 +30,7 @@ def format_benefits(instance, benefits, basis, digits=None):
                 # TODO: Use i18n/l10n to format currency
                 benefit['currency_saved'] = currency_symbol + number_format(
                     benefit['currency'], decimal_pos=0)
-                if BenefitCategory.is_annual_table.get(key, False):
+                if BenefitCategory.is_annual_table.get(key, True):
                     total_currency += benefit['currency']
 
             unit_key = benefit.get('unit-name')
