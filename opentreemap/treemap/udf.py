@@ -974,6 +974,8 @@ class UserDefinedFieldDefinition(models.Model):
                     raise complaint(
                         '%(fieldname)s must be valid JSON',
                         fieldname=self.name)
+                if values is None:
+                    return None
                 if isinstance(values, basestring):
                     # A single string is valid JSON. Wrap as a list for
                     # consistency
