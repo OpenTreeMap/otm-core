@@ -100,7 +100,7 @@ module.exports = {
             // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
             minChunks: 2,
         }),
-        new ExtractTextPlugin('css/main.css', {allChunks: true}),
+        new ExtractTextPlugin('css/main-[chunkhash].css', {allChunks: true}),
         new BundleTracker({path: d('static'), filename: 'webpack-stats.json'})
     ],
     postcss: function () {
