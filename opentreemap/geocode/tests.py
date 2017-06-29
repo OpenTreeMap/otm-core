@@ -65,9 +65,9 @@ class GeocodeTest(OTMTestCase):
                          'The response should not have an error property')
         self.assertIn('lat', res, 'The reponse should have a "lat" property')
         self.assertIn('lng', res, 'The reponse should have a "lng" property')
-        self.assertTrue(abs(res['lat'] - 39.958774) < .00001,
+        self.assertTrue(abs(res['lat'] - 39.958750) < .00001,
                         'Latitude not as expected')
-        self.assertTrue(abs(res['lng'] - (-75.158384)) < .00001,
+        self.assertTrue(abs(res['lng'] - (-75.158416)) < .00001,
                         'Longitude not as expected')
 
     def test_geocoding_without_magic_key_returns_404(self):
