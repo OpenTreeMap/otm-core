@@ -7,10 +7,13 @@
 
 {% block application_css %}
 
+{% get_files 'js/treemap/base' 'css' as css_files %}
 {% if request.instance.scss_variables %}
-  <link id="application-css" href="{% url 'scss' %}?{{ request.instance.scss_query_string }}" rel="stylesheet">
+<!-- The Webpack bundle name is added as a query parameter for cache busting since
+     it includes a checksum of the bundle, letting us set far-future expires cache headers -->
+  <link id="application-css" rel="stylesheet"
+        href="{% url 'scss' %}?{{ request.instance.scss_query_string }}&url={{ css_files.0.name|urlencode }}">
 {% else %}
-  {% get_files 'js/treemap/base' 'css' as css_files %}
   <link id="application-css" href="{{ css_files.0.url }}" rel="stylesheet">
 {% endif %}
 

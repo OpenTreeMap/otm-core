@@ -209,6 +209,9 @@ def compile_scss(request):
     for key, value in request.GET.items():
         if _SCSS_VAR_NAME_RE.match(key) and COLOR_RE.match(value):
             scss += '$%s: #%s;\n' % (key, value)
+        elif key == 'url':
+            # Ignore the cache-buster query parameter
+            continue
         else:
             raise ValidationError("Invalid SCSS values %s: %s" % (key, value))
     scss += '@import "%s";' % settings.SCSS_ENTRY
