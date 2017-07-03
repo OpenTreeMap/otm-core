@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import logging
-from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -27,34 +26,34 @@ class Command(BaseCommand):
     Create a new instance with a single editing role.
     """
 
-    option_list = BaseCommand.option_list + (
-        make_option('--user',
-                    dest='user',
-                    help='Specify admin user name'),
-        make_option('--center',
-                    dest='center',
-                    help='Specify the center of the map as a lon,lat pair'),
-        make_option('--geojson',
-                    dest='geojson',
-                    help=('Specify a boundary via a geojson file. Must be '
-                          'projected in EPSG:4326')),
-        make_option('--url_name',
-                    dest='url_name',
-                    help=('Specify a "url_name" starting with a '
-                          'lowercase letter and containing lowercase '
-                          'letters, numbers, and dashes ("-")'))
-    )
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'instance_name',
+            help='Specify instance name'),
+        parser.add_argument(
+            '--user',
+            required=True,
+            dest='user',
+            help='Specify admin user name'),
+        parser.add_argument(
+            '--center',
+            dest='center',
+            help='Specify the center of the map as a lon,lat pair'),
+        parser.add_argument(
+            '--geojson',
+            dest='geojson',
+            help=('Specify a boundary via a geojson file. Must be '
+                  'projected in EPSG:4326')),
+        parser.add_argument(
+            '--url_name',
+            required=True,
+            dest='url_name',
+            help=('Specify a "url_name" starting with a lowercase letter and '
+                  'containing lowercase letters, numbers, and dashes ("-")'))
 
     @transaction.atomic
     def handle(self, *args, **options):
-        if len(args) != 1:
-            raise Exception(
-                'Expected instance name as the first argument')
-
-        name = args[0]
-
-        if not options['user']:
-            raise Exception('An admin user must be specified. with "--user"')
+        name = options['instance_name']
 
         if options.get('center', None) and options.get('geojson', None):
             raise Exception('You must specifiy only one of '
@@ -80,10 +79,6 @@ class Command(BaseCommand):
             geom = GEOSGeometry(open(options['geojson'], srid=4326).read())
             instance_bounds = InstanceBounds.objects.create(geom=geom)
 
-        if not options.get('url_name', None):
-            raise Exception('You must specify a "url_name" starting with a '
-                            'lowercase letter and containing lowercase '
-                            'letters, numbers, and dashes ("-")')
         url_name = options.get('url_name')
 
         instance = Instance(

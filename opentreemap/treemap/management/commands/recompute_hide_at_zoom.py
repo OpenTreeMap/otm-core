@@ -10,18 +10,17 @@ MIN_FEATURE_COUNT = 100
 
 
 class Command(BaseCommand):
-    args = '<[instance_url_name]>'
     help = 'Recomputes hide_at_zoom for all instances or specified instance'
 
-    def handle(self, *args, **options):
-        if len(args) > 1:
-            raise CommandError('Command takes 0 or 1 argument')
+    def add_arguments(self, parser):
+        parser.add_argument('instance_url_name', nargs='?', default=None)
 
-        elif len(args) == 0:
+    def handle(self, *args, **options):
+        if options['instance_url_name'] is None:
             _update_all_instances()
 
         else:
-            url_name = args[0]
+            url_name = options['instance_url_name']
             try:
                 instance = Instance.objects.get(url_name=url_name)
             except ObjectDoesNotExist:

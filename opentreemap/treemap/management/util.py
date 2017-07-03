@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from optparse import make_option
-
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
@@ -19,22 +17,24 @@ from treemap.audit import add_default_permissions, Audit
 
 class InstanceDataCommand(BaseCommand):
 
-    option_list = BaseCommand.option_list + (
-        make_option('--instance-url-name',
-                    action='store',
-                    type='string',
-                    dest='instance_url_name',
-                    help='Specify the instance to add trees to'),
-        make_option('-i', '--instance',
-                    action='store',
-                    type='int',
-                    dest='instance',
-                    help='Specify the instance to add trees to'),
-        make_option('-d', '--delete',
-                    action='store_true',
-                    dest='delete',
-                    default=False,
-                    help='Delete all previous data in the instance first'))
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--instance-url-name',
+            action='store',
+            dest='instance_url_name',
+            help='Specify the instance to add trees to'),
+        parser.add_argument(
+            '-i', '--instance',
+            action='store',
+            type=int,
+            dest='instance',
+            help='Specify the instance to add trees to'),
+        parser.add_argument(
+            '-d', '--delete',
+            action='store_true',
+            dest='delete',
+            default=False,
+            help='Delete all previous data in the instance first')
 
     @transaction.atomic
     def setup_env(self, *args, **options):
