@@ -13,7 +13,7 @@ django-celery-with-redis==3.0
 django-contrib-comments==1.8.0
 django-hstore==1.4.2
 django-js-reverse==0.7.3
-django-queryset-csv==0.3.3               # https://github.com/azavea/django-queryset-csv/commits/master
+django-queryset-csv==1.0.0               # https://github.com/azavea/django-queryset-csv/commits/master
 django-redis==4.8.0
 django-registration-redux==1.4
 django-statsd-mozilla==0.3.16
