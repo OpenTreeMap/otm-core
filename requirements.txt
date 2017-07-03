@@ -14,7 +14,7 @@ django-contrib-comments==1.8.0
 django-hstore==1.4.2
 django-js-reverse==0.7.2
 django-queryset-csv==0.3.3               # https://github.com/azavea/django-queryset-csv/commits/master
-django-redis==4.4.4
+django-redis==4.8.0
 django-registration-redux==1.4
 django-statsd-mozilla==0.3.16
 django-storages==1.5.1
