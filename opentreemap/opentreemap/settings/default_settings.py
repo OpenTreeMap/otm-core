@@ -58,7 +58,6 @@ NEARBY_INSTANCE_RADIUS = 100000
 NEARBY_TREE_DISTANCE = 6.096  # 20ft
 
 DEBUG = True
-TEMPLATE_DEBUG = True
 AUTH_USER_MODEL = 'treemap.User'
 INTERNAL_IPS = ['127.0.0.1']
 
@@ -189,12 +188,30 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'secret key'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    # 'django.template.loaders.filesystem.Loader',  # NOQA
-    'django.template.loaders.app_directories.Loader',
-    'apptemplates.Loader'
-)
+# Settings for Django Templates
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
+                'opentreemap.context_processors.global_settings',
+            ],
+            'loaders': [
+                'django.template.loaders.app_directories.Loader',
+                'apptemplates.Loader'
+            ],
+        },
+    },
+]
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
@@ -237,25 +254,6 @@ ROOT_URLCONF = 'opentreemap.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'opentreemap.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or
-    # "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',
-    'opentreemap.context_processors.global_settings',
-)
 
 COMMENTS_APP = 'otm_comments'
 
