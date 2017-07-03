@@ -12,8 +12,7 @@ from celery.result import GroupResult, AsyncResult
 
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, render_to_response
-from django.template import RequestContext
+from django.shortcuts import get_object_or_404, render
 from django.core.paginator import Paginator, Page, EmptyPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -299,7 +298,7 @@ def show_import_status(request, instance, import_type, import_event_id):
 
         ctx = _get_status_panels(ie, instance, panel_name, page_number)
 
-    return render_to_response(template, ctx, RequestContext(request))
+    return render(request, template, context=ctx)
 
 
 def _get_tree_limit_context(ie):
