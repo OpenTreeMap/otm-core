@@ -17,7 +17,7 @@ django-queryset-csv==1.0.0               # https://github.com/azavea/django-quer
 django-redis==4.8.0
 django-registration-redux==1.6
 django-statsd-mozilla==0.3.16
-django-storages==1.5.1
+django-storages==1.6.3
 django-threadedcomments==1.1
 django-tinsel==0.1.1
 django-url-tools==0.0.8
