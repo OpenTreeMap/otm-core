@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from opentreemap.urls import instance_pattern
 from modeling.routes import (run_model_view,
@@ -12,8 +12,7 @@ from modeling.routes import (run_model_view,
                              plans_view, plan_view)
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'%s/modeling/$' % instance_pattern, modeling_view,
         name='model_trees'),
     url(r'%s/modeling/plans/$' % instance_pattern, plans_view,
@@ -24,4 +23,4 @@ urlpatterns = patterns(
         get_boundaries_at_point_view, name='boundaries_at_point'),
     url(r'%s/modeling/run/$' % instance_pattern, run_model_view,
         name='run_model'),
-)
+]

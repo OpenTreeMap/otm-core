@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.http import HttpResponse
 
 from opentreemap import urls
@@ -37,8 +37,7 @@ def full_utf8_grid(request):
     return response
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^tile/.*', full_utf8_grid),
     url(r'', include(urls))
-)
+]

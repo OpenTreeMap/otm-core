@@ -2,12 +2,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from manage_treemap import routes
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', routes.management, name='management'),
     url(r'^notifications/$', routes.admin_counts, name='admin_counts'),
 
@@ -52,4 +51,4 @@ urlpatterns = patterns(
         name='field_configs'),
     url(r'^set-fields/$', routes.set_field_configs,
         name='set_field_configs'),
-)
+]

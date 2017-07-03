@@ -11,13 +11,10 @@ import tempfile
 import os
 import json
 
-from django.test.client import RequestFactory
-from django.test.runner import DiscoverRunner
 from django.conf import settings
 from django.db.models import Max
-from django.template import Template, RequestContext
-from django.http import HttpResponse
-from django.conf.urls import patterns
+from django.test.client import RequestFactory
+from django.test.runner import DiscoverRunner
 
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -445,27 +442,6 @@ class LocalMediaTestCase(OTMTestCase):
 
 
 class ViewTestCase(OTMTestCase):
-    def _add_global_url(self, url, view_fn):
-        """
-        Insert a new url into treemap for Client resolution
-        """
-        from opentreemap import urls
-        urls.urlpatterns += patterns(
-            '', (url, view_fn))
-
-    def _mock_request_with_template_string(self, template):
-        """
-        Create a new request that renders the given template
-        with a normal request context
-        """
-        def mock_request(request):
-            r = RequestContext(request)
-            tpl = Template(template)
-
-            return HttpResponse(tpl.render(r))
-
-        return mock_request
-
     def setUp(self):
         self.factory = RequestFactory()
         self.instance = make_instance()

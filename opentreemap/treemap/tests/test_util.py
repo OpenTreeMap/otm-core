@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.test.utils import override_settings
 
 from treemap.util import add_visited_instance, get_last_visited_instance
 from treemap.models import InstanceUser
@@ -11,6 +12,7 @@ from treemap.tests import (ViewTestCase, make_instance, make_request,
                            make_user_with_default_role)
 
 
+@override_settings(ROOT_URLCONF='treemap.tests.unit_test_urls')
 class VisitedInstancesTests(ViewTestCase):
     def setUp(self):
         super(VisitedInstancesTests, self).setUp()
@@ -44,35 +46,30 @@ class VisitedInstancesTests(ViewTestCase):
         # that reads the `last_instance` from the context
         # processor (that should be inserted by the session)
         #
-        mock_request = self._mock_request_with_template_string(
-            "{{ last_instance.pk }}")
-
-        self._add_global_url(r'test$', mock_request)
-
         # By default, nothing is in session
-        self.assertEqual(self.client.get('/test').content, '')
+        self.assertEqual(self.client.get('/test-last-instance').content, '')
 
         # Going to an instance sets the context variable
         self.client.get('/%s/map/' % self.instance1.url_name)
-        self.assertEqual(self.client.get('/test').content,
+        self.assertEqual(self.client.get('/test-last-instance').content,
                          self._format(self.instance1.pk))
 
         # Going to a non-public instance doesn't update it
         self.client.get('/%s/map/' % self.instance3.url_name)
-        self.assertEqual(self.client.get('/test').content,
+        self.assertEqual(self.client.get('/test-last-instance').content,
                          self._format(self.instance1.pk))
 
         # Going to a private instance while not logged in
         # also doesn't update
         self.client.get('/%s/map/' % self.instance4.url_name)
-        self.assertEqual(self.client.get('/test').content,
+        self.assertEqual(self.client.get('/test-last-instance').content,
                          self._format(self.instance1.pk))
 
         self.client.login(username='joe', password='joe')
 
         # But should change after logging in
         self.client.get('/%s/map/' % self.instance4.url_name)
-        self.assertEqual(self.client.get('/test').content,
+        self.assertEqual(self.client.get('/test-last-instance').content,
                          self._format(self.instance4.pk))
 
     def test_get_last_instance(self):
