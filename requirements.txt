@@ -21,7 +21,7 @@ django-storages==1.6.3
 django-threadedcomments==1.1
 django-tinsel==0.1.1
 django-url-tools==0.0.8
-django-webpack-loader==0.3.3             # https://github.com/owais/django-webpack-loader/releases
+django-webpack-loader==0.5.0             # https://github.com/owais/django-webpack-loader/releases
 flake8==2.0 # rq.filter: ==2.0
 gunicorn==19.6.0                         # http://docs.gunicorn.org/en/stable/news.html
 hiredis==0.2.0
