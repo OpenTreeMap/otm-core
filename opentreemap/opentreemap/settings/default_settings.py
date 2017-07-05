@@ -209,11 +209,12 @@ MIDDLEWARE_CLASSES = (
 )
 
 # Settings for Rollbar exception reporting service
-ROLLBAR_ACCESS_TOKEN = os.environ.get('ROLLBAR_SERVER_SIDE_ACCESS_TOKEN', None)
+ROLLBAR_SERVER_ACCESS_TOKEN = os.environ.get('ROLLBAR_SERVER_SIDE_ACCESS_TOKEN', None)
+ROLLBAR_CLIENT_ACCESS_TOKEN = os.environ.get('ROLLBAR_POST_CLIENT_ITEM_ACCESS_TOKEN', None)
 STACK_TYPE = os.environ.get('OTM_STACK_TYPE', 'Unknown')
-if ROLLBAR_ACCESS_TOKEN is not None:
+if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
     ROLLBAR = {
-        'access_token': ROLLBAR_ACCESS_TOKEN,
+        'access_token': ROLLBAR_SERVER_ACCESS_TOKEN,
         'environment': STACK_TYPE,
         'root': BASE_DIR
     }
