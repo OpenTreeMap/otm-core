@@ -115,7 +115,7 @@ def get_ids_from_request(request):
 
 
 def add_rollbar_handler(logger, level=logging.WARNING):
-    if settings.ROLLBAR_ACCESS_TOKEN is not None:
+    if settings.ROLLBAR_SERVER_ACCESS_TOKEN is not None:
         rollbar_handler = RollbarHandler()
         rollbar_handler.setLevel(level)
         logger.addHandler(rollbar_handler)
