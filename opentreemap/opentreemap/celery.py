@@ -20,11 +20,12 @@ app = Celery('opentreemap')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-if getattr(settings, 'STATSD_CELERY_SIGNALS', False):
-    # Import here to prevent error on Celery launch
-    # that settings module is not defined
-    from django_statsd.celery import register_celery_events
-    register_celery_events()
+# TODO: Enable when django-statsd is compatible with Django > 1.8
+# if getattr(settings, 'STATSD_CELERY_SIGNALS', False):
+#     # Import here to prevent error on Celery launch
+#     # that settings module is not defined
+#     from django_statsd.celery import register_celery_events
+#     register_celery_events()
 
 rollbar_settings = getattr(settings, 'ROLLBAR', {})
 access_token = rollbar_settings.get('access_token')
