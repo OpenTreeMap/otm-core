@@ -22,6 +22,7 @@ from treemap.tests import (make_instance, make_observer_user,
                            make_conjurer_user, make_tweaker_user)
 from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
+from treemap.templatetags.urls import add_params
 
 
 class UserCanReadTagTest(OTMTestCase):
@@ -673,3 +674,17 @@ class DisplayValueTagTest(OTMTestCase):
 
     def test_display_value_converts_model_name(self):
         self.assertEqual('Tree', display_name(Tree()))
+
+
+class AddParamsTest(OTMTestCase):
+    def test_add_first_param(self):
+        self.assertEqual(
+            add_params('/a/b#hash', foo=1),
+            '/a/b?foo=1#hash'
+        )
+
+    def test_add_params_to_existing_param(self):
+        self.assertEqual(
+            add_params('/a/b?baz=0#hash', foo=1, bar=2),
+            '/a/b?bar=2&foo=1&baz=0#hash'
+        )

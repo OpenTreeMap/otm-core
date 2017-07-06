@@ -294,7 +294,6 @@ UNMANAGED_APPS = (
     'django.contrib.humanize',
     'django.contrib.postgres',
     'djcelery',
-    'url_tools',
     'django_js_reverse',
     'webpack_loader',
 )
