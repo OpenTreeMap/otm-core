@@ -1,7 +1,7 @@
 # For outdated module report see https://requires.io/github/OpenTreeMap/otm-core/requirements/?branch=develop
 # Changelog URL shown below if not linked on above page
 
-boto==2.47.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
+boto==2.48.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
 # https://docs.djangoproject.com/en/1.10/releases/#id2
 Django==1.8.18  # rq.filter: >=1.8,<1.9
 django-apptemplates==1.2
@@ -19,7 +19,7 @@ django-registration-redux==1.6
 django-statsd-mozilla==0.3.16
 django-storages==1.6.3
 django-threadedcomments==1.1
-django-tinsel==0.1.1
+django-tinsel==1.0.0
 django-url-tools==0.0.8
 django-webpack-loader==0.5.0             # https://github.com/owais/django-webpack-loader/releases
 flake8==2.0 # rq.filter: ==2.0
@@ -29,7 +29,7 @@ libsass==0.13.2
 # Modgrammar-py2 has a 0.9.2 release on PyPi, but no artifacts for the release
 modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
 pep8==1.4.6 # rq.filter: ==1.4.6
-Pillow==4.2.0
+Pillow==4.2.1
 psycopg2==2.7.1                          # http://initd.org/psycopg/docs/news.html
 python-dateutil==2.6.0                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==2.0.0
