@@ -19,7 +19,7 @@ django-registration-redux==1.6
 # django-statsd-mozilla==0.3.16  # TODO: enable when compatible with Django > 1.8 https://github.com/django-statsd/django-statsd/issues/97
 django-storages==1.6.3
 django-threadedcomments==1.1
-django-tinsel==0.1.1
+django-tinsel==1.0.0
 django-webpack-loader==0.5.0             # https://github.com/owais/django-webpack-loader/releases
 flake8==2.0 # rq.filter: ==2.0
 gunicorn==19.6.0                         # http://docs.gunicorn.org/en/stable/news.html
