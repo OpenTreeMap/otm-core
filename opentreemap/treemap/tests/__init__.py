@@ -358,9 +358,12 @@ def create_mock_system_user():
     User._system_user = system_user
 
 
-def make_request(params={}, user=None, instance=None,
+def make_request(params=None, user=None, instance=None,
                  method='GET', body=None, file=None,
                  path='hello/world'):
+    if params is None:
+        params = {}
+
     if user is None:
         user = AnonymousUser()
 
@@ -370,12 +373,14 @@ def make_request(params={}, user=None, instance=None,
         extra['wsgi.input'] = body_stream
         extra['CONTENT_LENGTH'] = len(body)
 
+    factory = RequestFactory()
     if file:
         post_data = {'file': file}
-        req = RequestFactory().post(path, post_data, **extra)
+        req = factory.post(path, post_data, **extra)
     else:
-        req = RequestFactory().get(path, params, **extra)
-        req.method = method
+        fns = dict(GET=factory.get, POST=factory.post, PUT=factory.put,
+                   DELETE=factory.delete)
+        req = fns[method](path, params, **extra)
 
     setattr(req, 'user', user)
 

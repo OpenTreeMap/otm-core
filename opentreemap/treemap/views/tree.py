@@ -55,10 +55,10 @@ def delete_tree(request, instance, feature_id, tree_id):
 
 
 def search_tree_benefits(request, instance):
-    filter_str = request.REQUEST.get('q', '')
-    display_str = request.REQUEST.get('show', '')
+    filter_str = request.GET.get('q', '')
+    display_str = request.GET.get('show', '')
 
-    hide_summary_text = request.REQUEST.get('hide_summary', 'false')
+    hide_summary_text = request.GET.get('hide_summary', 'false')
     hide_summary = hide_summary_text.lower() == 'true'
 
     filter = Filter(filter_str, display_str, instance)

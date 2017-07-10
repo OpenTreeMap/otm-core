@@ -44,9 +44,9 @@ def get_photos(instance, sort_order='-created_at', is_archived=False):
 
 
 def photo_review(request, instance):
-    page_number = int(request.REQUEST.get('page', '1'))
-    sort_order = request.REQUEST.get('sort', '-created_at')
-    is_archived = request.REQUEST.get('archived', 'False') == 'True'
+    page_number = int(request.GET.get('page', '1'))
+    sort_order = request.GET.get('sort', '-created_at')
+    is_archived = request.GET.get('archived', 'False') == 'True'
 
     photos = get_photos(instance, sort_order, is_archived)
     paginator = Paginator(photos, _PHOTO_PAGE_SIZE)

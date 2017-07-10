@@ -78,8 +78,8 @@ def edits(request, instance, user_id):
 
     user = request.user
 
-    result_offset = int(request.REQUEST.get("offset", 0))
-    num_results = min(int(request.REQUEST.get("length", 15)), 15)
+    result_offset = int(request.GET.get("offset", 0))
+    num_results = min(int(request.GET.get("length", 15)), 15)
 
     audits = Audit.objects.filter(instance=instance)\
                           .filter(user=user)\
@@ -108,7 +108,9 @@ def edits(request, instance, user_id):
 
 
 def reset_password(request):
-    email = request.REQUEST["email"]
+    # Note: iOS send email as part of the query string, Android doesn't support
+    # password reset at all
+    email = request.GET["email"]
     try:
         User.objects.get(email=email)
     except User.DoesNotExist:
@@ -179,8 +181,8 @@ def get_plot_list(request, instance):
        }]
 
       """
-    start = int(request.REQUEST.get("offset", "0"))
-    size = min(int(request.REQUEST.get("size", "100")), 10000)
+    start = int(request.GET.get("offset", "0"))
+    size = min(int(request.GET.get("size", "100")), 10000)
     end = size + start
 
     # order_by prevents testing weirdness

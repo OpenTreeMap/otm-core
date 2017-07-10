@@ -52,7 +52,7 @@ class MergeTest(TestCase):
 
     def test_cant_merge_same_species(self):
         r = HttpRequest()
-        r.REQUEST = {
+        r.POST = {
             'species_to_delete': self.s1.pk,
             'species_to_replace_with': self.s1.pk
         }
@@ -77,7 +77,7 @@ class MergeTest(TestCase):
             tree.save_with_system_user_bypass_auth()
 
         r = HttpRequest()
-        r.REQUEST = {
+        r.POST = {
             'species_to_delete': self.s1.pk,
             'species_to_replace_with': self.s2.pk
         }
@@ -989,7 +989,7 @@ class IntegrationTests(TestCase):
         login(self.client, self.user.username)
 
         req.FILES = {'filename': self.create_csv_stream(rows)}
-        req.REQUEST = kwargs
+        req.POST = kwargs
 
         return req
 

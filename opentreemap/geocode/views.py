@@ -62,13 +62,13 @@ def _in_bbox(bbox, c):
 
 
 def _contains_bbox(request):
-    return ('xmin' in request.REQUEST and 'ymin' in request.REQUEST and
-            'xmax' in request.REQUEST and 'ymax' in request.REQUEST)
+    return ('xmin' in request.GET and 'ymin' in request.GET and
+            'xmax' in request.GET and 'ymax' in request.GET)
 
 
 def _get_viewbox_from_request(request):
     if _contains_bbox(request):
-        xmin, ymin, xmax, ymax = [request.REQUEST[b] for b
+        xmin, ymin, xmax, ymax = [request.GET[b] for b
                                   in ['xmin', 'ymin', 'xmax', 'ymax']]
         return Viewbox(
             left=float(xmin),
@@ -84,8 +84,8 @@ def geocode(request):
     """
     Search for specified address, returning candidates with lat/long
     """
-    key = request.REQUEST.get('key')
-    address = request.REQUEST.get('address').encode('utf-8')
+    key = request.GET.get('key')
+    address = request.GET.get('address').encode('utf-8')
 
     if key:
         # See settings.OMGEO_SETTINGS for configuration

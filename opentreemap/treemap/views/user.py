@@ -121,7 +121,7 @@ def profile_to_user(request):
 
 
 def forgot_username(request):
-    user_email = request.REQUEST['email']
+    user_email = request.POST['email']
     if not user_email:
         raise ValidationError({
             'user.email': [_('Email field is required')]

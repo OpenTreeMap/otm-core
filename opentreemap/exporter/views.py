@@ -34,8 +34,8 @@ from exporter.user import write_users
 
 
 def _get_user_extra_args(request):
-    return [request.REQUEST.get("minJoinDate"),
-            request.REQUEST.get("minEditDate")]
+    return [request.GET.get("minJoinDate"),
+            request.GET.get("minEditDate")]
 
 
 def users_csv(request, instance):

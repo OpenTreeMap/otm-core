@@ -62,7 +62,7 @@ def start_import(request, instance):
     if not getattr(request, 'FILES'):
         return HttpResponseBadRequest("No attachment received")
 
-    import_type = request.REQUEST['type']
+    import_type = request.POST['type']
     if import_type == TreeImportEvent.import_type:
         table = TABLE_ACTIVE_TREES
         factors = {
@@ -198,8 +198,8 @@ def _get_table_context(instance, table_name, page_number):
 
 @transaction.atomic
 def merge_species(request, instance):
-    species_to_delete_id = request.REQUEST['species_to_delete']
-    species_to_replace_with_id = request.REQUEST['species_to_replace_with']
+    species_to_delete_id = request.POST['species_to_delete']
+    species_to_replace_with_id = request.POST['species_to_replace_with']
 
     species_to_delete = get_object_or_404(
         Species, instance=instance, pk=species_to_delete_id)
@@ -665,7 +665,7 @@ def solve(request, instance, import_event_id, row_index):
                            instance=instance)
     row = ie.rows().get(idx=row_index)
 
-    data = dict(json.loads(request.REQUEST['data']))
+    data = dict(json.loads(request.POST['data']))
     target_species = request.GET['species']
 
     # Strip off merge errors

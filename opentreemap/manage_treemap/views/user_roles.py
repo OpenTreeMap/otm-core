@@ -61,10 +61,10 @@ def create_user_role(request, instance):
 
 
 def user_roles_list(request, instance):
-    page = int(request.REQUEST.get('page', '1'))
-    user_sort = request.REQUEST.get('user_sort', 'user__username')
-    invite_sort = request.REQUEST.get('invite_sort', 'email')
-    query = request.REQUEST.get('query', '')
+    page = int(request.GET.get('page', '1'))
+    user_sort = request.GET.get('user_sort', 'user__username')
+    invite_sort = request.GET.get('invite_sort', 'email')
+    query = request.GET.get('query', '')
 
     def invite_context(invites):
         for invite in invites:

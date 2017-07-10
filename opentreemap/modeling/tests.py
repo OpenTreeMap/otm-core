@@ -43,9 +43,11 @@ class TestPlanCrud(OTMTestCase):
 
     def _update_plan(self, updates, user=None, force=False):
         user = user or self.user
-        params = {'force': 1} if force else {}
-        request = make_request(method='PUT', user=user,
-                               body=json.dumps(updates), params=params)
+        # Need to match the client, which places the force parameter in the
+        # query string, not the request body
+        path = '/hello?force=1' if force else '/hello'
+        request = make_request(path=path, method='PUT', user=user,
+                               body=json.dumps(updates))
         result = update_plan(request, self.instance, self.plan_id)
         if isinstance(result, HttpResponse):
             return result  # there was an error

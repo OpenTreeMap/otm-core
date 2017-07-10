@@ -380,7 +380,7 @@ def add_map_feature_photo(request, instance, feature_id):
 
 @get_photo_context_and_errors
 def rotate_map_feature_photo(request, instance, feature_id, photo_id):
-    orientation = request.REQUEST.get('degrees', None)
+    orientation = request.POST.get('degrees', None)
     if orientation not in {'90', '180', '270', '-90', '-180', '-270'}:
         raise ValidationError('"degrees" must be a multiple of 90°')
 
