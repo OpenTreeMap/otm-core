@@ -668,6 +668,20 @@ class PlotUpdateTest(OTMTestCase):
         created_plot_update.current_tree().delete_with_user(self.user)
         created_plot_update.delete_with_user(self.user)
 
+    def test_does_not_create_tree_if_tree_field_value_is_an_empty_string(self):
+        plot = Plot(instance=self.instance)
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': ''}
+
+        created_plot, __ = update_map_feature(update, self.user, plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNone(created_plot_update.current_tree())
+
+        created_plot_update.delete_with_user(self.user)
+
     def test_invalid_udf_name_fails(self):
         update = {'plot.udf:INVaLiD UTF': 'z'}
 

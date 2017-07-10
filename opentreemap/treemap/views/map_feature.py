@@ -284,6 +284,13 @@ def update_map_feature(request_dict, user, feature):
         except ValidationError as e:
             return package_field_errors(thing._model_name, e)
 
+    def skip_setting_value_on_tree(value, tree):
+        # If the tree is not None, we always set a value.  If the tree
+        # is None (meaning that we would be creating a new Tree
+        # object) then we only want to set a value if the value is
+        # non-empty.
+        return (tree is None) and (value in ([], '[]', '', None))
+
     tree = None
     errors = {}
 
@@ -303,6 +310,8 @@ def update_map_feature(request_dict, user, feature):
         if ((field in tree_udfc_names and
              feature.safe_get_current_tree() is None and
              value == [])):
+            continue
+        elif object_name == 'tree' and skip_setting_value_on_tree(value, tree):
             continue
         elif object_name in feature_object_names:
             model = feature
