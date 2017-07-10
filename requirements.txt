@@ -31,7 +31,7 @@ modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
 pep8==1.4.6 # rq.filter: ==1.4.6
 Pillow==4.2.1
 psycopg2==2.7.1                          # http://initd.org/psycopg/docs/news.html
-python-dateutil==2.6.0                   # https://github.com/dateutil/dateutil/blob/master/NEWS
+python-dateutil==2.6.1                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==2.0.0
 pytz==2017.2                           # https://launchpad.net/pytz/+announcements
 rollbar==0.13.12                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
