@@ -263,32 +263,25 @@ COMMENTS_APP = 'otm_comments'
 # indicate that they were "hidden" by a moderator.
 COMMENTS_HIDE_REMOVED = False
 
-
-# APPS THAT ARE DEVELOPED IN CONJUNCTION WITH OTM2
-# these are the apps we want to test by default using
-# 'python manage.py test'
-MANAGED_APPS = (
+INSTALLED_APPS = (
+    'django.contrib.contenttypes',
+    'django.contrib.sites',
+    'django.contrib.auth',
     'treemap',
     'geocode',
     'api',
     'exporter',
     'otm1_migrator',
+    'threadedcomments',
+    'django_comments',
     'otm_comments',
     'importer',
     'appevents',
     'stormwater',
     'manage_treemap',
     'modeling',
-)
-
-UNMANAGED_APPS = (
-    'threadedcomments',
-    'django_comments',
     'registration',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
