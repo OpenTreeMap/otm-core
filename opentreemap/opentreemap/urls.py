@@ -75,6 +75,7 @@ urlpatterns = patterns(
     url(instance_pattern + r'/export/', include('exporter.urls')),
     url(instance_pattern + r'/comments/', include('otm_comments.urls')),
     url(instance_pattern + r'/management/', include('manage_treemap.urls')),
+    url(r'', include('modeling.urls')),
 )
 
 if settings.USE_JS_I18N:

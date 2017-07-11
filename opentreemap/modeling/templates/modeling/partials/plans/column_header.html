@@ -1,0 +1,9 @@
+{% load sort %}
+
+<th>
+    <a href="{{ url_for_sort }}&sort={{ column.field|reverse_if_current:current_sort }}"
+       class="{{ column.field|sort_direction_if_current:current_sort }}"
+    >
+        {{ column.label }} <i class="icon-sort"></i>
+    </a>
+</th>

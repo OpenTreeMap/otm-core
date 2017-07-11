@@ -1,0 +1,92 @@
+{% load i18n %}
+
+<h3>Modeling Tree Growth and Benefits</h3>
+
+<h4>What growth rates are used for estimating a tree’s size increase over thirty years?</h4>
+
+<p>OpenTreeMap uses growth equations based on information from
+the <a href="https://www.fs.usda.gov/rds/archive/Product/RDS-2016-0005">Urban
+Tree Database</a> created by scientists at the U.S. Forest Service. The Urban
+Tree Database includes urban tree growth data collected from measurements of
+over 14,000 urban and park trees in seventeen cities over a fourteen-year
+period.</p>
+
+<p>If sharing the modeling tree growth information displayed in OpenTreeMap,
+please use the following citation for the Urban Tree Database:</p>
+
+<p style="margin-left:30px">McPherson, E. Gregory; van Doorn, Natalie S.; Peper,
+Paula J. 2016. Urban tree database. Fort Collins, CO: Forest Service Research
+Data
+Archive. <a href="https://doi.org/10.2737/RDS-2016-0005">https://doi.org/10.2737/RDS-2016-0005</a></p>
+
+
+<h4>How do I add a species that is not currently on the list?</h4>
+
+<p>The species list is based on the species included for sixteen climate regions
+in the <a href="https://www.fs.usda.gov/rds/archive/Product/RDS-2016-0005">Urban
+Tree Database</a> and reflects the species available in the database for the
+climate region in which the tree map is located. This list may differ from the
+species list available in the mapping portion of your tree map. Currently, there
+is no option to add other species to the list as growth equation information
+would not be available for those species.</p>
+
+
+<h4>How does OpenTreeMap calculate tree mortality?</h4>
+
+<p>OpenTreeMap applies a 5% annual mortality rate as a default, meaning that 5%
+of all trees added to the scenario will die each year. The 5% rate is based on
+research conducted by Dr. Lara Roman of the U.S. Forest Service and detailed
+in <i><a href="http://repository.upenn.edu/mes_capstones/4/">Trends in Street
+Tree Survival, Philadelphia, PA</a>,</i>, but users may adjust the overall
+annual mortality rate.</p>
+
+<p>Custom mortality rates based on tree diameter and species are also available
+to accommodate locally specific mortality information (i.e. small maple trees
+die more frequently, etc). Users may enter mortality percentages that will apply
+to all trees in four diameter ranges or to a specific species in the same
+diameter ranges. Custom species and diameter rates replace the overall annual
+mortality rate.</p>
+
+
+<h4>Why is there an automatic replanting rate?</h4>
+
+<p>Tree planting contracts may include a provision requiring the contractor to
+replace any trees that die within a certain number of years after planting. The
+automatic replanting rate can be set to reflect that provision and ensure the
+growth model replaces any trees that die within the defined number of years
+since planting.</p>
+
+
+<h4>How are ecosystem benefits calculated over a thirty-year period?</h4>
+
+<p>Ecosystem benefits are calculated based on equations derived from the i-Tree
+Streets protocols developed by the U.S. Forest Service. The equations use the
+tree’s species, trunk diameter, and the climate region in which the tree is
+located to estimate the annual amount of energy conserved, stormwater filtered,
+air quality improved, and carbon dioxide removed by the tree. Economic values
+for ecosystem benefits are specified in the OpenTreeMap management console, with
+defaults based on contemporary prices.</p>
+
+
+<h4>How accurate are the ecosystem benefits?</h4>
+
+<p>The ecosystem benefits are estimates based on current research into tree
+growth and the environmental benefits associated with urban trees. More
+information about the i-Tree Streets protocols that influence the ecosystem is
+available from the <a href="http://www.itreetools.org/streets/">U.S. Forest
+Service website</a>.</p>
+
+<p>Extending the benefits over a thirty-year period introduces the uncertainty
+inherent to any long-term model. Specifically, the currency values associated
+with ecosystem benefits are based on current pricing and not updated for
+inflation as the model runs. Projected ecosystem benefits should be viewed as
+general estimates rather than inerrant predictions.</p>
+
+
+<h4>What are the “Export Growth” and “Export Eco” options available in the
+scenario results?</h4>
+
+<p>The Export Growth and Export Eco buttons allow downloading CSV files which
+show the model's projected tree growth and ecosystem benefit values over a
+thirty-year period. These files may be useful for more extensive statistical
+analysis.</p>

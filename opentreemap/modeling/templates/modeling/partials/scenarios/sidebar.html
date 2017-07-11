@@ -1,0 +1,120 @@
+{% load i18n %}
+<div class="sidebar hidden" id="sidebar-scenarios">
+    <div class="sidebar-inner">
+        <h3 role="button" data-toggle="collapse" href="#plant-trees-container" aria-expanded="false" aria-controls="plant-trees-container">{% trans "Plant some trees" %}</h3>
+        <div id="plant-trees-container" class="collapse in">
+            <div class="sidebar-container">
+                <div id="single-tree-header" class="content-header">
+                    {% trans "Individual trees" %}
+                    <a href="javascript:;" class="pull-right add-tree">+ {% trans "Add Tree" %}</a>
+                </div>
+                <p id="no-trees" class="content-empty text-muted">
+                    <strong>{% trans "No trees added, yet!" %}</strong><br>
+                    {% blocktrans %}Start by
+                        <a href="javascript:;" class="add-tree">adding an individual tree</a>,
+                        then add species and diameter information.
+                    {% endblocktrans %}
+                </p>
+                <div id="single-tree-container"></div>
+
+                <div id="distributions-header" class="content-header">
+                    {% trans "Tree distributions" %}
+                    <a href="javascript:;" class="pull-right add-distribution">+ {% trans "Add Distribution" %}</a>
+                </div>
+                <div id="distributions-container"></div>
+                <p id="no-distributions" class="content-empty text-muted">
+                    <strong>{% trans "No distributions added, yet!" %}</strong><br>
+                    {% blocktrans %}You'll need to
+                        <a href="javascript:;" class="draw-area">draw an area</a>
+                        or <a href="javascript:;" class="select-area">select an area</a>
+                        in which to add your distributions.
+                    {% endblocktrans %}
+                </p>
+
+            </div>
+        </div>
+        <!-- /.plant-trees-container -->
+
+        <h3 role="button" data-toggle="collapse" href="#tree-mortality-container" aria-expanded="false" aria-controls="tree-mortality-container" class="collapsed">{% trans "Tree mortality rate" %}</h3>
+        <div id="tree-mortality-container" class="collapse">
+            <div class="sidebar-container">
+                <div class="content-row">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <input type="radio" id="mortality-all-trees" class="form-control"
+                                name="mortality-mode" value="default" checked="checked" />
+                            <label for="mortality-all-trees">{% trans "Annual mortality (%) for all trees" %}</label>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" data-category="default">
+                                    <div class="input-group-addon">{% trans "%" %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <input type="radio" id="mortality-by-species" class="form-control"
+                                name="mortality-mode" value="speciesAndDiameters" />
+                            <label for="mortality-by-species">{% trans "Customize by species and diameter" %}</label>
+                            <button id="edit-mortality-rates" class="btn btn-block">
+                                {% trans "View and Edit" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.tree-mortality-rate -->
+
+        <h3 role="button" data-toggle="collapse" href="#replanting-growth-container" aria-expanded="false" aria-controls="replanting-growth-container" class="collapsed">{% trans "Replanting" %}</h3>
+        <div id="replanting-growth-container" class="collapse">
+            <div class="sidebar-container">
+                <div class="content-row">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label>{% trans "Automatic Replanting" %}</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-7">
+                            <div class="form-group">
+                                <input type="checkbox" id="auto-replanting"><label for="auto-replanting">
+                                    {% trans "Automatic replanting for" %}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-5" style="padding-left: 0">
+                            <div class="input-group">
+                                <input class="form-control" type="number" value="2">
+                                <div class="input-group-addon">{% trans "years" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.replanting growth rate -->
+        <div class="scenario-trees-total summary">
+            <p>
+                {% trans "Individual trees" %}
+                <span class="tree-count pull-right">
+                    <span class="single-trees-count"></span>
+                </span>
+            </p>
+            <p>
+                {% trans "Tree distributions" %}
+                <span class="tree-count pull-right">
+                    <span class="distributions-count"></span>
+                </span>
+            </p>
+        </div>
+        <!-- /.summary -->
+        <div class="sidebar-footer">
+            <div class="calculate">
+                <button class="btn btn-primary btn-block">{% trans "Calculate Scenario" %}</button>
+            </div>
+        </div>
+        <!-- /.calculate -->
+    </div>
+</div>

@@ -1,0 +1,227 @@
+{% load i18n %}
+
+<script type="text/template" id="single-tree-tmpl">
+    <div class="content-row" data-uid="<%- tree.uid() %>">
+        <div class="row">
+            <div class="col-sm-6">
+                <label>{% trans "Species" %} <em class="tree-count">(<%- tree.quantity() %>
+                    <%- tree.quantity() == 1 ?
+                        '{% trans "tree" %}' :
+                        '{% trans "trees" %}' %>)</em></label>
+                <%= renderSpeciesDropdown(tree.species()) %>
+            </div>
+            <div class="col-sm-3">
+                <label>{% trans "Diameter" %}</label>
+                <div class="input-group">
+                    <input class="form-control diameter" type="text" value="<%- tree.diameter() %>">
+                    <span class="input-group-addon">{{ diameter_units }}</span>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <a href="javascript:;" class="remove"><i class="icon-cancel-circled"></i></a>
+                <a href="javascript:;" class="add"><i class="icon-plus-circled"></i></a>
+            </div>
+        </div>
+        <% if (tree.diameter() > 6) { %>
+            <div class="alert alert-warning error-diameter">
+                {% trans "Scenario may fail with a diameter above 6 in." %}
+            </div>
+        <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="distributions-tmpl">
+    <div id="distribution-rows"></div>
+    <div id="distribution-redraw-area" class="hidden">
+        <div class="content-row collapsible-header">
+            <a href="javascript:;">
+                <i class="icon-angle-right notch-collapsed"></i>
+                <i class="icon-angle-down notch-expanded hidden"></i>
+                {% trans "Redefine Distribution Area" %}
+            </a>
+        </div>
+        <div class="collapsible-body hidden">
+            <p class="content-empty text-muted text-center">
+                <strong>{% trans "Not happy with this area?" %}</strong><br>
+                {% blocktrans %}You can
+                    <a href="javascript:;" class="edit-area">edit the area</a>, or
+                    <a href="javascript:;" class="draw-area">draw a new area</a>, or
+                    <a href="javascript:;" class="select-area">select a new area</a>.
+                    Don't worry though, your distributions and other configurations will stay the same.
+                {% endblocktrans %}
+            </p>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="distribution-row-tmpl">
+    <div class="content-row" data-uid="<%- tree.uid() %>">
+        <div class="row">
+            <div class="col-sm-2">
+                <label>{% trans "Trees" %}</label>
+                <input class="form-control quantity" type="text" value="<%- tree.quantity() %>">
+            </div>
+            <div class="col-sm-6">
+                <label>{% trans "Species" %}</label>
+                <%= renderSpeciesDropdown(tree.species()) %>
+            </div>
+            <div class="col-sm-3">
+                <label>{% trans "Diameter" %}</label>
+                <div class="input-group">
+                    <input class="form-control diameter" type="text" value="<%- tree.diameter() %>">
+                    <span class="input-group-addon">{{ diameter_units }}</span>
+                </div>
+            </div>
+            <div class="col-sm-1">
+                <a href="javascript:;" class="remove"><i class="icon-cancel-circled"></i></a>
+            </div>
+        </div>
+        <% if (tree.diameter() > 6) { %>
+            <div class="alert alert-warning error-diameter">
+                {% trans "Scenario may fail with a diameter above 6 in." %}
+            </div>
+        <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="species-dropdown-tmpl">
+    <select class="form-control species">
+        <% _.each(all_species, function(species) {  %>
+            <option
+                value="<%- species.otm_code %>"
+                <% if (species.otm_code == selected) { %>
+                    selected="selected"
+                <% } %>
+            ><%- species.common_name %></option>
+        <% }) %>
+    </select>
+</script>
+
+<script type="text/template" id="marker-popup-tmpl">
+    <div class="marker-popup" data-uid="<%- loc.uid() %>">
+        <h4><%- speciesName || '{% trans "Unknown Species" %}' %></h4>
+        <h5>{% trans "Diameter" %}</h5>
+        <div class="row">
+            <div class="col-md-12"><%- tree.diameter() %> {{ diameter_units }}</div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <a href="javascript:;" class="remove">{% trans "Remove tree" %}</a>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="polygon-popup-tmpl">
+    <div class="polygon-popup">
+        <h4>{% trans "About this area" %}</h4>
+        <div class="row">
+            <div class="col-md-6 text-gray">{% trans "Total area" %}</div>
+            <div class="col-md-6 text-right"><%- displayArea %></div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <a class="edit-area" href="javascript:;">{% trans "Edit distribution area" %}</a>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="disambiguate-area-tmpl">
+    <% _.each(areas, function(area, i) { %>
+    <div>
+        <a href="javascript:;" data-index="<%- i %>"><%- area.name %></a>
+    </div>
+    <% }) %>
+</script>
+
+<script type="text/template" id="scenario-button-tmpl">
+    <div class="btn-group js-scenario">
+        <a href="javascript:;" class="btn js-view-scenario" data-id="<%- id %>">
+          <%- name %>
+        </a>
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            <li><a href="javascript:;" data-id="<%- id %>" class="js-rename-scenario">{% trans "Rename" %}</a></li>
+            <li><a href="javascript:;" data-id="<%- id %>" class="js-duplicate-scenario">{% trans "Duplicate" %}</a></li>
+            <li><a href="javascript:;" data-id="<%- id %>" class="js-delete-scenario">{% trans "Delete" %}</a></li>
+        </ul>
+    </div>
+</script>
+
+<script type="text/template" id="scenario-menu-item-tmpl">
+    <li>
+        <a href="javascript:;" class="js-view-scenario" data-id="<%- id %>">
+            <%- name %>
+        </a>
+    </li>
+</script>
+
+<script type="text/template" id="eco-header-tmpl">
+    <h4><b>
+        {% trans 'Eco Benefits at' %}
+        <%= years %>
+        {% trans 'Years' %}
+    </b></h4>
+</script>
+
+<script type="text/template" id="eco-results-tmpl">
+    <div>
+        <div class="category-label"><%= label %></div>
+        <div>
+            <div class="pull-right"><%= currency %></div>
+            <div><%= value %></div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="eco-footer-tmpl">
+    <div class="total-currency">
+        <div class="pull-right"><%= total %></div>
+        <div>{% trans "Total" %}</div>
+    </div>
+</script>
+
+<script type="text/template" id="mortality-rate-row-tmpl">
+    <tr>
+        <th nowrap="nowrap">
+            <%= commonName %>
+        </th>
+        <% _.times(diameterBreaksCount, function(i) { %>
+            <td>
+                <div class="input-group">
+                    <input type="number"
+                        class="form-control"
+                        min="0"
+                        max="100"
+                        value="<%= mortalityRates[i] || 0 %>"
+                        data-code="<%= otmCode %>"
+                        data-index="<%= i %>" />
+                    <span class="input-group-addon">%</span>
+                </div>
+            </td>
+        <% }) %>
+        <td>
+            <% if (otmCode !== 'default') { %>
+                <a href="javascript:;"
+                    class="remove-tree-button"
+                    data-code="<%= otmCode %>"
+                    data-action="remove"
+                    title="{% trans "Delete" %}"><i class="icon-cancel-circled"></i></a>
+            <% } else { %>
+                &nbsp;
+            <% } %>
+        </td>
+    </tr>
+</script>
+
+<script type="text/template" id="mortality-rate-dropdown-item-tmpl">
+    <li>
+        <a href="javascript:;"
+            data-action="create"
+            data-code="<%= otmCode %>"><%= commonName %></a>
+    </li>
+</script>

@@ -68,16 +68,12 @@ ga('set', 'page', pathname);
   </a>
 </li>
 
-{% if settings.MODELING_VIEW_NAME %}
-  {% if request.instance|feature_enabled:'modeling' %}
-    {% if last_effective_instance_user|has_permission:'modeling' %}
-      <li class="{% block activemodeling %}{% endblock %} hidden-xs">
-        <a href="{% url settings.MODELING_VIEW_NAME instance_url_name=request.instance.url_name %}">
-          <span>{% trans "Plan" %}</span>
-        </a>
-      </li>
-    {% endif %}
-  {% endif %}
+{% if last_effective_instance_user|has_permission:'modeling' %}
+  <li class="{% block activemodeling %}{% endblock %} hidden-xs">
+    <a href="{% url 'model_trees' instance_url_name=request.instance.url_name %}">
+      <span>{% trans "Plan" %}</span>
+    </a>
+  </li>
 {% endif %}
 
 {% if request.instance|feature_enabled:'recent_edits_report' %}

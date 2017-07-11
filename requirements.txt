@@ -37,3 +37,4 @@ pytz==2016.6.1                           # https://launchpad.net/pytz/+announcem
 rollbar==0.13.8                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
 wsgiref==0.1.2
+jsonschema==2.3.0
