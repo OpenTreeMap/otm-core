@@ -45,8 +45,8 @@ class InstanceInvitationTest(UrlTestCase):
 
     def _make_request(self):
         request = HttpRequest()
-        request.META = {'SERVER_NAME': 'blah',
-                        'SERVER_PORT': '44'}
+        request.META = {'SERVER_NAME': 'localhost',
+                        'SERVER_PORT': '80'}
         request.session = self.MockSession()
         return request
 
