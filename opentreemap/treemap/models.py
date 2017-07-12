@@ -75,9 +75,9 @@ class StaticPage(models.Model):
     content = models.TextField()
 
     DEFAULT_CONTENT = {
-        'resources': get_template('treemap/partials/Resources.html').render(),
-        'about': get_template('treemap/partials/About.html').render(),
-        'faq': get_template('treemap/partials/FAQ.html').render()
+        'resources': 'treemap/partials/Resources.html',
+        'about': 'treemap/partials/About.html',
+        'faq': 'treemap/partials/FAQ.html'
     }
 
     @staticmethod
@@ -102,11 +102,14 @@ class StaticPage(models.Model):
             elif only_create_built_ins:
                 raise Http404('Static page does not exist')
 
-            static_page = StaticPage(
-                instance=instance, name=page_name,
-                content=StaticPage.DEFAULT_CONTENT.get(
-                    page_name.lower(),
-                    ('There is no content for this page yet.')))
+            if page_name.lower() in StaticPage.DEFAULT_CONTENT:
+                template = get_template(StaticPage.DEFAULT_CONTENT[page_name])
+                content = template.render()
+            else:
+                content = 'There is no content for this page yet.'
+
+            static_page = StaticPage(instance=instance, name=page_name,
+                                     content=content)
         return static_page
 
     @staticmethod
