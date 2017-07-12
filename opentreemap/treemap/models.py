@@ -1248,7 +1248,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         if thing is None:
             return None
 
-        field, __, __, __ = MapFeaturePhoto._meta.get_field_by_name(field)
+        field = MapFeaturePhoto._meta.get_field(field)
 
         saved_rep = field.pre_save(self, thing)
         return str(saved_rep)

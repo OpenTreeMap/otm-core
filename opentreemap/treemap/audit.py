@@ -757,7 +757,7 @@ class FieldPermission(models.Model):
     def clean(self):
         try:
             cls = get_authorizable_class(self.model_name)
-            cls._meta.get_field_by_name(self.field_name)
+            cls._meta.get_field(self.field_name)
             assert issubclass(cls, Authorizable)
         except KeyError:
             raise ValidationError(
@@ -1429,8 +1429,7 @@ class Audit(models.Model):
                     ' deleted! This audit should be deleted as well')
 
         cls = get_auditable_class(self.model)
-        field_query = cls._meta.get_field_by_name(self.field)
-        field_cls, __, __, __ = field_query
+        field_cls = cls._meta.get_field(self.field)
         field_modified_value = field_cls.to_python(value)
 
         # handle edge cases

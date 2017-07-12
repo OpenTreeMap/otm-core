@@ -753,7 +753,10 @@ class Instance(models.Model):
         for field in scalar_fields:
             model_name, name = field.split('.', 1)  # maxsplit of 1
             Model = Plot if model_name == 'plot' else Tree
-            standard_fields = Model._meta.get_all_field_names()
+            standard_fields = [
+                f.name for f in Model._meta.get_fields()
+                if not (f.many_to_one and f.related_model is None)
+            ]
 
             if ((name not in standard_fields and field not in scalar_udfs)):
                 errors.add(INSTANCE_FIELD_ERRORS['missing_field'])
