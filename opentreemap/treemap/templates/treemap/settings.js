@@ -17,7 +17,7 @@ otm.settings.urls = Object.freeze({
     'displayQueryArgumentName': 'show'
 });
 
-{% if not settings.TILE_HOST = None %}
+{% if not settings.TILE_HOST == None %}
     otm.settings.tileHost = "{{ settings.TILE_HOST }}";
 {% endif %}
 
