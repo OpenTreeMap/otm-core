@@ -27,7 +27,7 @@ otm.settings.urls = Object.freeze({
     otm.settings.loggedIn = false;
 {% endif %}
 
-otm.settings.loginUrl = "{% url 'django.contrib.auth.views.login' %}?next=";
+otm.settings.loginUrl = "{% url 'login' %}?next=";
 
 otm.settings.staticUrl = '{{ STATIC_URL }}';
 
