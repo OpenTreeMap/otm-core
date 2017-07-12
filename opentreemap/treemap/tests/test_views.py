@@ -82,9 +82,7 @@ class StaticPageViewTest(ViewTestCase):
                                      instance=self.instance)
         self.staticPage.save()
 
-        p = Point(-8515941.0, 4953519.0)
-        self.otherInstance = Instance(name='i1', geo_rev=0, center=p)
-        self.otherInstance.seed_with_dummy_default_role()
+        self.otherInstance = make_instance()
 
     def test_can_get_page(self):
         # Note- case insensitive match
