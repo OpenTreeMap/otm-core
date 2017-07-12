@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from copy import deepcopy
 import tempfile
 import json
 import os
@@ -10,6 +11,7 @@ from shutil import rmtree
 
 from django.template import Template, Context, TemplateSyntaxError
 from django.test.utils import override_settings
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
 from treemap.audit import FieldPermission, Role
@@ -337,9 +339,12 @@ class LoginForwardingTests(OTMTestCase):
         self.assertEqual(
             self.render_template(self.literal_template, path), '')
 
+_TEMPLATES = deepcopy(settings.TEMPLATES)
+_TEMPLATES[0]['OPTIONS']['loaders'] = [
+    'django.template.loaders.filesystem.Loader']
 
-@override_settings(TEMPLATE_LOADERS=(
-    'django.template.loaders.filesystem.Loader',))
+
+@override_settings(TEMPLATES=_TEMPLATES)
 class InlineFieldTagTests(OTMTestCase):
 
     def setUp(self):
@@ -424,7 +429,7 @@ class InlineFieldTagTests(OTMTestCase):
 
     def _write_field_template(self, text):
         with open(self.template_file_path, 'w') as f:
-                f.write(text)
+            f.write(text)
 
     def assert_plot_length_context_value(self, user, name, value,
                                          template_fn=None):
@@ -436,7 +441,9 @@ class InlineFieldTagTests(OTMTestCase):
 
         template = template_fn('plot.length')
         self._write_field_template("{{" + name + "}}")
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user, 'instance': self.instance},
                 'plot': plot})).strip()
@@ -445,7 +452,9 @@ class InlineFieldTagTests(OTMTestCase):
     def assert_search_context_value(self, user, name, value, search_json):
         template = self._form_template_search()
         self._write_field_template("{{" + name + "}}")
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user, 'instance': self.instance},
                 'search_json': search_json})).strip()
@@ -460,7 +469,9 @@ class InlineFieldTagTests(OTMTestCase):
         template = self._form_template_with_request_user_for(
             'plot.udf:Test choice')
         self._write_field_template(template_text)
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user},
                 'plot': plot})).strip()
@@ -601,7 +612,8 @@ class InlineFieldTagTests(OTMTestCase):
         template = self._form_template_create('Plot.length')
         self._write_field_template("{{ field.value }}")
 
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': self.observer, 'instance': self.instance}
             })).strip()
@@ -637,7 +649,8 @@ class InlineFieldTagTests(OTMTestCase):
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):
         with self.assertRaises(TemplateSyntaxError):
-            with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+            _TEMPLATES[0]['DIRS'] = [self.template_dir]
+            with self.settings(TEMPLATES=_TEMPLATES):
                 self._write_field_template("{{ field.identifier }}")
                 self._form_template_search().render(Context({
                     'request': {'user': self.observer,

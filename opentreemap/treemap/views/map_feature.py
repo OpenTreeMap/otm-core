@@ -8,9 +8,8 @@ import hashlib
 from functools import wraps
 
 from django.http import HttpResponse
-from django.template import RequestContext
 from django.template.loader import get_template
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import transaction
@@ -81,17 +80,17 @@ def get_photo_context_and_errors(fn):
 
 
 def map_feature_detail(request, instance, feature_id,
-                       render=False, edit=False):
+                       should_render=False, edit=False):
     context, partial = _map_feature_detail_context(
         request, instance, feature_id, edit)
     add_map_info_to_context(context, instance)
 
-    if render:
+    if should_render:
         template = 'treemap/map_feature_detail.html'
         context['map_feature_partial'] = partial
         latlon = context['feature'].latlon
         context['map_query'] = '?z=%s/%s/%s' % (18, latlon.y, latlon.x)
-        return render_to_response(template, context, RequestContext(request))
+        return render(request, template, context)
     else:
         return context
 
@@ -151,17 +150,17 @@ def _add_plot_field_groups(context, instance):
 def render_map_feature_detail_partial(request, instance, feature_id, **kwargs):
     context, partial = _map_feature_detail_context(
         request, instance, feature_id)
-    return render_to_response(partial, context, RequestContext(request))
+    return render(request, partial, context)
 
 
 def render_map_feature_detail(request, instance, feature_id, **kwargs):
-    return map_feature_detail(request, instance, feature_id, render=True,
-                              **kwargs)
+    return map_feature_detail(request, instance, feature_id,
+                              should_render=True, **kwargs)
 
 
 def context_map_feature_detail(request, instance, feature_id, **kwargs):
-    return map_feature_detail(request, instance, feature_id, render=False,
-                              **kwargs)
+    return map_feature_detail(request, instance, feature_id,
+                              should_render=False, **kwargs)
 
 
 def map_feature_photo_detail(request, instance, feature_id, photo_id):
@@ -184,9 +183,7 @@ def render_map_feature_add(request, instance, type):
             get_template(template)
         except:
             template = 'treemap/resource_add.html'
-        return render_to_response(template,
-                                  {'object_name': to_object_name(type)},
-                                  RequestContext(request))
+        return render(request, template, {'object_name': to_object_name(type)})
     else:
         raise_non_instance_404(type)
 
@@ -383,7 +380,7 @@ def add_map_feature_photo(request, instance, feature_id):
 
 @get_photo_context_and_errors
 def rotate_map_feature_photo(request, instance, feature_id, photo_id):
-    orientation = request.REQUEST.get('degrees', None)
+    orientation = request.POST.get('degrees', None)
     if orientation not in {'90', '180', '270', '-90', '-180', '-270'}:
         raise ValidationError('"degrees" must be a multiple of 90°')
 
@@ -422,9 +419,8 @@ def canopy_popup(request, instance):
         point = Point(float(lng), float(lat), srid=4326)
         result = _get_boundaries_with_canopy(instance, point)
         if result:
-            return render_to_response('treemap/partials/canopy_popup.html',
-                                      {'boundaries_with_canopy': result},
-                                      RequestContext(request))
+            return render(request, 'treemap/partials/canopy_popup.html',
+                          {'boundaries_with_canopy': result})
     return HttpResponse('')
 
 

@@ -18,10 +18,10 @@ class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
     def get_prep_value(self, value):
         return json.dumps(value or {})
 
-    def get_prep_lookup(self, lookup_type, value):
+    def get_lookup(self, lookup_name):
         # Contains lookups will generally work when looking for values
-        if lookup_type in ('contains', 'icontains'):
-            return super(JSONField, self).get_prep_lookup(lookup_type, value)
+        if lookup_name in ('contains', 'icontains'):
+            return super(JSONField, self).get_lookup(lookup_name)
         raise TypeError("JSONField doesn't support lookups")
 
     def value_to_string(self, obj):

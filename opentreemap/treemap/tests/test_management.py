@@ -17,15 +17,13 @@ class CreateInstanceManagementTest(OTMTestCase):
         self.user = make_user(username='WALL-E', password='EVE')
 
     def test_can_create_instance(self):
-        center = '0,0'
         user = self.user.username
         name = 'my_instance'
-        url_name = 'my-instance'
 
         # Allow test --keepdb to work
         count = Instance.objects.count()
-        call_command('create_instance', name, center=center, user=user,
-                     url_name=url_name)
+        call_command('create_instance', name, '--center=0,0',
+                     '--user=%s' % user, '--url_name=my-instance')
         self.assertEqual(Instance.objects.count(), count + 1)
 
 

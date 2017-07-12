@@ -323,8 +323,8 @@ class TreePhotoRotationTest(TreePhotoTestCase):
         self.assertNotEqual(old_photo.image.width, old_photo.image.height)
 
         context = rotate_map_feature_photo(
-            make_request({'degrees': '-90'}, user=self.user), self.instance,
-            self.plot.pk, old_photo.pk)
+            make_request({'degrees': '-90'}, user=self.user, method='POST'),
+            self.instance, self.plot.pk, old_photo.pk)
 
         rotated_photo = TreePhoto.objects.get(pk=old_photo.pk)
 
@@ -1933,7 +1933,8 @@ class ForgotUsernameTests(ViewTestCase):
         self.user = make_plain_user('joe')
 
     def test_sends_email_for_existing_user(self):
-        resp = forgot_username(make_request({'email': self.user.email}))
+        resp = forgot_username(make_request({'email': self.user.email},
+                                            method='POST'))
 
         self.assertEquals(resp, {'email': self.user.email})
 
@@ -1941,7 +1942,8 @@ class ForgotUsernameTests(ViewTestCase):
         self.assertIn(self.user.username, mail.outbox[0].body)
 
     def test_no_email_if_doesnt_exist(self):
-        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'}))
+        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'},
+                                            method='POST'))
 
         self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
 

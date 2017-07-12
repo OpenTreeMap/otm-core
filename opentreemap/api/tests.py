@@ -67,14 +67,13 @@ def sign_request(request, cred=None):
         cred = APIAccessCredential.create()
 
     nowstr = datetime.datetime.now().strftime(SIG_TIMESTAMP_FORMAT)
-    reqdict = dict(request.REQUEST.iteritems())
-    reqdict['timestamp'] = nowstr
-    reqdict['access_key'] = cred.access_key
 
-    request.REQUEST.dicts = [reqdict]
+    request.GET = request.GET.copy()
+    request.GET['timestamp'] = nowstr
+    request.GET['access_key'] = cred.access_key
 
     sig = get_signature_for_request(request, cred.secret_key)
-    request.REQUEST.dicts[0]['signature'] = sig
+    request.GET['signature'] = sig
 
     return request
 
@@ -1888,7 +1887,7 @@ class SigningTest(OTMTestCase):
 
                 req = sign_request(req)
 
-                return req.REQUEST['signature']
+                return req.GET['signature']
 
         sig1 = get_sig(TreePhotoTest.test_png_path)
         sig2 = get_sig(TreePhotoTest.test_jpeg_path)

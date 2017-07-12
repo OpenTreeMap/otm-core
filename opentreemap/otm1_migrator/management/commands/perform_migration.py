@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from optparse import make_option
-
 import os
 import importlib
 import json
@@ -93,16 +91,6 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
             model_key_map[model_dict['pk']] = pk
 
 
-def make_model_option(migration_rules, model):
-    shortflag = migration_rules[model]['command_line_flag']
-    return make_option(shortflag,
-                       '--%s-fixture' % model,
-                       action='store',
-                       type='string',
-                       dest='%s_fixture' % model,
-                       help='path to json dump containing %s data' % model)
-
-
 from otm1_migrator.migration_rules.standard_otm1 \
     import MIGRATION_RULES as RULES
 from otm1_migrator.migration_rules.standard_otm1 \
@@ -111,34 +99,40 @@ from otm1_migrator.migration_rules.standard_otm1 \
 
 class Command(InstanceDataCommand):
 
-    option_list = (
-        InstanceDataCommand.option_list +
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
 
         # add options for model fixtures
-        tuple(make_model_option(RULES, model) for model in RULES) +
+        for model in RULES:
+            parser.add_argument(
+                RULES[model]['command_line_flag'],
+                '--%s-fixture' % model,
+                action='store',
+                dest='%s_fixture' % model,
+                help='path to json dump containing %s data' % model)
 
         # add other kinds of options
-        (make_option('--config-file',
-                     action='store',
-                     dest='config_file',
-                     default=None,
-                     help='provide config by file instead of command line'),
-         make_option(*USERPHOTO_ARGS,
-                     action='store',
-                     type='string',
-                     dest='userphoto_path',
-                     help='path to userphotos that will be imported'),
-         make_option('-x', '--treephoto-path',
-                     action='store',
-                     type='string',
-                     dest='treephoto_path',
-                     help='path to treephotos that will be imported'),
-         make_option('-l', '--rule-module',
-                     action='store',
-                     type='string',
-                     dest='rule_module',
-                     help='Name of the module to import rules from'))
-    )
+        parser.add_argument(
+            '--config-file',
+            action='store',
+            dest='config_file',
+            default=None,
+            help='provide config by file instead of command line'),
+        parser.add_argument(
+            *USERPHOTO_ARGS,
+            action='store',
+            dest='userphoto_path',
+            help='path to userphotos that will be imported'),
+        parser.add_argument(
+            '-x', '--treephoto-path',
+            action='store',
+            dest='treephoto_path',
+            help='path to treephotos that will be imported'),
+        parser.add_argument(
+            '-l', '--rule-module',
+            action='store',
+            dest='rule_module',
+            help='Name of the module to import rules from')
 
     def handle(self, *args, **options):
 

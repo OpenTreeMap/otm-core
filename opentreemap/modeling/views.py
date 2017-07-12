@@ -135,7 +135,7 @@ def update_plan(request, instance, plan_id):
         raise Http404('No Plan matches the given query.')
 
     plan_dict = json.loads(request.body)
-    if 'force' in request.REQUEST:
+    if 'force' in request.GET:
         plan_dict['revision'] = plan.revision + 1
 
     elif 'revision' in plan_dict:

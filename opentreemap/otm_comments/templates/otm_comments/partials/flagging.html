@@ -1,4 +1,4 @@
-{% load comments %}
+{% load otm_comments %}
 {% if comment|is_flagged_by:request.user %}
 <a href="{% url 'unflag-comment' instance_url_name=request.instance.url_name comment_id=comment.id %}"
    data-class="comment-flag-toggle">Unflag</a>

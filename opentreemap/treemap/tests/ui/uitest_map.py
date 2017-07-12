@@ -6,13 +6,15 @@ from __future__ import division
 from time import sleep
 from unittest.case import skip
 
+from django.test.utils import override_settings
+
 from treemap.tests.ui import TreemapUITestCase, ui_test_urls
 from treemap.models import Tree, Plot
 
 
+# Use modified URL set (e.g. to mock out tiler requests)
+@override_settings(ROOT_URLCONF='treemap.tests.ui.ui_test_urls')
 class MapTest(TreemapUITestCase):
-    # Use modified URL set (e.g. to mock out tiler requests)
-    urls = 'treemap.tests.ui.ui_test_urls'
 
     def test_simple_add_plot_to_map(self):
         initial_tree_count = self.ntrees()

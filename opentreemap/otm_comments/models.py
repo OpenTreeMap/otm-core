@@ -52,6 +52,10 @@ class EnhancedThreadedComment(ThreadedComment):
 
         super(EnhancedThreadedComment, self).save(*args, **kwargs)
 
+    class Meta:
+        # Needed to break circular dependency when loading apps
+        app_label = 'otm_comments'
+
 
 class EnhancedThreadedCommentFlag(models.Model, Auditable):
     comment = models.ForeignKey(EnhancedThreadedComment)
@@ -60,3 +64,7 @@ class EnhancedThreadedCommentFlag(models.Model, Auditable):
     # whether the flag itself was hidden, NOT the related
     # comment. That is decided by `comment.is_removed`
     hidden = models.BooleanField(default=False)
+
+    class Meta:
+        # Needed to break circular dependency when loading apps
+        app_label = 'otm_comments'

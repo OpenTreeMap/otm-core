@@ -411,6 +411,8 @@ class User(AbstractUniqueEmailUser, Auditable):
         return reputation
 
     def clean(self):
+        super(User, self).clean()
+
         if re.search('\\s', self.username):
             raise ValidationError(_('Cannot have spaces in a username'))
 
