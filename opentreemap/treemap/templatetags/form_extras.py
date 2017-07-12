@@ -331,7 +331,7 @@ class AbstractNode(template.Node):
         user = _resolve_variable(self.user, context)
         instance = _resolve_variable(self.instance, context)
         field_template = get_template(_resolve_variable(
-                                      self.field_template, context))
+                                      self.field_template, context)).template
 
         if not isinstance(identifier, basestring)\
            or not _identifier_regex.match(identifier):

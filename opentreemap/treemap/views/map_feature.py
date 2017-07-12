@@ -8,7 +8,6 @@ import hashlib
 from functools import wraps
 
 from django.http import HttpResponse
-from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -180,7 +179,6 @@ def render_map_feature_add(request, instance, type):
         app = MapFeature.get_subclass(type).__module__.split('.')[0]
         try:
             template = '%s/%s_add.html' % (app, type)
-            get_template(template)
         except:
             template = 'treemap/resource_add.html'
         return render(request, template, {'object_name': to_object_name(type)})

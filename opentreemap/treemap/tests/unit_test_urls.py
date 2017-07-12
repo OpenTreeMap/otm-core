@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.conf.urls import include, url
-from django.template import Template
-from django.template.response import TemplateResponse
+from django.template import Template, RequestContext
+from django.template.response import HttpResponse
 
 from opentreemap import urls
 
@@ -14,7 +14,8 @@ def last_instance(request):
     """
     Returns the PK of the last instance saved in session
     """
-    return TemplateResponse(request, Template("{{ last_instance.pk }}"))
+    template = Template("{{ last_instance.pk }}")
+    return HttpResponse(template.render(RequestContext(request, {})))
 
 
 urlpatterns = [

@@ -103,7 +103,8 @@ class StaticPage(models.Model):
                 raise Http404('Static page does not exist')
 
             if page_name.lower() in StaticPage.DEFAULT_CONTENT:
-                template = get_template(StaticPage.DEFAULT_CONTENT[page_name])
+                template = get_template(
+                    StaticPage.DEFAULT_CONTENT[page_name.lower()])
                 content = template.render()
             else:
                 content = 'There is no content for this page yet.'
