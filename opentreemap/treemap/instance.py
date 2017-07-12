@@ -32,6 +32,7 @@ from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
 from treemap.species.codes import (species_codes_for_regions,
                                    all_species_codes, ITREE_REGION_CHOICES)
+from treemap.DotDict import DotDict
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -268,7 +269,7 @@ class Instance(models.Model):
         instance.config = DotDict({})
         instance.config.fruit.apple.type = 'macoun'
     """
-    config = JSONField(blank=True)
+    config = JSONField(blank=True, default=DotDict)
 
     is_public = models.BooleanField(default=False)
 
