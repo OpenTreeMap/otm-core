@@ -10,18 +10,17 @@ django-apptemplates==1.2
 # but it has not yet been released.
 celery>=3.1.15,<4.0
 django-celery-with-redis==3.0
-django-contrib-comments==1.7.3
+django-contrib-comments==1.8.0
 django-hstore==1.4.2
-django-js-reverse==0.7.2
-django-queryset-csv==0.3.3               # https://github.com/azavea/django-queryset-csv/commits/master
-django-redis==4.4.4
-django-registration-redux==1.4
-django-statsd-mozilla==0.3.16
-django-storages==1.5.1
-django-threadedcomments==1.0.1
-django-tinsel==0.1.1
-django-url-tools==0.0.8
-django-webpack-loader==0.3.3             # https://github.com/owais/django-webpack-loader/releases
+django-js-reverse==0.7.3
+django-queryset-csv==1.0.0               # https://github.com/azavea/django-queryset-csv/commits/master
+django-redis==4.8.0
+django-registration-redux==1.6
+# django-statsd-mozilla==0.3.16  # TODO: enable when compatible with Django > 1.8 https://github.com/django-statsd/django-statsd/issues/97
+django-storages==1.6.3
+django-threadedcomments==1.1
+django-tinsel==1.0.0
+django-webpack-loader==0.5.0             # https://github.com/owais/django-webpack-loader/releases
 flake8==2.0 # rq.filter: ==2.0
 gunicorn==19.6.0                         # http://docs.gunicorn.org/en/stable/news.html
 hiredis==0.2.0
@@ -34,7 +33,7 @@ psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.ht
 python-dateutil==2.5.3                   # https://github.com/dateutil/dateutil/blob/master/NEWS
 python-omgeo==2.0.0
 pytz==2016.6.1                           # https://launchpad.net/pytz/+announcements
-rollbar==0.13.8                          # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
+rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
 wsgiref==0.1.2
 jsonschema==2.3.0

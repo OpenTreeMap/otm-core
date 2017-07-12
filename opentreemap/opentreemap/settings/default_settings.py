@@ -241,10 +241,11 @@ if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
 
 # Settings for StatsD metrics aggregation
-STATSD_CLIENT = 'django_statsd.clients.normal'
-STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
-STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
-STATSD_CELERY_SIGNALS = True
+# TODO: Enable when django-statsd is compatible with Django > 1.8
+# STATSD_CLIENT = 'django_statsd.clients.normal'
+# STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
+# STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
+# STATSD_CELERY_SIGNALS = True
 
 STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
 CELERY_DEFAULT_QUEUE = STACK_COLOR
@@ -289,7 +290,6 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.postgres',
     'djcelery',
-    'url_tools',
     'django_js_reverse',
     'webpack_loader',
 )
