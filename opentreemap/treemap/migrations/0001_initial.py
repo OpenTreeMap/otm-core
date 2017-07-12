@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 import re
 import django.contrib.gis.db.models.fields
-import django_hstore.fields
+import django.contrib.postgres.fields.hstore
 import treemap.json_field
 import treemap.instance
 import django.contrib.auth.models
@@ -273,7 +273,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('model_id', models.IntegerField()),
-                ('data', django_hstore.fields.DictionaryField()),
+                ('data', django.contrib.postgres.fields.hstore.HStoreField()),
             ],
             bases=(treemap.audit.UserTrackable, models.Model),
         ),
