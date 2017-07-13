@@ -214,7 +214,7 @@ TEMPLATES = [
     },
 ]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -238,7 +238,7 @@ if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
         'environment': STACK_TYPE,
         'root': BASE_DIR
     }
-    MIDDLEWARE_CLASSES += (
+    MIDDLEWARE += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
 
 # Settings for StatsD metrics aggregation
