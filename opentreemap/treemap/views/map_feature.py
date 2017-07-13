@@ -303,15 +303,9 @@ def update_map_feature(request_dict, user, feature):
         if (object_name not in feature_object_names + ['tree']):
             raise ValueError(split_template % identifier)
 
-        tree_udfc_names = [fdef.canonical_name
-                           for fdef in udf_defs(feature.instance, 'Tree')
-                           if fdef.iscollection]
-
-        if ((field in tree_udfc_names and
-             feature.safe_get_current_tree() is None and
-             value == [])):
-            continue
-        elif object_name == 'tree' and skip_setting_value_on_tree(value, tree):
+        if (object_name == 'tree'
+            and skip_setting_value_on_tree(
+                value, feature.safe_get_current_tree())):
             continue
         elif object_name in feature_object_names:
             model = feature
