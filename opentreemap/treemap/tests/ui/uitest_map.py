@@ -204,9 +204,9 @@ class MapTest(TreemapUITestCase):
             self.assertEqual(tree.diameter, 32.0)
 
 
+# Use modified URL set (e.g. to mock out tiler requests)
+@override_settings(ROOT_URLCONF='treemap.tests.ui.ui_test_urls')
 class ModeChangeTest(TreemapUITestCase):
-    urls = 'treemap.tests.ui.ui_test_urls'
-
     def test_leave_page(self):
         self.login_and_go_to_map_page()
         self.browse_to_instance_url('edits/')
