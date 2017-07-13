@@ -56,8 +56,8 @@ def destructure_query_set(node):
 
         return n
     elif isinstance(node, tuple):
-        # Lists are unhashable, so convert ValuesListQuerySets into tuples
-        # for easy comparison
+        # Lists are unhashable, so convert QuerySets into tuples for easy
+        # comparison
         return tuple(tuple(c) if isinstance(c, QuerySet) else c for c in node)
     else:
         return node
