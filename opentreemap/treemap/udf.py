@@ -1118,21 +1118,20 @@ class UDFModelBase(ModelBase):
     def __new__(clazz, *args, **kwargs):
         new = super(UDFModelBase, clazz).__new__(clazz, *args, **kwargs)
 
-        orig = new._meta.get_field_by_name
+        orig = new._meta.get_field
 
-        def get_field_by_name(name):
+        def get_field(name):
             try:
                 return orig(name)
             except Exception:
                 if name.startswith('udf:'):
                     udfname = get_name_from_canonical_name(name)
-                    field, model, direct, m2m = orig('udfs')
                     field = _UDFProxy(udfname)
-                    return (field, model, direct, m2m)
+                    return field
                 else:
                     raise
 
-        setattr(new._meta, 'get_field_by_name', get_field_by_name)
+        setattr(new._meta, 'get_field', get_field)
         return new
 
 

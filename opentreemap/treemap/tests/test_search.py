@@ -10,8 +10,8 @@ from datetime import datetime
 from functools import partial
 
 from django.db.models import Q
-from django.db.models.query import ValuesListQuerySet
 from django.db import connection
+from django.db.models.query import QuerySet
 from django.utils.tree import Node
 
 from django.contrib.gis.geos import Point, MultiPolygon
@@ -56,10 +56,9 @@ def destructure_query_set(node):
 
         return n
     elif isinstance(node, tuple):
-        # Lists are unhashable, so convert ValuesListQuerySets into tuples
-        # for easy comparison
-        return tuple(tuple(c) if isinstance(c, ValuesListQuerySet) else c
-                     for c in node)
+        # Lists are unhashable, so convert QuerySets into tuples for easy
+        # comparison
+        return tuple(tuple(c) if isinstance(c, QuerySet) else c for c in node)
     else:
         return node
 

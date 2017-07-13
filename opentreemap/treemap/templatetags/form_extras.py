@@ -331,7 +331,7 @@ class AbstractNode(template.Node):
         user = _resolve_variable(self.user, context)
         instance = _resolve_variable(self.instance, context)
         field_template = get_template(_resolve_variable(
-                                      self.field_template, context))
+                                      self.field_template, context)).template
 
         if not isinstance(identifier, basestring)\
            or not _identifier_regex.match(identifier):
@@ -350,7 +350,7 @@ class AbstractNode(template.Node):
         def _field_value(model, field_name, data_type):
             udf_field_name = field_name.replace('udf:', '')
             val = None
-            if field_name in model._meta.get_all_field_names():
+            if field_name in [f.name for f in model._meta.get_fields()]:
                 try:
                     val = getattr(model, field_name)
                 except (ObjectDoesNotExist, AttributeError):

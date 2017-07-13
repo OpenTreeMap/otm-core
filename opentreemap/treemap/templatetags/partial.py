@@ -32,5 +32,5 @@ def partial(parser, token):
         {% partial myApp/partials/house.html house %}
     """
     tag, template_name, context_item = token.split_contents()
-    template = loader.get_template(template_name)
+    template = loader.get_template(template_name).template
     return PartialNode(template, context_item)

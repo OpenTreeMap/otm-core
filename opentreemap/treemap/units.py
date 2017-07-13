@@ -41,9 +41,9 @@ class Convertible(object):
         # for lowerCamelCase, but `._meta.object_name` is a django
         # internal that is represented as UpperCamelCase.
         model = to_object_name(self._meta.object_name)
-        for field in self._meta.get_all_field_names():
-            if self.instance and is_convertible(model, field):
-                value = getattr(self, field)
+        for field in self._meta.get_fields():
+            if self.instance and is_convertible(model, field.name):
+                value = getattr(self, field.name)
 
                 try:
                     value = float(value)
@@ -51,9 +51,9 @@ class Convertible(object):
                     # These will be caught later in the cleaning process
                     pass
 
-                converted_value = f(self.instance, model, field, value)
+                converted_value = f(self.instance, model, field.name, value)
 
-                setattr(self, field, converted_value)
+                setattr(self, field.name, converted_value)
 
     def convert_to_display_units(self):
         if self.unit_status != 'display':

@@ -152,7 +152,7 @@ class TestPlansList(OTMTestCase):
         self.assertEqual(plans, [self.plan_a2, self.plan_a1])
 
 
-class TestGrowthModel(SimpleTestCase):
+class TestGrowthModel(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
         self.instance.itree_region_default = 'GulfCoCHS'

@@ -14,6 +14,7 @@ from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.core import mail
+from django.template.loader import get_template
 
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -81,9 +82,7 @@ class StaticPageViewTest(ViewTestCase):
                                      instance=self.instance)
         self.staticPage.save()
 
-        p = Point(-8515941.0, 4953519.0)
-        self.otherInstance = Instance(name='i1', geo_rev=0, center=p)
-        self.otherInstance.seed_with_dummy_default_role()
+        self.otherInstance = make_instance()
 
     def test_can_get_page(self):
         # Note- case insensitive match
@@ -103,11 +102,11 @@ class StaticPageViewTest(ViewTestCase):
     def test_can_get_pre_defined_page(self):
         # Note- case insensitive match
         rslt = static_page(None, self.instance, "AbOUt")
+        content = get_template(StaticPage.DEFAULT_CONTENT['about']).render()
 
         self.assertIsNotNone(rslt['content'])
         self.assertIsNotNone(rslt['title'])
-        self.assertEqual(len(rslt['content']),
-                         len(StaticPage.DEFAULT_CONTENT['about']))
+        self.assertEqual(len(rslt['content']), len(content))
 
 
 class BoundaryViewTest(ViewTestCase):

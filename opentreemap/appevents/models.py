@@ -6,11 +6,12 @@ from __future__ import division
 from django.db import models
 
 from treemap.json_field import JSONField
+from treemap.DotDict import DotDict
 
 
 class AppEvent(models.Model):
     event_type = models.CharField(max_length=255)
-    data = JSONField(blank=True)
+    data = JSONField(blank=True, default=DotDict)
     triggered_at = models.DateTimeField(auto_now_add=True)
     handler_assigned_at = models.DateTimeField(null=True)
     handled_by = models.CharField(max_length=255, blank=True)

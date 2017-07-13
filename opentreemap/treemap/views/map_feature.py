@@ -8,7 +8,6 @@ import hashlib
 from functools import wraps
 
 from django.http import HttpResponse
-from django.template.loader import get_template
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -180,7 +179,6 @@ def render_map_feature_add(request, instance, type):
         app = MapFeature.get_subclass(type).__module__.split('.')[0]
         try:
             template = '%s/%s_add.html' % (app, type)
-            get_template(template)
         except:
             template = 'treemap/resource_add.html'
         return render(request, template, {'object_name': to_object_name(type)})
@@ -242,7 +240,7 @@ def update_map_feature(request_dict, user, feature):
 
     def set_attr_on_model(model, attr, val):
         field_classname = \
-            model._meta.get_field_by_name(attr)[0].__class__.__name__
+            model._meta.get_field(attr).__class__.__name__
 
         if field_classname.endswith('PointField'):
             srid = val.get('srid', 3857)
@@ -328,7 +326,7 @@ def update_map_feature(request_dict, user, feature):
         if not value_is_redundant(model, field, value):
             set_attr_on_model(model, field, value)
 
-        field_class = model._meta.get_field_by_name(field)[0]
+        field_class = model._meta.get_field(field)
         if isinstance(field_class, GeometryField):
             rev_updates.append('geo_rev')
             rev_updates.append('eco_rev')
