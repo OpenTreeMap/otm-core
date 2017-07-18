@@ -83,6 +83,9 @@ class TreeImportEvent(GenericImportEvent):
         legal_fields = set(self.ordered_legal_fields_title_case())
         return legal_fields, fields.title_case(self._required_fields())
 
+    def ignored_fields(self):
+        return fields.trees.IGNORED
+
 
 class TreeImportRow(GenericImportRow):
     WARNING = 2
