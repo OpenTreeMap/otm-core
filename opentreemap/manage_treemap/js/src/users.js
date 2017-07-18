@@ -31,7 +31,10 @@ var dom = {
     sortingControls: '[data-sort] a',
     searchControl: '#user-search',
     searchUrl: '#search-url',
-    clearSearch: '#clear-search'
+    clearSearch: '#clear-search',
+
+    removeInvite: '#remove-invite',
+    removeInviteModal: '#remove-invite-modal'
 };
 
 adminPage.init();
@@ -41,7 +44,8 @@ var url = reverse.user_roles(config.instance.url_name),
     $addUser = $(dom.addUser),
     $addUserModal = $(dom.addUserModal),
     $addUserEmail = $(dom.addUserEmail),
-    $addUserErrors = $(dom.addUserErrors);
+    $addUserErrors = $(dom.addUserErrors),
+    $removeInviteModal = $(dom.removeInviteModal);
 
 $(dom.edit).on('click', disableControls);
 $(dom.cancel).on('click', enableControls);
@@ -190,3 +194,31 @@ function getUpdatedUserRoles() {
 
     return updates;
 }
+
+$removeInviteModal.on('show.bs.modal', function(e) {
+    var $row = $(e.relatedTarget).closest('[data-user-id]'),
+        id = $row.attr('data-user-id');
+
+    $removeInviteModal
+        .data('id', id)
+        .data('row', $row);
+});
+
+$(dom.removeInvite).on('click', function() {
+    var id = $removeInviteModal.data('id'),
+        $row = $removeInviteModal.data('row');
+
+    $.ajax({
+        'url': reverse.user_invite(config.instance.url_name, id),
+        'method': 'DELETE',
+    })
+    .done(function() {
+        $row.remove();
+    })
+    .fail(function() {
+        toastr.error('Could not remove invitation');
+    })
+    .always(function() {
+        $removeInviteModal.modal('hide');
+    });
+});

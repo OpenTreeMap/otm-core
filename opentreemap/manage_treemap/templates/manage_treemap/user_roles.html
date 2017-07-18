@@ -64,6 +64,31 @@
             </div>
         </div>
     </div>
+    <div id="remove-invite-modal" class="modal modal-warning fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3>{% trans "Remove Invitation?" %}</h3>
+                </div>
+                <div class="modal-body">
+                {% blocktrans %}
+                    Remove this invited user?
+                    <br>
+                    You can add the user again later if you change your mind.
+                {% endblocktrans %}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn dismiss-cancel" data-dismiss="modal">
+                        {% trans "Cancel" %}
+                    </button>
+                    <button id="remove-invite" class="btn btn-warning pull-right">
+                        {% trans "Remove" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock endbody %}
 
 {% block scripts %}

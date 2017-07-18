@@ -10,6 +10,7 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _
+from django.shortcuts import get_object_or_404
 
 from registration.signals import user_registered, user_activated
 
@@ -149,6 +150,14 @@ def invite_user_with_email_to_instance(request, email, instance):
             'invite': invite}
 
     send_email('invite_to_new_user', ctxt, (email,))
+
+
+def remove_invited_user_from_instance(request, instance, invite_id):
+    invite = get_object_or_404(InstanceInvitation, pk=invite_id,
+                               accepted=False)
+    invite.delete()
+
+    return HttpResponse(_('Removed invite'))
 
 
 def add_user_to_instance(request, user, instance, admin_user):

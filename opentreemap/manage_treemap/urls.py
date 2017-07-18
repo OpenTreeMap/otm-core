@@ -31,6 +31,8 @@ urlpatterns = [
     url(r'^user-roles/$', routes.user_roles, name='user_roles'),
     url(r'^user-roles-partial/$', routes.user_roles_partial,
         name='user_roles_partial'),
+    url(r'^user-invite/(?P<invite_id>\d+)$', routes.user_invites,
+        name='user_invite'),
     url(r'^roles/$', routes.roles, name='roles_endpoint'),
     url(r'^export/user/(?P<data_format>(csv|json))/$',
         routes.begin_export_users, name='management_begin_export_users'),
