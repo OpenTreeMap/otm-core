@@ -67,6 +67,9 @@ class SpeciesImportEvent(GenericImportEvent):
         legal, required = self.legal_and_required_fields()
         return fields.title_case(legal), fields.title_case(required)
 
+    def ignored_fields(self):
+        return fields.species.IGNORED
+
 
 class SpeciesImportRow(GenericImportRow):
 
