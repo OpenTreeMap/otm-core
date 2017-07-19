@@ -19,7 +19,7 @@ from registration.backends.default.views\
     import ActivationView as DefaultActivationView
 
 from manage_treemap.views.user_roles import should_send_user_activation
-from treemap.models import InstanceUser
+from treemap.models import InstanceUser, User
 from treemap.util import get_instance_or_404
 
 
@@ -32,20 +32,7 @@ class LoginForm(AuthenticationForm):
 
 
 class RegistrationForm(DefaultRegistrationForm):
-    def __init__(self, *args, **kwargs):
-        super(RegistrationForm, self).__init__(*args, **kwargs)
-
-        self.fields['email'].label = _('Email')
-        self.fields['password2'].label = _('Confirm Password')
-
-        for field_name, field in self.fields.items():
-            if not isinstance(field, forms.BooleanField):
-                field.widget.attrs['class'] = 'form-control'
-
-        self.fields['password1'].widget.attrs['outer_class'] = 'field-left'
-        self.fields['password2'].widget.attrs['outer_class'] = 'field-right'
-        self.fields['first_name'].widget.attrs['outer_class'] = 'field-left'
-        self.fields['last_name'].widget.attrs['outer_class'] = 'field-right'
+    email2 = forms.EmailField(label=_("Confirm Email"))
 
     first_name = forms.CharField(
         max_length=100,
@@ -71,6 +58,33 @@ class RegistrationForm(DefaultRegistrationForm):
         required=False,
         label=_('I wish to receive occasional email '
                 'updates from the tree maps to which I contribute.'))
+
+    def __init__(self, *args, **kwargs):
+        super(RegistrationForm, self).__init__(*args, **kwargs)
+
+        self.fields['email'].label = _('Email')
+        self.fields['password2'].label = _('Confirm Password')
+
+        for field_name, field in self.fields.items():
+            if not isinstance(field, forms.BooleanField):
+                field.widget.attrs['class'] = 'form-control'
+
+        self.fields['password1'].widget.attrs['outer_class'] = 'field-left'
+        self.fields['password2'].widget.attrs['outer_class'] = 'field-right'
+        self.fields['first_name'].widget.attrs['outer_class'] = 'field-left'
+        self.fields['last_name'].widget.attrs['outer_class'] = 'field-right'
+
+    def clean_email2(self):
+        email1 = self.cleaned_data.get("email")
+        email2 = self.cleaned_data.get("email2")
+        if email1 and email2 and email1 != email2:
+            raise forms.ValidationError(
+                _("The two email fields didn't match."))
+        return email2
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "email2")
 
 
 class RegistrationView(DefaultRegistrationView):

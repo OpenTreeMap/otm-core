@@ -58,6 +58,7 @@ class InstanceInvitationTest(UrlTestCase):
         rv = self._make_registration_view()
         form = RegistrationForm(data={
             'email': email,
+            'email2': email,
             'username': "u1",
             'password1': "pass",
             'password2': "pass"
@@ -98,6 +99,7 @@ class InstanceInvitationTest(UrlTestCase):
 
         form = RegistrationForm(data={
             'email': user_email,
+            'email2': user_email,
             'username': "u1",
             'password1': "pass",
             'password2': "pass"
