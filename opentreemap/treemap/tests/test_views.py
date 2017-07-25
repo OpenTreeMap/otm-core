@@ -596,13 +596,21 @@ class PlotUpdateTest(OTMTestCase):
         set_write_permissions(self.instance, self.user,
                               'Plot', ['udf:Test choice', 'udf:Test col'])
         set_write_permissions(self.instance, self.user,
-                              'Tree', ['udf:Test col'])
+                              'Tree', ['udf:Test choice', 'udf:Test col'])
 
         self.choice_field = UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
             datatype=json.dumps({'type': 'choice',
                                  'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        self.tree_choice_field = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['foo', 'bar', 'baz']}),
             iscollection=False,
             name='Test choice')
 
@@ -666,6 +674,60 @@ class PlotUpdateTest(OTMTestCase):
 
         created_plot_update.current_tree().delete_with_user(self.user)
         created_plot_update.delete_with_user(self.user)
+
+    def test_does_not_create_tree_if_tree_field_value_is_an_empty_string(self):
+        plot = Plot(instance=self.instance)
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': ''}
+
+        created_plot, __ = update_map_feature(update, self.user, plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNone(created_plot_update.current_tree())
+
+        created_plot_update.delete_with_user(self.user)
+
+    def test_does_create_tree_when_one_tree_field_is_non_empty(self):
+        plot = Plot(instance=self.instance)
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': '',
+                  'tree.diameter': 7}
+
+        created_plot, updated_tree = update_map_feature(update, self.user,
+                                                        plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNotNone(created_plot_update.current_tree())
+        self.assertEqual(None, updated_tree.udfs['Test choice'])
+        self.assertEqual(7, updated_tree.diameter)
+
+        created_plot_update.current_tree().delete_with_user(self.user)
+        created_plot_update.delete_with_user(self.user)
+
+    def test_does_clear_field_if_tree_already_exists(self):
+        tree = Tree(plot=self.plot, instance=self.instance)
+        tree.udfs['Test choice'] = 'bar'
+        tree.save_with_user(self.user)
+
+        tree.refresh_from_db()
+        self.assertEqual('bar', tree.udfs['Test choice'])
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': None}
+
+        updated_plot, created_tree = update_map_feature(update, self.user,
+                                                        self.plot)
+
+        self.assertIsNotNone(created_tree)
+        self.assertEqual(None, created_tree.udfs['Test choice'])
+
+        updated_plot.current_tree().delete_with_user(self.user)
+        updated_plot.delete_with_user(self.user)
 
     def test_invalid_udf_name_fails(self):
         update = {'plot.udf:INVaLiD UTF': 'z'}
