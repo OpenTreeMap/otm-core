@@ -7,19 +7,32 @@
 
 {% block content %}
 <div class="content login-signup">
-  <div class="well login-signup-panel">
-    <form method="post" action=".">
-        <fieldset>
-            {% csrf_token %}
-            <legend>{% trans "Log in to OpenTreeMap" %}</legend>
-            {% if form.non_field_errors %}
+    <div class="well login-signup-panel">
+        <form method="post" action="{% url 'login' %}">
+            <fieldset>
+                {% csrf_token %}
+                <legend>{% trans "Log in to OpenTreeMap" %}</legend>
+                {% if form.non_field_errors %}
                 <ul class='errorlist'>
                     {% for error in form.non_field_errors %}
-                        <li>{{ error }}</li>
+                    <li>{{ error }}</li>
                     {% endfor %}
                 </ul>
-            {% endif %}
-          {% for field in form %}
+                {% endif %}
+                {% for key, key_errors in form.errors.as_data.items %}
+                    {% for error in key_errors %}
+                        {% if error.code == 'inactive'%}
+                            {% url 'resend_activation_email' as url %}
+                            {% blocktrans with username=form.username.value|default:"" %}
+                            <p>
+                                Your account will remain inactive until your email address has been verified.
+                                To resend your verification email, <a href="{{ url }}?username={{ username }}">click here.</a>
+                            </p>
+                            {% endblocktrans %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+                {% for field in form %}
                 <div class="field">
                     {% if field.name == "username" %}
                         <a href="{% url 'forgot_username' %}" class="pull-right">
@@ -35,19 +48,19 @@
                     {{ field|tabindex:forloop.counter }}
                     {{ field.errors|safe }}
                 </div>
-            {% endfor %}
-            <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary" tabindex="3">{% trans 'Log in' %}</button>
-            <input type="hidden" name="next" value="{{ next }}" />
-        </fieldset>
-    </form>
-  </div>
-  <div class="well login-signup-panel signup-option">
-      <h3>{% trans "Don't have an account?" %}</h3>
-      <a class="btn btn-lg btn-primary" href="{% url 'registration_register' %}">{% trans "Register" %}</a>
-  </div>
+                {% endfor %}
+                <button type="submit" value="{% trans 'Log in' %}" class="btn btn-lg btn-primary" tabindex="3">{% trans 'Log in' %}</button>
+                <input type="hidden" name="next" value="{{ next }}" />
+            </fieldset>
+        </form>
+    </div>
+    <div class="well login-signup-panel signup-option">
+        <h3>{% trans "Don't have an account?" %}</h3>
+        <a class="btn btn-lg btn-primary" href="{% url 'registration_register' %}">{% trans "Register" %}</a>
+    </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
-    {% render_bundle 'js/treemap/simpleForm' %}
+{% render_bundle 'js/treemap/simpleForm' %}
 {% endblock scripts %}
