@@ -4,10 +4,13 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 from django.contrib.sites.requests import RequestSite
+from django.contrib.auth.views import\
+    PasswordResetView as DefaultPasswordResetView
 
 from registration import signals
 from registration.forms import RegistrationFormUniqueEmail\
@@ -185,3 +188,29 @@ class ActivationView(DefaultActivationView):
                                          instance.url_name})
             return (url, [], {})
         return super(ActivationView, self).get_success_url(user)
+
+
+class PasswordResetView(DefaultPasswordResetView):
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        # The built-in form doesn't consider inactive users as matching the
+        # email provided by the user (so that admins can deactivate user
+        # accounts without users being able to reactivate)
+        #
+        # If the user has an unactivated RegistrationProfile, we know they
+        # weren't deactivated by an Admin
+        user = User.objects.filter(email__iexact=form.cleaned_data['email'],
+                                   registrationprofile__activated=False)
+        if user.exists():
+            form.add_error(None, ValidationError(_('This account is inactive'),
+                                                 code='inactive'))
+            return self.form_invalid(form)
+
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

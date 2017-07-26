@@ -4,7 +4,8 @@ from django.contrib.auth.views import login
 from django.views.generic.base import TemplateView
 
 
-from views import RegistrationView, ActivationView, LoginForm
+from views import (RegistrationView, ActivationView, LoginForm,
+                   PasswordResetView)
 
 
 urlpatterns = [
@@ -28,5 +29,7 @@ urlpatterns = [
     url(r'^register/closed/$',
         TemplateView.as_view(template_name='registration/registration_closed.html'),  # NOQA
         name='registration_disallowed'),
+    url(r'password/reset/$', PasswordResetView.as_view(),
+        name='auth_password_reset'),
     url(r'', include('registration.auth_urls')),
 ]
