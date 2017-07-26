@@ -9,7 +9,7 @@ from views import (RegistrationView, ActivationView, LoginForm,
 
 
 urlpatterns = [
-    url(r'^login/?$', login, {'authentication_form': LoginForm}, name='login'),
+    url(r'^login/$', login, {'authentication_form': LoginForm}, name='login'),
     url(r'^activation-complete/$',
         TemplateView.as_view(template_name='registration/activation_complete.html'),  # NOQA
         name='registration_activation_complete'),
