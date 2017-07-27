@@ -24,6 +24,7 @@ from treemap.tests import (make_instance, make_observer_user,
                            make_conjurer_user, make_tweaker_user)
 from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
+from treemap.templatetags.comment_sequence import in_thread_order
 from treemap.templatetags.urls import add_params
 
 
@@ -701,3 +702,22 @@ class AddParamsTest(OTMTestCase):
             add_params('/a/b?baz=0#hash', foo=1, bar=2),
             '/a/b?bar=2&foo=1&baz=0#hash'
         )
+
+
+class MockComment:
+    def __init__(self, id, parent):
+        self.id = id
+        self.parent = parent
+
+
+class InThreadOrderTest(OTMTestCase):
+    def test_in_thread_order(self):
+        root1 = MockComment(1, None)
+        root2 = MockComment(2, None)
+        nested1 = MockComment(3, root1)
+        nested12 = MockComment(4, nested1)
+        nested11 = MockComment(5, root1)
+        comments = [root1, root2, nested1, nested12, nested11]
+        self.assertEqual([c.id for c in [root1, nested1, nested12, nested11,
+                                         root2]],
+                         [c.id for c in in_thread_order(comments)])
