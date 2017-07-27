@@ -16,7 +16,7 @@ django-queryset-csv==1.0.0               # https://github.com/azavea/django-quer
 django-redis==4.8.0
 django-registration-redux==1.7
 # django-statsd-mozilla==0.3.16  # TODO: enable when compatible with Django > 1.8 https://github.com/django-statsd/django-statsd/issues/97
-django-storages==1.6.3
+django-storages==1.6.4
 django-threadedcomments==1.1
 django-tinsel==1.0.0
 django-webpack-loader==0.5.0             # https://github.com/owais/django-webpack-loader/releases
