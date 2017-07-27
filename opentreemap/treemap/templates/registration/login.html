@@ -23,7 +23,7 @@
                     {% for error in key_errors %}
                         {% if error.code == 'inactive'%}
                             {% url 'resend_activation_email' as url %}
-                            {% blocktrans with username=form.username.value|default:"" %}
+                            {% blocktrans with username=form.username.value|default:""|urlencode %}
                             <p>
                                 Your account will remain inactive until your email address has been verified.
                                 To resend your verification email, <a href="{{ url }}?username={{ username }}">click here.</a>
