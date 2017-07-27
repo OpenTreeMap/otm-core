@@ -59,6 +59,8 @@ NEARBY_TREE_DISTANCE = 6.096  # 20ft
 
 DEBUG = True
 AUTH_USER_MODEL = 'treemap.User'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.AllowAllUsersModelBackend']
 INTERNAL_IPS = ['127.0.0.1']
 ALLOWED_HOSTS = ['localhost']
 

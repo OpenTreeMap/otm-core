@@ -6,7 +6,7 @@
   <div class="well login-signup-panel">
     <legend>{% trans "Retrieve your Username" %}</legend>
     <p>{% trans "Forgot the username for your tree map account? Enter your email address and click \"Send\" to receive an email with your username." %}</p>
-    <form method="post" action=".">
+    <form method="post" action="{% url 'forgot_username' %}">
       {% csrf_token %}
       <label>
         {% trans "Email Address" %}

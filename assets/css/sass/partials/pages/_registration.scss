@@ -68,11 +68,19 @@
             display: inline-block;
             width: 49%;
             padding-right: 8px;
+
+            .errorlist {
+                position: absolute;
+            }
         }
         div.field-right {
             display: inline-block;
             width: 50%;
             padding-left: 8px;
+
+            .errorlist {
+                position: absolute;
+            }
         }
         div.section-header {
             font-size: 1.6rem;

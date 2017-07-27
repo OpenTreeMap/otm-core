@@ -53,6 +53,8 @@ urlpatterns = [
     url(r'^accounts/logout/$', logout, {'next_page': '/'}),
     url(r'^accounts/forgot-username/$', routes.forgot_username,
         name='forgot_username'),
+    url(r'^accounts/resend-activation-email/$', routes.resend_activation_email,
+        name='resend_activation_email'),
     url(r'^accounts/', include('registration_backend.urls')),
     # Create a redirect view for setting the session language preference
     # https://docs.djangoproject.com/en/1.0/topics/i18n/#the-set-language-redirect-view  # NOQA

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+    <h2>{% trans "Email Sent" %}</h2>
+    {% blocktrans %}
+    <p>You will receive an activation email shortly; please use it to confirm your account.</p>
+    {% endblocktrans %}
+  </div>
+</div>
+{% endblock content %}
