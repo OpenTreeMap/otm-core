@@ -30,7 +30,7 @@ module.exports = function (options) {
             .flatMap(getDatum)
             .filter(_.identity),  // ignore false values
         gcoder = geocoder(),
-        geocodedLocationStream = gcoder.geocodeStream(geocodeCandidateStream);
+        geocodedLocationStream = gcoder.geocodeStream(geocodeCandidateStream, options.forStorage);
 
     enterOrClickStream.onValue(function () {
         _.each(typeaheads, function (ta) {

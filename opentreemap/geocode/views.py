@@ -14,9 +14,11 @@ from django_tinsel.decorators import json_api_call
 
 from omgeo import Geocoder
 from omgeo.places import Viewbox, PlaceQuery
+from omgeo.services.esri import EsriWGS
 
 
 geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
+ESRI_WGS = EsriWGS(settings=settings.OMGEO_SETTINGS[0][1]['settings'])
 
 
 def _omgeo_candidate_to_dict(candidate, srid=3857):
@@ -86,10 +88,11 @@ def geocode(request):
     """
     key = request.GET.get('key')
     address = request.GET.get('address').encode('utf-8')
+    for_storage = 'forStorage' in request.GET
 
     if key:
         # See settings.OMGEO_SETTINGS for configuration
-        pq = PlaceQuery(query=address, key=key)
+        pq = PlaceQuery(query=address, key=key, for_storage=for_storage)
         geocode_result = geocoder.geocode(pq)
         candidates = geocode_result.get('candidates', None)
         if candidates:
@@ -105,4 +108,9 @@ def geocode(request):
     return _no_results_response(address)
 
 
+def get_esri_token(request):
+    return {'token': ESRI_WGS.get_token()}
+
+
 geocode_view = json_api_call(geocode)
+get_esri_token_view = json_api_call(get_esri_token)
