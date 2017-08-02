@@ -3,7 +3,7 @@
 
 boto==2.48.0                             # http://docs.pythonboto.org/en/latest/releasenotes/v2.39.0.html
 # https://docs.djangoproject.com/en/1.10/releases/#id2
-Django==1.11.3  # rq.filter: >=1.11,<1.12
+Django==1.11.4  # rq.filter: >=1.11,<1.12
 django-apptemplates==1.3
 # django-celery requires celery, but is incompatible with celery
 # 4.0. django-celery has added this restriction on the master branch,
@@ -30,7 +30,7 @@ pep8==1.4.6 # rq.filter: ==1.4.6
 Pillow==4.2.1
 psycopg2==2.7.3                          # http://initd.org/psycopg/docs/news.html
 python-dateutil==2.6.1                   # https://github.com/dateutil/dateutil/blob/master/NEWS
-python-omgeo==2.0.0
+python-omgeo==2.0.1
 pytz==2017.2                           # https://launchpad.net/pytz/+announcements
 rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
