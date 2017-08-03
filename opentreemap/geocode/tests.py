@@ -4,13 +4,16 @@ from __future__ import division
 
 import json
 import requests
+import os
 from urllib import urlencode
+from unittest import skipIf
+
+from django.http import HttpResponse
+from django.test.client import RequestFactory
 
 from treemap.tests.base import OTMTestCase
 
 from geocode.views import geocode
-from django.test.client import RequestFactory
-from django.http import HttpResponse
 
 
 class MockGeocodeRequest():
@@ -26,6 +29,9 @@ class GeocodeTest(OTMTestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    @skipIf('ESRI_CLIENT_ID' not in os.environ
+            or 'ESRI_CLIENT_SECRET' not in os.environ,
+            'Set Esri Client ID & Secret to run authenticated geocode tests')
     def test_azavea_office_geocodes_correctly(self):
         extent = {
             'xmin': -8475485,
