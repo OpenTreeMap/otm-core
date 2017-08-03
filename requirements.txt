@@ -30,7 +30,7 @@ pep8==1.4.6 # rq.filter: ==1.4.6
 Pillow==3.3.1
 psycopg2==2.6.2                          # http://initd.org/psycopg/docs/news.html
 python-dateutil==2.5.3                   # https://github.com/dateutil/dateutil/blob/master/NEWS
-git+https://github.com/maurizi/python-omgeo.git@authenticate-esri-wgs
+python-omgeo==3.0.0
 pytz==2016.6.1                           # https://launchpad.net/pytz/+announcements
 rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 statsd==3.2.1
