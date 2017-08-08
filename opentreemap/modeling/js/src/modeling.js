@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
+    L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     toastr = require('toastr'),
     MapPage = require('treemap/lib/mapPage.js'),
@@ -117,9 +118,9 @@ function init() {
 }
 
 function appendCenterToPrioritizationLink() {
-    var center = L.Projection.SphericalMercator.unproject(
-        L.point(otm.settings.instance.center.x,
-                otm.settings.instance.center.y)),
+    var instanceCenter = window.otm.settings.instance.center,
+        center = L.Projection.SphericalMercator.unproject(
+            L.point(instanceCenter.x, instanceCenter.y)),
         prioritizationHref = $(dom.scenarioPrioritizationLink).attr('href');
     $(dom.scenarioPrioritizationLink).attr('href', prioritizationHref + '?center=' + center.lat + ',' + center.lng);
 }
