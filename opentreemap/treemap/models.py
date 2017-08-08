@@ -856,6 +856,17 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         else:
             return None
 
+    def nearby_map_features(self, distance_in_meters=None):
+        if distance_in_meters is None:
+            distance_in_meters = settings.NEARBY_TREE_DISTANCE
+
+        distance_filter = MapFeature.objects.filter(
+            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
+
+        return distance_filter\
+            .filter(instance=self.instance)\
+            .exclude(pk=self.pk)
+
     def __unicode__(self):
         geom = getattr(self, 'geom', None)
         x = geom and geom.x or '?'
@@ -975,15 +986,8 @@ class Plot(MapFeature, ValidationMixin):
         return TreeBenefitsCalculator()
 
     def nearby_plots(self, distance_in_meters=None):
-        if distance_in_meters is None:
-            distance_in_meters = settings.NEARBY_TREE_DISTANCE
-
-        distance_filter = Plot.objects.filter(
-            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
-
-        return distance_filter\
-            .filter(instance=self.instance)\
-            .exclude(pk=self.pk)
+        return self.nearby_map_features(distance_in_meters)\
+            .filter(feature_type='Plot')
 
     def get_tree_history(self):
         """
