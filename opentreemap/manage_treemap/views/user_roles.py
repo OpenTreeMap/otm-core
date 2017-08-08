@@ -18,7 +18,8 @@ from opentreemap.util import json_from_request
 
 from treemap.lib.page_of_items import UrlParams
 from treemap.models import InstanceUser, Role, User
-from treemap.plugin import can_add_user, does_user_own_instance
+from treemap.plugin import (can_add_user, does_user_own_instance,
+                            invitation_accepted_notification_emails)
 
 from manage_treemap.models import InstanceInvitation
 from manage_treemap.lib.email import send_email
@@ -302,8 +303,13 @@ def create_instance_users_from_invites(request, user, invites):
         invite.accepted = True
         invite.save()
 
-        emails_to_notify = InstanceUser.objects \
-            .filter(instance=instance, admin=True) \
-            .values_list('user__email', flat=True)
+        # The user who created the invitation is always notified when the
+        # invitation is accepted. A plugin function provides additional email
+        # addresses. The concatenation of the two lists is wrapped with `set()`
+        # to remove duplicates.
+        emails_to_notify = set(
+            [invite.created_by.email]
+            + invitation_accepted_notification_emails(invite)
+        )
 
         send_email('user_joined_instance', ctxt, emails_to_notify)

@@ -7,6 +7,7 @@ from registration.models import RegistrationProfile
 
 from django.core import mail
 from django.http import HttpRequest
+from django.test import override_settings
 
 from treemap.models import User, InstanceUser
 from treemap.tests import make_user, make_instance
@@ -27,11 +28,9 @@ class InstanceInvitationTest(UrlTestCase):
         self.user = make_user(username='test', password='password')
         self.instance = make_instance()
 
-        # Create two admin users so emails will have somewhere to go
-        self.admin1 = make_user(instance=self.instance, username='admin1',
-                                admin=True)
-        self.admin2 = make_user(instance=self.instance, username='admin2',
-                                admin=True)
+        # Create an admin user to verify that not all admins get notifications
+        self.admin = make_user(instance=self.instance, username='admin',
+                               admin=True)
 
     def _login(self):
         self.client.post('/accounts/login/',
@@ -123,9 +122,11 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertGreater(len(msg.subject), 10)
         self.assertGreater(len(msg.body), 10)
         to = set(msg.to)
-        expected_to = {self.admin1.email, self.admin2.email}
+        expected_to = {self.user.email}
         self.assertEquals(to, expected_to)
 
+    # Disable plug-in function to ensure we are testing core behavior
+    @override_settings(INVITATION_ACCEPTED_NOTIFICATION_EMAILS=None)
     def test_adds_to_invited_instances_and_redirects(self):
         rv = self._invite_and_register("some@email.com")
 
@@ -181,6 +182,8 @@ class InstanceInvitationTest(UrlTestCase):
 
         self.assertEquals(tuple(msg.to), (new_user.email,))
 
+    # Disable plug-in function to ensure we are testing core behavior
+    @override_settings(INVITATION_ACCEPTED_NOTIFICATION_EMAILS=None)
     def test_adds_to_invited_instances_after_activation(self):
         self._invite_and_register("some@email.com", "different@other.com")
 
