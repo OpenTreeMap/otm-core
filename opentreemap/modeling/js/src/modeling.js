@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Bacon = require('baconjs'),
+    L = require('leaflet'),
     U = require('treemap/lib/utility.js'),
     toastr = require('toastr'),
     MapPage = require('treemap/lib/mapPage.js'),
@@ -30,7 +31,8 @@ var dom = {
     modelVisibility: '#model-visibility',
     modelVisibilityText: '#model-visibility-text',
     autosaveMessage: '#autosave-message',
-    noRegionModal: '#noRegion'
+    noRegionModal: '#noRegion',
+    scenarioPrioritizationLink: '#scenario-prioritization-link'
 };
 
 var _strings = window.modelingOptions.strings,
@@ -112,6 +114,15 @@ function init() {
 
     urlState.init();  // must happen after URL state handlers are set up
     showPlanListIfNoPlanChosen();
+    appendCenterToPrioritizationLink();
+}
+
+function appendCenterToPrioritizationLink() {
+    var instanceCenter = window.otm.settings.instance.center,
+        center = L.Projection.SphericalMercator.unproject(
+            L.point(instanceCenter.x, instanceCenter.y)),
+        prioritizationHref = $(dom.scenarioPrioritizationLink).attr('href');
+    $(dom.scenarioPrioritizationLink).attr('href', prioritizationHref + '?center=' + center.lat + ',' + center.lng);
 }
 
 function showPlanListIfNoPlanChosen() {
