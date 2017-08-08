@@ -52,7 +52,7 @@
 
 {% block content %}
 <div id="view-switcher">
-    <div id="scenario-dropdown" class="btn-group pull-right">
+    <div id="scenario-dropdown" class="btn-group pull-left">
         <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="icon-menu"></i>
         </button>
@@ -63,6 +63,10 @@
             {% trans "+ Add scenario" %}
         </button>
         <div id="scenario-buttons"></div>
+
+        <div class="pull-right">
+            <a id="scenario-prioritization-link" class="btn" href="https://treeprioritization.geotrellis.io">{% trans "Prioritize plantings" %}</a>
+        </div>
     </div>
 </div>
 <div class="content map">
