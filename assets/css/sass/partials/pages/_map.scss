@@ -167,7 +167,8 @@ $light-to-dark-green: #ffffff 10%,
             font-size: 2rem;
 
             &:disabled {
-                background-color: #F1F2F2;
+                background-color: #e7e9e9;
+                color: #d0d0d0;
             }
             > i {
                 margin-right: -9px;
