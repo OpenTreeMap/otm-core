@@ -11,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.sites.requests import RequestSite
 from django.contrib.auth.views import\
     PasswordResetView as DefaultPasswordResetView
+from django.urls import reverse_lazy
 
 from registration import signals
 from registration.forms import RegistrationFormUniqueEmail\
@@ -191,6 +192,10 @@ class ActivationView(DefaultActivationView):
 
 
 class PasswordResetView(DefaultPasswordResetView):
+    # Override the value of `password_reset_done` set in the default
+    # PasswordResetView
+    success_url = reverse_lazy('auth_password_reset_done')
+
     def post(self, request, *args, **kwargs):
         form = self.get_form()
 

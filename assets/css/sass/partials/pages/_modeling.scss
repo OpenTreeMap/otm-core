@@ -153,7 +153,8 @@
             position: absolute;
             z-index: 998;
             top: 0;
-            right: 0;
+            left: 0;
+            border-right: 1px solid #ddd;
 
             > .btn {
                 padding: 9px 13px;
@@ -170,7 +171,7 @@
         }
 
         .scenario-button-container {
-            padding-left: 10px;
+            padding-left: 50px;
             position: relative;
             white-space: nowrap;
             margin-top: -2px;
