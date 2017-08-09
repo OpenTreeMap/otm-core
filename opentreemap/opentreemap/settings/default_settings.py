@@ -85,8 +85,11 @@ OMGEO_SETTINGS = [[
             ),
             postprocessors.GroupBy('match_addr'),
             postprocessors.GroupBy(('x', 'y')),
-            postprocessors.SnapPoints(distance=10)
-        ]
+            postprocessors.SnapPoints(distance=10)],
+        'settings': {
+            'client_id': os.environ.get('ESRI_CLIENT_ID'),
+            'client_secret': os.environ.get('ESRI_CLIENT_SECRET')
+        }
     }
 ]]
 

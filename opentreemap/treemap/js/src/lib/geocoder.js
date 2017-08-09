@@ -3,7 +3,8 @@
 var $ = require('jquery'),
     config = require('treemap/lib/config.js'),
     _ = require('lodash'),
-    Bacon = require('baconjs');
+    Bacon = require('baconjs'),
+    reverse = require('reverse');
 
 // ``coordToLatLng`` converts a 2d coordinate array or an object
 // to an object with ``lat`` and ``lng`` values.
@@ -33,48 +34,71 @@ function latLngToParam(latLng) {
 }
 
 exports = module.exports = function () {
-
-    var geocodeServer = function (address, magicKey) {
+    var geocodeServer = function (address, magicKey, forStorage) {
         var data = {
             address: address,
             key: magicKey
         };
+        if (forStorage) {
+            data.forStorage = true;
+        }
         if (config.instance && config.instance.extent) {
             _.extend(data, config.instance.extent);
         }
         return Bacon.fromPromise(
             $.ajax({
-                url: '/geocode',
+                url: reverse.geocode(),
                 type: 'GET',
                 data: data,
                 dataType: 'json'
             }));
     };
 
+    var token = null;
     var reverseGeocodeClient = function(latLng, distance) {
         var url = '//geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode';
         var params = {
             'location': latLngToParam(latLng),
             'distance': distance,
             'outSR': '3857', // Returning web mercator given latlng is a helpful side-effect
-            'f': 'json'
+            'f': 'json',
+            'forStorage': 'true',
+        };
+        var opts = {
+            url: url,
+            type: 'GET',
+            data: params,
+            crossDomain: true,
+            dataType: 'jsonp'
         };
 
+        if (token !== null) {
+            opts.data.token = token;
+            return Bacon.fromPromise($.ajax(opts));
+        } else {
+            return Bacon.fromPromise(
+                $.getJSON(reverse.get_geocode_token())
+                    .then(function(response) {
+                        token = response.token;
+                        opts.data.token = token;
+
+                        return $.ajax(opts);
+                    })
+                    .fail(function() {
+                        token = null;
+                    })
+            );
+        }
+
         return Bacon.fromPromise(
-            $.ajax({
-                url: url,
-                type: 'GET',
-                data: params,
-                crossDomain: true,
-                dataType: 'jsonp'
-            }));
+            $.ajax());
     };
 
 
     return {
-        geocodeStream: function(datumStream) {
+        geocodeStream: function(datumStream, forStorage) {
             return datumStream.flatMap(function (datum) {
-                return geocodeServer(datum.text, datum.magicKey);
+                return geocodeServer(datum.text, datum.magicKey, forStorage);
             }).flatMap(function(response) {
                 if (response.lat && response.lng) {
                     return Bacon.once(response);
