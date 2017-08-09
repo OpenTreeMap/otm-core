@@ -794,6 +794,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             tree_hashes = [t.hash for t in self.plot.tree_set.all()]
             string_to_hash += "," + ",".join(tree_hashes)
 
+        # Need to include nearby features in the hash, as they are in the
+        # detail sidebar & popup.
+        for feature in self.nearby_map_features():
+            string_to_hash += "," + str(feature.pk)
+
         return hashlib.md5(string_to_hash).hexdigest()
 
     def title(self):
