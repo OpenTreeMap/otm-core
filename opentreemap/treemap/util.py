@@ -211,6 +211,8 @@ def can_read_as_super_admin(request):
         return request.user.is_super_admin() and request.method == 'GET'
 
 
+# UDF utilitites
+
 # Utilities for ways in which a UserDefinedFieldDefinition is identified.
 # Please also see name related properties on that class.
 # Note that audits refer to collection udfds as 'udf:{udfd.pk}',
@@ -225,3 +227,7 @@ def get_name_from_canonical_name(canonical_name):
 
 def make_udf_name_from_key(key):
     return 'udf:{}'.format(key)
+
+
+def make_udf_lookup_from_key(key):
+    return 'udfs__{}'.format(key)

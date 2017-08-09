@@ -1,0 +1,227 @@
+{% load i18n %}
+<div class="modal fade" id="detailsDialog" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="planDetails">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">TITLE IN CODE</h5>
+            </div>
+            <div class="modal-body">
+                <label>{% trans "Name" %}:</label>
+                <input id="edit-plan-name" class="form-control" type="text" />
+                <label>{% trans "Description" %}:</label>
+                <textarea id="edit-plan-description" class="form-control"></textarea>
+                <label>{% trans "Plan visibility" %}:</label>
+                <label><input name="isPublic" type="radio" value="false"/>Private</label>
+                <label><input name="isPublic" type="radio" value="true"/>Public</label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-otmprimary ok" data-dismiss="modal">LABEL IN CODE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="stale-revision-dialog" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staleRevision">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h5 class="modal-title">Version Conflict</h5>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "This plan has been saved (from another session) since you last saved it." %}</p>
+                <span>
+                    <input type="radio" name="staleRevisionOptions" value="saveAs" id="stale-saveAs"/><label for="stale-saveAs">
+                        {% trans "Save my version as a different plan." %}
+                    </label>
+                </span>
+                <span>
+                    <input type="radio" name="staleRevisionOptions" value="useOther" id="stale-useOther" checked/><label for="stale-useOther">
+                        {% trans "Open the saved version, discarding my changes." %}
+                    </label>
+                </span>
+                <span>
+                    <input type="radio" name="staleRevisionOptions" value="useMine" id="stale-useMine"/><label for="stale-useMine">
+                        {% trans "Overwrite the saved version with my version." %}
+                    </label>
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default cancel" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-otmprimary ok" data-dismiss="modal">{% trans "OK" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="renameScenario" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="renameScenario">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Rename Scenario" %}</h4>
+            </div>
+            <div class="modal-body">
+                <label>{% trans "Scenario name:" %}</label>
+                <input id="edit-scenario-name" class="form-control" type="text">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-otmprimary ok" data-dismiss="modal">{% trans "OK" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeletePlan" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="confirmDeletePlan">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Confirm" %}</h4>
+            </div>
+            <div class="modal-body">
+                {% trans "Are you sure you want to delete this plan?" %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Keep" %}</button>
+                <button type="button" class="btn btn-danger ok" data-dismiss="modal">{% trans "Delete" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="help" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="help">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Modeling" %}</h4>
+            </div>
+            <div class="modal-body">
+                {% include "modeling/partials/help.html" %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default ok" data-dismiss="modal">{% trans "OK" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="disambiguateArea" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="chooseBoundary">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Please choose an area:" %}</h4>
+            </div>
+            <div class="modal-body">
+              {% comment %} Choices go here {% endcomment %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scenarioResults" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="scenarioResults">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Scenario Results" %}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-8 js-charts">
+                        <div class="charts-header">
+                            <select>
+                            </select>
+                            <input type="checkbox" id="showAsCurrency">
+                            <label for="showAsCurrency">{% trans "Show as currency" %}</label>
+                        </div>
+                        <div id="eco-chart">
+                            <canvas height="250"></canvas>
+                        </div>
+                        <div id="tree-chart">
+                            <canvas height="150"></canvas>
+                        </div>
+                    </div>
+                    <div class="total-eco col-sm-4">
+                    </div>
+                    <button class="btn export-growth">{% trans "Export Growth" %}</button>
+                    <button class="btn export-eco">{% trans "Export Eco" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mortality-rate-modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="mortality-rate-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Annual Mortality Rates" %}</h4>
+            </div>
+            <div class="modal-body">
+                <table id="mortality-rate-table" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th width="200px">Species</th>
+                            <th>
+                                <div>{% trans "Small" %} <small>({% trans "0 - 5 in." %})</small></div>
+                            </th>
+                            <th>
+                                <div>{% trans "Medium" %} <small>({% trans "5 - 15 in." %})</small></div>
+                            </th>
+                            <th>
+                                <div>{% trans "Large" %} <small>({% trans "15 - 25 in." %})</small></div>
+                            </th>
+                            <th>
+                                <div>{% trans "Very Large" %} <small>({% trans "&gt; 25 in." %})</small></div>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <div id="mortality-rate-dropdown" class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% trans "Add a species" %} <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn cancel" data-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-otmprimary save" data-dismiss="modal">{% trans "Save" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="noRegion" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="noRegion"
+     data-itree-region-count="{{ itree_region_count }}">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{% trans "Modeling unavailable" %}</h4>
+            </div>
+            <div class="modal-body">
+                {% trans "Your tree map is not located in one of the climate regions for which tree growth and mortality calculations are available." %}
+            </div>
+            <div class="modal-body">
+                {% blocktrans %}
+                Please contact {{ support_email }} if you would like to select another climate region for your map.
+                {% endblocktrans %}
+            </div>
+            <br/>
+        </div>
+    </div>
+</div>
+

@@ -36,7 +36,7 @@ def _check_signature(view_f, require_login):
     def wrapperf(request, *args, **kwargs):
         # Request must have signature and access_key
         # parameters
-        sig = request.REQUEST.get('signature')
+        sig = request.GET.get('signature')
 
         if not sig:
             sig = request.META.get('HTTP_X_SIGNATURE')
@@ -48,7 +48,7 @@ def _check_signature(view_f, require_login):
         # back
         sig = sig.replace(' ', '+')
 
-        timestamp = request.REQUEST.get('timestamp')
+        timestamp = request.GET.get('timestamp')
         if not timestamp:
             return _missing_request
 
@@ -67,7 +67,7 @@ def _check_signature(view_f, require_login):
         if not sig:
             return _missing_request
 
-        key = request.REQUEST.get('access_key')
+        key = request.GET.get('access_key')
 
         if not key:
             return _bad_request

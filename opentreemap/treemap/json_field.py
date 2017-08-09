@@ -1,13 +1,12 @@
 from django.contrib.gis.db import models
-from django.utils.six import with_metaclass
 
 import json
 
 from opentreemap.util import dotted_split
-from DotDict import DotDict
+from treemap.DotDict import DotDict
 
 
-class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
+class JSONField(models.TextField):
     def to_python(self, value):
         if isinstance(value, basestring):
             obj = json.loads(value or "{}")
@@ -18,15 +17,18 @@ class JSONField(with_metaclass(models.SubfieldBase, models.TextField)):
     def get_prep_value(self, value):
         return json.dumps(value or {})
 
-    def get_prep_lookup(self, lookup_type, value):
+    def get_lookup(self, lookup_name):
         # Contains lookups will generally work when looking for values
-        if lookup_type in ('contains', 'icontains'):
-            return super(JSONField, self).get_prep_lookup(lookup_type, value)
+        if lookup_name in ('contains', 'icontains'):
+            return super(JSONField, self).get_lookup(lookup_name)
         raise TypeError("JSONField doesn't support lookups")
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
         return self.get_prep_value(value)
+
+    def from_db_value(self, value, expression, connection, context):
+        return self.to_python(value)
 
 
 def is_json_field_reference(field_path):

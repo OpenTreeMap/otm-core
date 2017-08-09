@@ -10,6 +10,7 @@ from django.db import transaction
 from django.dispatch import receiver
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _
+from django.shortcuts import get_object_or_404
 
 from registration.signals import user_registered, user_activated
 
@@ -61,10 +62,10 @@ def create_user_role(request, instance):
 
 
 def user_roles_list(request, instance):
-    page = int(request.REQUEST.get('page', '1'))
-    user_sort = request.REQUEST.get('user_sort', 'user__username')
-    invite_sort = request.REQUEST.get('invite_sort', 'email')
-    query = request.REQUEST.get('query', '')
+    page = int(request.GET.get('page', '1'))
+    user_sort = request.GET.get('user_sort', 'user__username')
+    invite_sort = request.GET.get('invite_sort', 'email')
+    query = request.GET.get('query', '')
 
     def invite_context(invites):
         for invite in invites:
@@ -149,6 +150,14 @@ def invite_user_with_email_to_instance(request, email, instance):
             'invite': invite}
 
     send_email('invite_to_new_user', ctxt, (email,))
+
+
+def remove_invited_user_from_instance(request, instance, invite_id):
+    invite = get_object_or_404(InstanceInvitation, pk=invite_id,
+                               accepted=False)
+    invite.delete()
+
+    return HttpResponse(_('Removed invite'))
 
 
 def add_user_to_instance(request, user, instance, admin_user):

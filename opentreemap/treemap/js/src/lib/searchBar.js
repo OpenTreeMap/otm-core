@@ -172,7 +172,7 @@ function updateActiveSearchIndicators(search) {
     var simpleSearchKeys = ['species.id', 'mapFeature.geom'],
         activeCategories = _(search.filter)
             .map(getFilterCategory)
-            .unique()
+            .uniq()
             .filter() // remove "false" (category with a filter that isn't displayed)
             .value();
 
@@ -187,12 +187,12 @@ function updateActiveSearchIndicators(search) {
                 displayedFeatures = _.map(search.display, function (s) {
                     return s.toLowerCase();
                 });
-            if (_.contains(simpleSearchKeys, key)) {
+            if (_.includes(simpleSearchKeys, key)) {
                 // do not add filter categories for search fields that are not
                 // part of the advanced search.
                 return false;
-            } else if (_.contains(featureCategories, featureName)) {
-                if (!hasDisplayFilters(search) || _.contains(displayedFeatures, featureName) || featureName === 'mapFeature') {
+            } else if (_.includes(featureCategories, featureName)) {
+                if (!hasDisplayFilters(search) || _.includes(displayedFeatures, featureName) || featureName === 'mapFeature') {
                     return featureName;
                 } else {
                     return false; // feature filter is disabled by display filter
@@ -201,7 +201,7 @@ function updateActiveSearchIndicators(search) {
                 return 'stewardship';
             } else {
                 moreSearchFeatureBlacklist = _.union(featureCategories, ['species']);
-                if (!_.contains(moreSearchFeatureBlacklist, featureName)) {
+                if (!_.includes(moreSearchFeatureBlacklist, featureName)) {
                     // as a safeguard, check that this feature is not a feature
                     // that is known to never be found in the 'more' list. This
                     // prevents future features from accidentally ending up with
@@ -218,7 +218,7 @@ function updateActiveSearchIndicators(search) {
         activeCategories.push('display');
     }
 
-    var simpleSearchActive = _.any(simpleSearchKeys, _.partial(_.has, search.filter)) || $(dom.locationSearchTypeahead).val() !== "";
+    var simpleSearchActive = _.some(simpleSearchKeys, _.partial(_.has, search.filter)) || $(dom.locationSearchTypeahead).val() !== "";
 
     $(dom.advancedToggle).toggleClass('filter-active', activeCategories.length > 0);
     $(dom.advancedToggle).toggleClass('simple-filter-active', simpleSearchActive);
@@ -237,13 +237,13 @@ function hasDisplayFilters(search) {
 function updateDisabledFieldGroups(search) {
     if (hasDisplayFilters(search)) {
         var fieldGroupsToEnable = _.clone(search.display);
-        if (_.contains(search.display, 'Plot')) {
+        if (_.includes(search.display, 'Plot')) {
             // Showing trees & empty plots; enable both tree & plot fields
             fieldGroupsToEnable.push('Tree');
-        } else if (_.contains(search.display, 'Tree')) {
+        } else if (_.includes(search.display, 'Tree')) {
             // Showing trees & not empty plots; enable both tree & plot fields
             fieldGroupsToEnable.push('Plot');
-        } else if (_.contains(search.display, 'EmptyPlot')) {
+        } else if (_.includes(search.display, 'EmptyPlot')) {
             // Showing empty plots & not trees; enable just plot fields
             _(fieldGroupsToEnable).pull('EmptyPlot').push('Plot');
         }
@@ -273,13 +273,13 @@ function updateDisabledFields(search) {
     // key as another filled in field
     _.each(search.filter, function(predicate, field) {
         var searchTypes = _.keys(predicate),
-            minOrMax = _.contains(searchTypes, 'MIN') || _.contains(searchTypes, 'MAX');
+            minOrMax = _.includes(searchTypes, 'MIN') || _.includes(searchTypes, 'MAX');
         $(dom.searchFields).filter('[name="' + field + '"]').each(function(i, elem) {
             var $elem = $(elem),
                 searchType = $elem.attr('data-search-type');
 
             // Min/Max fields shouldn't disable their corresponding Max/Min field
-            if (minOrMax && _.contains(['MIN', 'MAX'], searchType)) {
+            if (minOrMax && _.includes(['MIN', 'MAX'], searchType)) {
                 return;
             }
 

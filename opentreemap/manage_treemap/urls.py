@@ -2,12 +2,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from manage_treemap import routes
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', routes.management, name='management'),
     url(r'^notifications/$', routes.admin_counts, name='admin_counts'),
 
@@ -32,6 +31,8 @@ urlpatterns = patterns(
     url(r'^user-roles/$', routes.user_roles, name='user_roles'),
     url(r'^user-roles-partial/$', routes.user_roles_partial,
         name='user_roles_partial'),
+    url(r'^user-invite/(?P<invite_id>\d+)$', routes.user_invites,
+        name='user_invite'),
     url(r'^roles/$', routes.roles, name='roles_endpoint'),
     url(r'^export/user/(?P<data_format>(csv|json))/$',
         routes.begin_export_users, name='management_begin_export_users'),
@@ -52,4 +53,4 @@ urlpatterns = patterns(
         name='field_configs'),
     url(r'^set-fields/$', routes.set_field_configs,
         name='set_field_configs'),
-)
+]

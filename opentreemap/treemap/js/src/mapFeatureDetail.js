@@ -186,7 +186,7 @@ function init() {
     clickedIdStream
         .filter(BU.not, window.otm.mapFeature.featureId)
         .map(_.partialRight(U.appendSegmentToUrl, detailUrlPrefix, false))
-        .filter(R.not(currentMover.isEnabled))
+        .filter(R.complement(currentMover.isEnabled))
         .onValue(_.bind(window.location.assign, window.location));
 
     if (config.instance.basemap.type === 'google') {

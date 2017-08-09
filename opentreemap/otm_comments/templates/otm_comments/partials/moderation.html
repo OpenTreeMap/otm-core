@@ -10,7 +10,7 @@
   </div>
   <div class="page-header-actions pull-right">
       {% include 'treemap/partials/filter_dropdown.html' with filter=comments_filter %}
-      <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>{% trans "Export All" %}</button>
+      <button type="button" class="btn btn-sm" data-export-start-url="{% url 'comments-csv' request.instance.url_name %}?{{ comments_params }}"><i class="icon-export"></i>{% trans "Export" %}</button>
   </div>
 </div> <!--END OF PAGE HEADER -->
 

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="content login-signup">
+  <div class="well login-signup-panel">
+    <legend>{% trans "Resend Activation Email" %}</legend>
+    {% url 'forgot_username' as forgot_username %}
+    {% blocktrans %}
+    <p>Can't find the activation email for your tree map account? Enter your username and click "Send" to receive another email.</p>
+    <p>If you can't remember your username, go <a href="{{ forgot_username }}">here to retrieve it</a>.</p>
+    {% endblocktrans %}
+
+    {% if error %}
+    <ul class='errorlist'>
+        <li>{{ error }}</li>
+    </ul>
+    {% endif %}
+
+    <form method="post" action="{% url 'resend_activation_email' %}">
+      {% csrf_token %}
+      <label>
+          {% trans "Username" %}
+      </label>
+      <div class="row">
+          <div class="col-md-9">
+              {% if username %}
+                  <input type="text" name="username" required value="{{ username }}" />
+              {% else %}
+                  <input type="text" name="username" required />
+              {% endif %}
+          </div>
+          <div class="col-md-3">
+              <input type="submit" class="btn btn-block btn-primary" value="{% trans 'Send' %}" />
+          </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock content %}

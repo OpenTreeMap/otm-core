@@ -36,7 +36,7 @@ from importer import errors, fields
 from importer.tasks import _create_rows_for_event
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
-from importer.views import (process_csv, process_status,
+from importer.views import (process_status,
                             commit, merge_species, start_import)
 
 
@@ -52,7 +52,7 @@ class MergeTest(TestCase):
 
     def test_cant_merge_same_species(self):
         r = HttpRequest()
-        r.REQUEST = {
+        r.POST = {
             'species_to_delete': self.s1.pk,
             'species_to_replace_with': self.s1.pk
         }
@@ -77,7 +77,7 @@ class MergeTest(TestCase):
             tree.save_with_system_user_bypass_auth()
 
         r = HttpRequest()
-        r.REQUEST = {
+        r.POST = {
             'species_to_delete': self.s1.pk,
             'species_to_replace_with': self.s2.pk
         }
@@ -147,9 +147,9 @@ class TreeValidationTestBase(ValidationTest):
                                   instance=self.instance)
         self.ie.save()
 
-    def mkrow(self, data):
+    def mkrow(self, data, idx=1):
         return TreeImportRow.objects.create(
-            data=json.dumps(data), import_event=self.ie, idx=1)
+            data=json.dumps(data), import_event=self.ie, idx=idx)
 
 
 class TreeValidationTest(TreeValidationTestBase):
@@ -244,6 +244,52 @@ class TreeValidationTest(TreeValidationTestBase):
         i.validate_row()
 
         self.assertNotHasError(i, errors.NEARBY_TREES)
+
+    def test_update_proximity_ok(self):
+        p1 = mkPlot(self.instance, self.user,
+                    geom=Point(25.0000001, 25.0000001, srid=4326))
+
+        r1 = self.mkrow({'point x': '25.00000025',
+                         'point y': '25.00000025',
+                         'planting site id': p1.id})
+        r1.validate_row()
+
+        self.assertNotHasError(r1, errors.NEARBY_TREES)
+
+    def test_proximity_same_csv_ok(self):
+        initial_plot_count = Plot.objects\
+            .filter(instance=self.instance)\
+            .count()
+
+        self.assertEqual(initial_plot_count, 0)
+
+        r1 = self.mkrow({'point x': '25.0000001',
+                         'point y': '25.0000001'}, idx=1)
+        r1.validate_row()
+
+        self.assertNotHasError(r1, errors.NEARBY_TREES)
+
+        r2 = self.mkrow({'point x': '25.0000001',
+                         'point y': '25.0000001'}, idx=2)
+        r2.validate_row()
+
+        # Trust the csv
+        self.assertNotHasError(r2, errors.DUPLICATE_TREE)
+        self.assertNotHasError(r2, errors.NEARBY_TREES)
+
+        r1.commit_row()
+        after_r1_count = Plot.objects\
+            .filter(instance=self.instance)\
+            .count()
+        self.assertEqual(after_r1_count, 1)
+
+        r2.commit_row()
+        after_r2_count = Plot.objects\
+            .filter(instance=self.instance)\
+            .count()
+        self.assertNotHasError(r2, errors.DUPLICATE_TREE)
+        self.assertNotHasError(r2, errors.NEARBY_TREES)
+        self.assertEqual(after_r2_count, 2)
 
     def test_species_id(self):
         s1_gsc = Species(instance=self.instance, genus='g1', species='s1',
@@ -943,7 +989,7 @@ class IntegrationTests(TestCase):
         login(self.client, self.user.username)
 
         req.FILES = {'filename': self.create_csv_stream(rows)}
-        req.REQUEST = kwargs
+        req.POST = kwargs
 
         return req
 
@@ -1348,7 +1394,6 @@ class TreeIntegrationTests(IntegrationTests):
         # csv = """
         # | point x | point y | date planted | read only |
         # | 25.00   | 25.00   | 2012-02-03   | true      |
-        # """
         csv = """
         | point x | point y | date planted |
         | 25.00   | 25.00   | 2012-02-03   |

@@ -14,8 +14,7 @@ from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404
 
 from stormwater.models import PolygonalMapFeature
 
@@ -209,6 +208,9 @@ def compile_scss(request):
     for key, value in request.GET.items():
         if _SCSS_VAR_NAME_RE.match(key) and COLOR_RE.match(value):
             scss += '$%s: #%s;\n' % (key, value)
+        elif key == 'url':
+            # Ignore the cache-buster query parameter
+            continue
         else:
             raise ValidationError("Invalid SCSS values %s: %s" % (key, value))
     scss += '@import "%s";' % settings.SCSS_ENTRY
@@ -259,8 +261,7 @@ def error_page(status_code):
                 {'status': 'Failure', 'reason': reasons[status_code]}),
                 content_type='application/json')
         else:
-            response = render_to_response(
-                template, context_instance=RequestContext(request))
+            response = render(request, template)
 
         response.status_code = status_code
         return response

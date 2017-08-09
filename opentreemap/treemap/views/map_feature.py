@@ -8,9 +8,7 @@ import hashlib
 from functools import wraps
 
 from django.http import HttpResponse
-from django.template import RequestContext
-from django.template.loader import get_template
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import transaction
@@ -81,17 +79,17 @@ def get_photo_context_and_errors(fn):
 
 
 def map_feature_detail(request, instance, feature_id,
-                       render=False, edit=False):
+                       should_render=False, edit=False):
     context, partial = _map_feature_detail_context(
         request, instance, feature_id, edit)
     add_map_info_to_context(context, instance)
 
-    if render:
+    if should_render:
         template = 'treemap/map_feature_detail.html'
         context['map_feature_partial'] = partial
         latlon = context['feature'].latlon
         context['map_query'] = '?z=%s/%s/%s' % (18, latlon.y, latlon.x)
-        return render_to_response(template, context, RequestContext(request))
+        return render(request, template, context)
     else:
         return context
 
@@ -151,17 +149,17 @@ def _add_plot_field_groups(context, instance):
 def render_map_feature_detail_partial(request, instance, feature_id, **kwargs):
     context, partial = _map_feature_detail_context(
         request, instance, feature_id)
-    return render_to_response(partial, context, RequestContext(request))
+    return render(request, partial, context)
 
 
 def render_map_feature_detail(request, instance, feature_id, **kwargs):
-    return map_feature_detail(request, instance, feature_id, render=True,
-                              **kwargs)
+    return map_feature_detail(request, instance, feature_id,
+                              should_render=True, **kwargs)
 
 
 def context_map_feature_detail(request, instance, feature_id, **kwargs):
-    return map_feature_detail(request, instance, feature_id, render=False,
-                              **kwargs)
+    return map_feature_detail(request, instance, feature_id,
+                              should_render=False, **kwargs)
 
 
 def map_feature_photo_detail(request, instance, feature_id, photo_id):
@@ -181,12 +179,9 @@ def render_map_feature_add(request, instance, type):
         app = MapFeature.get_subclass(type).__module__.split('.')[0]
         try:
             template = '%s/%s_add.html' % (app, type)
-            get_template(template)
         except:
             template = 'treemap/resource_add.html'
-        return render_to_response(template,
-                                  {'object_name': to_object_name(type)},
-                                  RequestContext(request))
+        return render(request, template, {'object_name': to_object_name(type)})
     else:
         raise_non_instance_404(type)
 
@@ -230,9 +225,22 @@ def update_map_feature(request_dict, user, feature):
         # We're going to always work in display units here
         feature.convert_to_display_units()
 
+    def value_is_redundant(model, field_name, value):
+        # The iOS app sends a key in `data` for every udf definition,
+        # even if it hasn't changed.
+        # If it is trying to delete a custom field that is not defined
+        # for the model, flag it as redundant,
+        # to avoid a `KeyError` when the update tries to delete them.
+        if field_name.startswith('udf:') and \
+                value in [[], '[]', '', None]:
+            udf_name = field_name.replace('udf:', '')
+            if udf_name not in model.udfs:
+                return True
+        return False
+
     def set_attr_on_model(model, attr, val):
         field_classname = \
-            model._meta.get_field_by_name(attr)[0].__class__.__name__
+            model._meta.get_field(attr).__class__.__name__
 
         if field_classname.endswith('PointField'):
             srid = val.get('srid', 3857)
@@ -274,7 +282,15 @@ def update_map_feature(request_dict, user, feature):
         except ValidationError as e:
             return package_field_errors(thing._model_name, e)
 
+    def skip_setting_value_on_tree(value, tree):
+        # If the tree is not None, we always set a value.  If the tree
+        # is None (meaning that we would be creating a new Tree
+        # object) then we only want to set a value if the value is
+        # non-empty.
+        return (tree is None) and (value in ([], '[]', '', None))
+
     tree = None
+    errors = {}
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom
@@ -283,15 +299,11 @@ def update_map_feature(request_dict, user, feature):
         object_name, field = dotted_split(identifier, 2,
                                           failure_format_string=split_template)
         if (object_name not in feature_object_names + ['tree']):
-            raise Exception(split_template % identifier)
+            raise ValueError(split_template % identifier)
 
-        tree_udfc_names = [fdef.canonical_name
-                           for fdef in udf_defs(feature.instance, 'Tree')
-                           if fdef.iscollection]
-
-        if ((field in tree_udfc_names and
-             feature.safe_get_current_tree() is None and
-             value == [])):
+        if (object_name == 'tree'
+            and skip_setting_value_on_tree(
+                value, feature.safe_get_current_tree())):
             continue
         elif object_name in feature_object_names:
             model = feature
@@ -311,19 +323,18 @@ def update_map_feature(request_dict, user, feature):
             elif field == 'plot' and value == unicode(feature.pk):
                 value = feature
         else:
-            raise Exception(
+            raise ValueError(
                 'Malformed request - invalid model %s' % object_name)
 
-        set_attr_on_model(model, field, value)
+        if not value_is_redundant(model, field, value):
+            set_attr_on_model(model, field, value)
 
-        field_class = model._meta.get_field_by_name(field)[0]
+        field_class = model._meta.get_field(field)
         if isinstance(field_class, GeometryField):
             rev_updates.append('geo_rev')
             rev_updates.append('eco_rev')
         elif identifier in ['tree.species', 'tree.diameter']:
             rev_updates.append('eco_rev')
-
-    errors = {}
 
     if feature.fields_were_updated():
         errors.update(save_and_return_errors(feature, user))
@@ -370,7 +381,7 @@ def add_map_feature_photo(request, instance, feature_id):
 
 @get_photo_context_and_errors
 def rotate_map_feature_photo(request, instance, feature_id, photo_id):
-    orientation = request.REQUEST.get('degrees', None)
+    orientation = request.POST.get('degrees', None)
     if orientation not in {'90', '180', '270', '-90', '-180', '-270'}:
         raise ValidationError('"degrees" must be a multiple of 90°')
 
@@ -409,9 +420,8 @@ def canopy_popup(request, instance):
         point = Point(float(lng), float(lat), srid=4326)
         result = _get_boundaries_with_canopy(instance, point)
         if result:
-            return render_to_response('treemap/partials/canopy_popup.html',
-                                      {'boundaries_with_canopy': result},
-                                      RequestContext(request))
+            return render(request, 'treemap/partials/canopy_popup.html',
+                          {'boundaries_with_canopy': result})
     return HttpResponse('')
 
 

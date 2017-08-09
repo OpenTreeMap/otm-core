@@ -184,6 +184,8 @@ def async_csv_export(job, model, query, display_filters):
         select['geom__x'] = 'ST_X(%s)' % get_ll
         select['geom__y'] = 'ST_Y(%s)' % get_ll
 
+        plot_fields += ['updated_by__username']
+
         field_names = set(tree_fields + plot_fields + species_fields)
 
         if field_names:
@@ -224,7 +226,6 @@ def _csv_field_header_map(field_names):
             'mapfeature_ptr',
             'readonly',
             'udfs',
-            'updated_at',
             'updated_by',
             'tree__instance',
             'tree__plot',

@@ -6,18 +6,26 @@ from __future__ import division
 from contextlib import contextmanager
 from unittest.case import skip
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, MultiPolygon, Polygon
+from django.test.utils import override_settings
 
-from treemap.models import (Tree, Plot, MapFeature, Species, TreePhoto)
+from treemap.models import Tree, Plot, MapFeature, Species, TreePhoto
 from treemap.instance import Instance
+from treemap.search import Filter
+from treemap.lib import format_benefits
+from treemap.ecobenefits import get_benefits_for_filter, BenefitCategory
 from treemap.tests import (make_instance, make_commander_user,
                            LocalMediaTestCase)
 from treemap.tests.base import OTMTestCase
+from treemap.tests.test_ecobenefits import EcoTestCase
 from treemap.views.map_feature import update_map_feature
 
 from stormwater.models import Bioswale
 
 
+# this decorator is necessary in order to `add_map_feature_types(['Bioswale'])`
+# in `test_create_bioswale`.
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
 class GeoAndEcoRevIncr(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
@@ -52,7 +60,6 @@ class GeoAndEcoRevIncr(OTMTestCase):
             request_dict = {'plot.geom': {'x': 0, 'y': 0}}
             update_map_feature(request_dict, self.user, plot)
 
-    @skip('Disabling until we figure out why it is failing on CI server')
     def test_create_bioswale(self):
         self.instance.add_map_feature_types(['Bioswale'])
         with self._assert_updates_geo_and_eco_rev():
@@ -186,6 +193,105 @@ class PlotHashTestCase(OTMTestCase):
         self.assertEqual(self.final_plot_hash,
                          self.final_map_feature_hash,
                          same_hash_msg)
+
+
+# this decorator is necessary in order to `add_map_feature_types(['Bioswale'])`
+# in `setUp`.
+@override_settings(FEATURE_BACKEND_FUNCTION=None)
+class ResourceEcoBenefitsTest(EcoTestCase):
+    def setUp(self):
+        # sets up self.instance, self.user, self.species
+        super(ResourceEcoBenefitsTest, self).setUp()
+        self.instance.add_map_feature_types(['Bioswale'])
+        diversion_rate = .85
+        Bioswale.set_config_property(self.instance, 'diversion_rate',
+                                     diversion_rate)
+        Bioswale.set_config_property(self.instance, 'should_show_eco', True)
+        self.instance.annual_rainfall_inches = 8.0
+
+    def _center_as_3857(self):
+        p = self.instance.center
+        if p.srid != 3857:
+            p.transform(3857)
+        return p
+
+    def _box_around_point(self, pt, edge=1.0):
+        half_edge = 0.5 * edge
+        x_min = pt.x - half_edge
+        y_min = pt.y - half_edge
+        x_max = pt.x + half_edge
+        y_max = pt.y + half_edge
+        poly = Polygon(((x_min, y_min),
+                        (x_min, y_max),
+                        (x_max, y_max),
+                        (x_max, y_min),
+                        (x_min, y_min)))
+        return MultiPolygon((poly, ))
+
+    def test_resource_ecobenefits(self):
+        p = self._center_as_3857()
+        box = self._box_around_point(p)
+        bioswale = Bioswale(instance=self.instance,
+                            geom=p,
+                            polygon=box,
+                            feature_type='Bioswale',
+                            drainage_area=100.0)
+        bioswale.save_with_user(self.user)
+        filter = Filter('', '', self.instance)
+        benefits, __ = get_benefits_for_filter(filter)
+
+        self.assertIn('resource', benefits)
+        resource_benefits = benefits['resource']
+        self.assertIn(BenefitCategory.STORMWATER, resource_benefits)
+        stormwater = resource_benefits[BenefitCategory.STORMWATER]
+        self.assertTrue(isinstance(stormwater['value'], float))
+        self.assertGreater(stormwater['value'], 0.0)
+        self.assertTrue(isinstance(stormwater['currency'], float))
+        self.assertEqual(stormwater['value'], stormwater['currency'])
+
+    def test_all_ecobenefits(self):
+        p = self._center_as_3857()
+        plot = Plot(geom=p, instance=self.instance)
+        plot.save_with_user(self.user)
+
+        tree = Tree(plot=plot,
+                    instance=self.instance,
+                    readonly=False,
+                    species=self.species,
+                    diameter=1630)
+
+        tree.save_with_user(self.user)
+
+        p.x += 1.1
+        p.y += 1.1
+        box = self._box_around_point(p)
+        bioswale = Bioswale(instance=self.instance,
+                            geom=p,
+                            polygon=box,
+                            feature_type='Bioswale',
+                            drainage_area=100.0)
+        bioswale.save_with_user(self.user)
+        filter = Filter('', '', self.instance)
+        benefits, basis = get_benefits_for_filter(filter)
+
+        self.assertIn('plot', benefits)
+        plot_benefits = benefits['plot']
+        plot_categories = set(plot_benefits.keys())
+        self.assertSetEqual(plot_categories, set(BenefitCategory.GROUPS))
+
+        plot_currencies = {
+            cat: benefit.get('currency', None)
+            for cat, benefit in plot_benefits.items()}
+        self.assertIsNotNone(min(plot_currencies.values()))
+
+        expected_total_currency = sum(
+            [benefit['currency'] for benefit in plot_benefits.values()]) - \
+            plot_benefits[BenefitCategory.CO2STORAGE]['currency'] + \
+            benefits['resource'][BenefitCategory.STORMWATER]['currency']
+
+        formatted = format_benefits(self.instance, benefits, basis, digits=0)
+        self.assertAlmostEqual(formatted['benefits_total_currency'],
+                               expected_total_currency, 3)
 
 
 class UpdatedFieldsTest(LocalMediaTestCase):

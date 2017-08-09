@@ -1,7 +1,6 @@
 import dateutil.parser
 
 from treemap.models import User
-from treemap.audit import model_hasattr
 
 from treemap.util import to_model_name
 from treemap.lib import udf as udf_lib
@@ -52,17 +51,23 @@ def dict_to_model(config, model_name, data_dict, instance):
     common_fields = config[model_name].get('common_fields', set())
     renamed_fields = config[model_name].get('renamed_fields', {})
     dependency_fields = config[model_name].get('dependencies', {})
+    instance_field = None
 
     ModelClass = config[model_name].get('model_class')
 
     if ModelClass is None:
         return PROCESS_WITHOUT_SAVE
     else:
-        model = ModelClass()
-
-    # instance *must* be set before UDF assignment
-    if model_hasattr(model, 'instance'):
-        model.instance = instance
+        try:
+            instance_field = ModelClass._meta.get_field('instance')
+        except:
+            pass
+        # instance *must* be set during initialization
+        model = ModelClass() \
+            if instance_field is None or \
+            instance_field.many_to_many or \
+            instance_field.one_to_many \
+            else ModelClass(instance=instance)
 
     for field in (common_fields
                   .union(renamed_fields)

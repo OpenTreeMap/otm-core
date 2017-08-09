@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from treemap import routes
 
@@ -14,8 +14,7 @@ from treemap import routes
 
 USERNAME_PATTERN = r'(?P<username>[\w.@+-]+)'
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', routes.index_page, name='instance_index_view'),
     url(r'page/(?P<page>[a-zA-Z0-9 ]+)/$',
         routes.static_page, name='static_page'),
@@ -36,7 +35,7 @@ urlpatterns = patterns(
         routes.edit_map_feature_detail, name='map_feature_detail_edit'),
     url(r'^features/(?P<feature_id>\d+)/popup$',
         routes.map_feature_popup, name='map_feature_popup'),
-    url(r'^/canopy-popup$', routes.canopy_popup, name='canopy_popup'),
+    url(r'^canopy-popup$', routes.canopy_popup, name='canopy_popup'),
     url(r'^features/(?P<feature_id>\d+)/trees/(?P<tree_id>\d+)/$',
         routes.delete_tree, name='delete_tree'),
     url(r'^features/(?P<feature_id>\d+)/sidebar$',
@@ -79,4 +78,4 @@ urlpatterns = patterns(
     url(r'^users/%s/edits/$' % USERNAME_PATTERN, routes.instance_user_audits),
 
     url(r'^users/$', routes.users, name="users"),
-)
+]

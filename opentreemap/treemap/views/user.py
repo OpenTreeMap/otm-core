@@ -5,14 +5,17 @@ from __future__ import division
 
 import collections
 
+from registration.models import RegistrationProfile
+
 from django.conf import settings
+from django.contrib.sites.requests import RequestSite
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Length
 from django.http import HttpResponseRedirect
 from django.http.request import QueryDict
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 
@@ -121,7 +124,7 @@ def profile_to_user(request):
 
 
 def forgot_username(request):
-    user_email = request.REQUEST['email']
+    user_email = request.POST['email']
     if not user_email:
         raise ValidationError({
             'user.email': [_('Email field is required')]
@@ -144,6 +147,39 @@ def forgot_username(request):
         user.email_user(subject, body, settings.DEFAULT_FROM_EMAIL)
 
     return {'email': user_email}
+
+
+def resend_activation_email_page(request):
+    return {'username': request.GET.get('username')}
+
+
+def resend_activation_email(request):
+    username = request.POST['username']
+
+    def error(error):
+        return render(request, 'treemap/resend_activation_email.html',
+                      {'username': username, 'error': error})
+
+    if not username:
+        return error(_('Username field is required'))
+
+    users = User.objects \
+        .filter(username=username)
+
+    if len(users) != 1:
+        return error(_('There is no user with that username'))
+
+    user = users[0]
+    if user.is_active:
+        return error(_('This user has already been verified'))
+
+    success = RegistrationProfile.objects.resend_activation_mail(
+        users[0].email, RequestSite(request), request)
+
+    if not success:
+        return error(_('Unable to resend activation email'))
+
+    return {'user': user}
 
 
 def _small_feature_photo_url(feature):

@@ -16,9 +16,7 @@ var _ = require('lodash'),
 
     modeNamesForUrl = [
         require('treemap/mapPage/addTreeMode.js').name,
-        require('treemap/mapPage/addResourceMode.js').name,
-        'prioritization',
-        'scenarios'
+        require('treemap/mapPage/addResourceMode.js').name
     ];
 
 var _state = null,
@@ -190,7 +188,7 @@ module.exports = {
     },
 
     setModeName: function (modeName) {
-        modeName = _.contains(modeNamesForUrl, modeName) ? modeName : '';
+        modeName = _.includes(modeNamesForUrl, modeName) ? modeName : '';
         set('modeName', modeName, {
             silent: true,
             replace: true
@@ -263,7 +261,7 @@ function getUrlFromState(state) {
 }
 
 function setStateAndPushToApp(newState) {
-    var changedState = _.omit(newState, function(v, k) {
+    var changedState = _.omitBy(newState, function(v, k) {
         return _state && _.isEqual(_state[k], v);
     });
     _state = newState;

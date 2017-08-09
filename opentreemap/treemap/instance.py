@@ -32,6 +32,7 @@ from treemap.json_field import JSONField
 from treemap.lib.object_caches import udf_defs
 from treemap.species.codes import (species_codes_for_regions,
                                    all_species_codes, ITREE_REGION_CHOICES)
+from treemap.DotDict import DotDict
 
 URL_NAME_PATTERN = r'[a-zA-Z]+[a-zA-Z0-9\-]*'
 
@@ -268,7 +269,7 @@ class Instance(models.Model):
         instance.config = DotDict({})
         instance.config.fruit.apple.type = 'macoun'
     """
-    config = JSONField(blank=True)
+    config = JSONField(blank=True, default=DotDict)
 
     is_public = models.BooleanField(default=False)
 
@@ -753,7 +754,10 @@ class Instance(models.Model):
         for field in scalar_fields:
             model_name, name = field.split('.', 1)  # maxsplit of 1
             Model = Plot if model_name == 'plot' else Tree
-            standard_fields = Model._meta.get_all_field_names()
+            standard_fields = [
+                f.name for f in Model._meta.get_fields()
+                if not (f.many_to_one and f.related_model is None)
+            ]
 
             if ((name not in standard_fields and field not in scalar_udfs)):
                 errors.add(INSTANCE_FIELD_ERRORS['missing_field'])

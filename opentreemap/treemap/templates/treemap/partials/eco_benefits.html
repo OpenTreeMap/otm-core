@@ -8,8 +8,10 @@
             <i class="icon-right-open"></i>
             <i class="icon-cancel"></i>
         </a>
+        {% with all_benefits=benefits.all %}
+            {% include "treemap/partials/benefit_value_row.html" with benefit=all_benefits.totals total=True %}
+        {% endwith %}
         {% with plot_benefits=benefits.plot %}
-            {% include "treemap/partials/benefit_value_row.html" with benefit=plot_benefits.totals total=True %}
             {% if not hide_summary and plot_benefits %}
                 <div class="benefit-value-title">{% trans "Tree Benefits"%}</div>
             {% endif %}

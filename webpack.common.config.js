@@ -49,7 +49,6 @@ var shimmed = {
     ionRangeSlider: d('assets/js/shim/ion.rangeSlider.js'),
     "bootstrap-datepicker": d('assets/js/shim/bootstrap-datepicker.js'),
     "bootstrap-multiselect": d('assets/js/shim/bootstrap-multiselect.js'),
-    "bootstrap-slider": d('assets/js/shim/bootstrap-slider.js'),
     jscolor: d('assets/js/shim/jscolor.js')
 };
 
@@ -62,7 +61,7 @@ module.exports = {
     },
     module: {
         loaders: [{
-            include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"], shimmed["bootstrap-slider"]],
+            include: [shimmed["bootstrap-datepicker"], shimmed["bootstrap-multiselect"]],
             loader: "imports?bootstrap"
         }, {
             test: /\.scss$/,
@@ -100,7 +99,7 @@ module.exports = {
             // Chunks are moved to the common bundle if they are used in 2 or more entry bundles
             minChunks: 2,
         }),
-        new ExtractTextPlugin('css/main.css', {allChunks: true}),
+        new ExtractTextPlugin('css/main-[chunkhash].css', {allChunks: true}),
         new BundleTracker({path: d('static'), filename: 'webpack-stats.json'})
     ],
     postcss: function () {

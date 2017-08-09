@@ -12,7 +12,9 @@ from treemap.json_field import get_attr_from_json_field, set_attr_on_json_field
 class JsonFieldTests(OTMTestCase):
     def setUp(self):
         self.instance = make_instance()
-        self.instance.config = '{"a":"x", "b":{"c":"y"}}'
+        self.instance.config = {"a": "x", "b": {"c": "y"}}
+        self.instance.save()
+        self.instance.refresh_from_db()
 
     def _assert_get(self, model, field_name, value):
         val = get_attr_from_json_field(model, field_name)

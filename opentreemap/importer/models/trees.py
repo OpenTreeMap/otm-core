@@ -83,6 +83,9 @@ class TreeImportEvent(GenericImportEvent):
         legal_fields = set(self.ordered_legal_fields_title_case())
         return legal_fields, fields.title_case(self._required_fields())
 
+    def ignored_fields(self):
+        return fields.trees.IGNORED
+
 
 class TreeImportRow(GenericImportRow):
     WARNING = 2
@@ -107,7 +110,7 @@ class TreeImportRow(GenericImportRow):
         'date_planted': fields.trees.DATE_PLANTED,
         'date_removed': fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
-        # 'readonly': fields.trees.READ_ONLY
+        # 'readonly': fields.trees.READ_ONLY,
     }
 
     # plot that was created from this row
@@ -236,7 +239,8 @@ class TreeImportRow(GenericImportRow):
         for udf_def in tree_udf_defs:
             udf_column_name = ie.get_udf_column_name(udf_def)
             value = data.get(udf_column_name, None)
-            if value:
+            # Legitimate values could be falsey
+            if value is not None:
                 tree_edited = True
                 if tree is None:
                     tree = Tree(instance=plot.instance)
@@ -327,11 +331,19 @@ class TreeImportRow(GenericImportRow):
                                (point.x + offset, point.y - offset),
                                (point.x - offset, point.y - offset)))
 
+        # This gets called while committing each row.
+        # Assume that the creator of the csv knows best,
+        # and avoid proximity checks against other plots in the same csv.
+        already_committed = self.import_event.rows()\
+            .filter(plot_id__isnull=False)\
+            .values_list('plot_id')
+
         # Using MapFeature directly avoids a join between the
         # treemap_plot and treemap_mapfeature tables.
         nearby = MapFeature.objects\
                            .filter(instance=self.import_event.instance)\
                            .filter(feature_type='Plot')\
+                           .exclude(pk__in=already_committed)\
                            .filter(geom__intersects=nearby_bbox)
 
         nearby = nearby.distance(point).order_by('distance')[:5]
@@ -416,8 +428,12 @@ class TreeImportRow(GenericImportRow):
                     udf_def.clean_value(value)
                     self.cleaned[column_name] = value
                 except ValidationError as ve:
+                    message = str(ve)
+                    if isinstance(ve.message_dict, dict):
+                        message = '\n'.join(
+                            [unicode(m) for m in ve.message_dict.values()])
                     self.append_error(
-                        errors.INVALID_UDF_VALUE, column_name, str(ve))
+                        errors.INVALID_UDF_VALUE, column_name, message)
 
     def validate_row(self):
         """

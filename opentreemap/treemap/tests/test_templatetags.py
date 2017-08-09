@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from copy import deepcopy
 import tempfile
 import json
 import os
@@ -10,6 +11,7 @@ from shutil import rmtree
 
 from django.template import Template, Context, TemplateSyntaxError
 from django.test.utils import override_settings
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
 from treemap.audit import FieldPermission, Role
@@ -22,6 +24,8 @@ from treemap.tests import (make_instance, make_observer_user,
                            make_conjurer_user, make_tweaker_user)
 from treemap.tests.base import OTMTestCase
 from treemap.templatetags.util import display_name
+from treemap.templatetags.comment_sequence import in_thread_order
+from treemap.templatetags.urls import add_params
 
 
 class UserCanReadTagTest(OTMTestCase):
@@ -337,9 +341,12 @@ class LoginForwardingTests(OTMTestCase):
         self.assertEqual(
             self.render_template(self.literal_template, path), '')
 
+_TEMPLATES = deepcopy(settings.TEMPLATES)
+_TEMPLATES[0]['OPTIONS']['loaders'] = [
+    'django.template.loaders.filesystem.Loader']
 
-@override_settings(TEMPLATE_LOADERS=(
-    'django.template.loaders.filesystem.Loader',))
+
+@override_settings(TEMPLATES=_TEMPLATES)
 class InlineFieldTagTests(OTMTestCase):
 
     def setUp(self):
@@ -424,7 +431,7 @@ class InlineFieldTagTests(OTMTestCase):
 
     def _write_field_template(self, text):
         with open(self.template_file_path, 'w') as f:
-                f.write(text)
+            f.write(text)
 
     def assert_plot_length_context_value(self, user, name, value,
                                          template_fn=None):
@@ -436,7 +443,9 @@ class InlineFieldTagTests(OTMTestCase):
 
         template = template_fn('plot.length')
         self._write_field_template("{{" + name + "}}")
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user, 'instance': self.instance},
                 'plot': plot})).strip()
@@ -445,7 +454,9 @@ class InlineFieldTagTests(OTMTestCase):
     def assert_search_context_value(self, user, name, value, search_json):
         template = self._form_template_search()
         self._write_field_template("{{" + name + "}}")
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user, 'instance': self.instance},
                 'search_json': search_json})).strip()
@@ -460,7 +471,9 @@ class InlineFieldTagTests(OTMTestCase):
         template = self._form_template_with_request_user_for(
             'plot.udf:Test choice')
         self._write_field_template(template_text)
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': user},
                 'plot': plot})).strip()
@@ -601,7 +614,8 @@ class InlineFieldTagTests(OTMTestCase):
         template = self._form_template_create('Plot.length')
         self._write_field_template("{{ field.value }}")
 
-        with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+        _TEMPLATES[0]['DIRS'] = [self.template_dir]
+        with self.settings(TEMPLATES=_TEMPLATES):
             content = template.render(Context({
                 'request': {'user': self.observer, 'instance': self.instance}
             })).strip()
@@ -637,7 +651,8 @@ class InlineFieldTagTests(OTMTestCase):
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):
         with self.assertRaises(TemplateSyntaxError):
-            with self.settings(TEMPLATE_DIRS=(self.template_dir,)):
+            _TEMPLATES[0]['DIRS'] = [self.template_dir]
+            with self.settings(TEMPLATES=_TEMPLATES):
                 self._write_field_template("{{ field.identifier }}")
                 self._form_template_search().render(Context({
                     'request': {'user': self.observer,
@@ -673,3 +688,36 @@ class DisplayValueTagTest(OTMTestCase):
 
     def test_display_value_converts_model_name(self):
         self.assertEqual('Tree', display_name(Tree()))
+
+
+class AddParamsTest(OTMTestCase):
+    def test_add_first_param(self):
+        self.assertEqual(
+            add_params('/a/b#hash', foo=1),
+            '/a/b?foo=1#hash'
+        )
+
+    def test_add_params_to_existing_param(self):
+        self.assertEqual(
+            add_params('/a/b?baz=0#hash', foo=1, bar=2),
+            '/a/b?bar=2&foo=1&baz=0#hash'
+        )
+
+
+class MockComment:
+    def __init__(self, id, parent):
+        self.id = id
+        self.parent = parent
+
+
+class InThreadOrderTest(OTMTestCase):
+    def test_in_thread_order(self):
+        root1 = MockComment(1, None)
+        root2 = MockComment(2, None)
+        nested1 = MockComment(3, root1)
+        nested12 = MockComment(4, nested1)
+        nested11 = MockComment(5, root1)
+        comments = [root1, root2, nested1, nested12, nested11]
+        self.assertEqual([c.id for c in [root1, nested1, nested12, nested11,
+                                         root2]],
+                         [c.id for c in in_thread_order(comments)])

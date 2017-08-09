@@ -28,12 +28,12 @@ from django.template.loader import get_template
 from treemap.species.codes import ITREE_REGIONS, get_itree_code
 from treemap.audit import Auditable, Role, Dictable, Audit, PendingAuditable
 # Import this even though it's not referenced, so Django can find it
-from treemap.audit import FieldPermission  # NOQA
+from treemap.audit import UserTrackable, FieldPermission  # NOQA
 from treemap.util import leaf_models_of_class, to_object_name
 from treemap.decorators import classproperty
 from treemap.images import save_uploaded_image
 from treemap.units import Convertible
-from treemap.udf import UDFModel, GeoHStoreUDFManager
+from treemap.udf import UDFModel
 from treemap.instance import Instance
 from treemap.lib.object_caches import invalidate_adjuncts
 
@@ -75,9 +75,9 @@ class StaticPage(models.Model):
     content = models.TextField()
 
     DEFAULT_CONTENT = {
-        'resources': get_template('treemap/partials/Resources.html').render(),
-        'about': get_template('treemap/partials/About.html').render(),
-        'faq': get_template('treemap/partials/FAQ.html').render()
+        'resources': 'treemap/partials/Resources.html',
+        'about': 'treemap/partials/About.html',
+        'faq': 'treemap/partials/FAQ.html'
     }
 
     @staticmethod
@@ -102,11 +102,15 @@ class StaticPage(models.Model):
             elif only_create_built_ins:
                 raise Http404('Static page does not exist')
 
-            static_page = StaticPage(
-                instance=instance, name=page_name,
-                content=StaticPage.DEFAULT_CONTENT.get(
-                    page_name.lower(),
-                    ('There is no content for this page yet.')))
+            if page_name.lower() in StaticPage.DEFAULT_CONTENT:
+                template = get_template(
+                    StaticPage.DEFAULT_CONTENT[page_name.lower()])
+                content = template.render()
+            else:
+                content = 'There is no content for this page yet.'
+
+            static_page = StaticPage(instance=instance, name=page_name,
+                                     content=content)
         return static_page
 
     @staticmethod
@@ -326,6 +330,11 @@ class User(AbstractUniqueEmailUser, Auditable):
     make_info_public = models.BooleanField(default=False)
     allow_email_contact = models.BooleanField(default=False)
 
+    def __init__(self, *args, **kwargs):
+        super(User, self).__init__(*args, **kwargs)
+
+        self.populate_previous_state()
+
     @classmethod
     def system_user(clazz):
         if not User._system_user:
@@ -387,8 +396,8 @@ class User(AbstractUniqueEmailUser, Auditable):
         # If the user has no instance user yet, we need to provide a default so
         # that template filters can determine whether that user can perform an
         # action that will make them into an instance user
-        if instance_user is None \
-           and instance.feature_enabled('auto_add_instance_user'):
+        if (instance_user is None and
+           instance.feature_enabled('auto_add_instance_user')):
             return InstanceUser(user=self,
                                 instance=instance,
                                 role=instance.default_role)
@@ -406,6 +415,8 @@ class User(AbstractUniqueEmailUser, Auditable):
         return reputation
 
     def clean(self):
+        super(User, self).clean()
+
         if re.search('\\s', self.username):
             raise ValidationError(_('Cannot have spaces in a username'))
 
@@ -419,7 +430,7 @@ class User(AbstractUniqueEmailUser, Auditable):
         self.save_with_user(system_user, *args, **kwargs)
 
 
-class Species(UDFModel, PendingAuditable):
+class Species(PendingAuditable, models.Model):
     """
     http://plants.usda.gov/adv_search.html
     """
@@ -469,7 +480,11 @@ class Species(UDFModel, PendingAuditable):
     updated_at = models.DateTimeField(  # TODO: remove null=True
         null=True, auto_now=True, editable=False, db_index=True)
 
-    objects = GeoHStoreUDFManager()
+    objects = models.GeoManager()
+
+    def __init__(self, *args, **kwargs):
+        super(Species, self).__init__(*args, **kwargs)
+        self.populate_previous_state()
 
     @property
     def display_name(self):
@@ -534,6 +549,8 @@ class InstanceUser(Auditable, models.Model):
         super(InstanceUser, self).__init__(*args, **kwargs)
         self._do_not_track |= self.do_not_track
 
+        self.populate_previous_state()
+
     class Meta:
         unique_together = ('instance', 'user',)
 
@@ -587,7 +604,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     updated_by = models.ForeignKey(User, null=True, blank=True,
                                    verbose_name=_("Last Updated By"))
 
-    objects = GeoHStoreUDFManager()
+    objects = models.GeoManager()
 
     # subclass responsibilities
     area_field_name = None
@@ -914,7 +931,7 @@ class Plot(MapFeature, ValidationMixin):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True,
                                      verbose_name=_("Custom ID"))
 
-    objects = GeoHStoreUDFManager()
+    objects = models.GeoManager()
     is_editable = True
 
     _terminology = {'singular': _('Planting Site'),
@@ -1038,7 +1055,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     users_can_delete_own_creations = True
 
-    objects = GeoHStoreUDFManager()
+    objects = models.GeoManager()
 
     _stewardship_choices = ['Watered',
                             'Pruned',
@@ -1091,6 +1108,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     def __init__(self, *args, **kwargs):
         super(Tree, self).__init__(*args, **kwargs)
+        self.populate_previous_state()
 
     def dict(self):
         props = self.as_dict()
@@ -1231,7 +1249,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         if thing is None:
             return None
 
-        field, __, __, __ = MapFeaturePhoto._meta.get_field_by_name(field)
+        field = MapFeaturePhoto._meta.get_field(field)
 
         saved_rep = field.pre_save(self, thing)
         return str(saved_rep)
@@ -1449,3 +1467,7 @@ class ITreeCodeOverride(models.Model, Auditable):
 
     class Meta:
         unique_together = ('instance_species', 'region',)
+
+    def __init__(self, *args, **kwargs):
+        super(ITreeCodeOverride, self).__init__(*args, **kwargs)
+        self.populate_previous_state()

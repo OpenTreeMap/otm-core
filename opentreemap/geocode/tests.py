@@ -15,7 +15,7 @@ from django.http import HttpResponse
 
 class MockGeocodeRequest():
     def __init__(self, address, key):
-        self.REQUEST = {
+        self.GET = {
             'address': address,
             'key': key
         }

@@ -20,7 +20,7 @@ function HistoryApiMock() {
 
     function pushUrl(url) {
         _url = url;
-        _.invoke(_callbacks, 'apply');
+        _.invokeMap(_callbacks, 'apply');
     }
 
     return {
@@ -89,19 +89,19 @@ var urlStateTests = {
         urlState.init(context);
 
         urlState.setZoomLatLng({zoom: 1, lat: 2, lng: 3});
-        urlState.setModeName('scenarios');
+        urlState.setModeName('addTree');
         urlState.set('foo', 'bar');
 
         assert.equal(urlState.get('foo'), 'bar');
-        assert.equal(context.windowApi.getLocationHref(), '?z=1/2/3&m=scenarios&foo=bar');
+        assert.equal(context.windowApi.getLocationHref(), '?z=1/2/3&m=addTree&foo=bar');
     },
 
     'stateChangeStream': function(done) {
         var context = createContext();
-        context.windowApi.setLocationHref('?m=scenarios&foo=bar');
+        context.windowApi.setLocationHref('?m=addTree&foo=bar');
         urlState.stateChangeStream.take(1).onValue(function(state) {
             // Test state was initialized from URL.
-            assert.equal(state.modeName, 'scenarios');
+            assert.equal(state.modeName, 'addTree');
             assert.equal(state.foo, 'bar');
 
             // Predefined (aka magic) keys are also initialized with

@@ -1,6 +1,7 @@
 import re
 from django.http import HttpResponseRedirect
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ REQUIRED_PARAMETER_MSG = 'The request did not include %s'
 
 # Reference: http://djangosnippets.org/snippets/510/
 # Reference: http://djangosnippets.org/snippets/1147/
-class InternetExplorerRedirectMiddleware:
+class InternetExplorerRedirectMiddleware(MiddlewareMixin):
     """
     Sets `from_ie` and `ie_version` on the request. If the `ie_version` is
     less than `settings.IE_VERSION_MINIMUM` the response redirects to

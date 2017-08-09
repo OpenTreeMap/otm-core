@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from importer import routes
 
@@ -12,8 +12,7 @@ _ie_pattern = '(?P<import_event_id>\d+)'
 _import_api_pattern = _type_pattern + '/' + _ie_pattern
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', routes.list_imports, name='list_imports'),
     url(r'^table/(?P<table_name>\w+)/$', routes.get_import_table,
         name='get_import_table'),
@@ -37,4 +36,4 @@ urlpatterns = patterns(
 
     # API
     url(r'^api/merge$', routes.merge_species, name='merge'),
-)
+]

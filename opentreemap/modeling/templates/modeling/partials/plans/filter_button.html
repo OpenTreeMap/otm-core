@@ -1,0 +1,5 @@
+{% if current_filter == filter.name %}
+    <span class="filter-toggle active">{{ filter.label }}</span>
+{% else %}
+  	<a class="filter-toggle" href="{{ url_for_filter }}&filter={{ filter.name }}">{{ filter.label }}</a>
+{% endif %}

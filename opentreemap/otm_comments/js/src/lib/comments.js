@@ -15,10 +15,10 @@ module.exports = function(commentContainerSelector) {
     // Set up cross-site forgery protection
     $.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
-    function makeForm(options) {
+    function makeForm(data) {
         // We need to reload the comment form every time we use it, because it
         // contains security values that change whenever a comment is posted
-        return _.template($(TEMPLATE_SELECTOR).html(), options);
+        return _.template($(TEMPLATE_SELECTOR).html())(data);
     }
 
     function addMainForm() {

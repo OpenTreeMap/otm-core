@@ -65,7 +65,7 @@ ga('global.set', 'page', pathname);
             <button id="edit-user" data-class="display" class="btn btn-sm btn-info">{% trans "Edit Profile" %}</button>
             <button id="save-edit" data-class="edit" class="btn btn-sm btn-primary" style="display: none;">{% trans "Save" %}</button>
             <button id="cancel-edit" data-class="edit" class="btn btn-sm" style="display: none;">{% trans "Cancel" %}</button>
-            <a class="btn btn-sm" href="{% url 'django.contrib.auth.views.password_reset' %}">{% trans "Reset Password" %}</a>
+            <a class="btn btn-sm" href="{% url 'auth_password_reset' %}">{% trans "Reset Password" %}</a>
             {% endusercontent %}
             <form id="user-form">
                 {% for label, identifier, template in public_fields %}

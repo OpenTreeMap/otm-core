@@ -107,7 +107,8 @@ def force_obj_to_pk(obj):
 
 
 def get_ids_from_request(request):
-    ids_string = request.REQUEST.get('ids', None)
+    # Check both the POST & GET dictionaries
+    ids_string = request.POST.get('ids', request.GET.get('ids', None))
     if ids_string:
         return [int(id) for id in ids_string.split(',')]
     else:
@@ -115,7 +116,7 @@ def get_ids_from_request(request):
 
 
 def add_rollbar_handler(logger, level=logging.WARNING):
-    if settings.ROLLBAR_ACCESS_TOKEN is not None:
+    if settings.ROLLBAR_SERVER_ACCESS_TOKEN is not None:
         rollbar_handler = RollbarHandler()
         rollbar_handler.setLevel(level)
         logger.addHandler(rollbar_handler)

@@ -39,7 +39,7 @@ function initTypeaheads() {
             $hidden = $c.find(dom.resolver.species.hidden);
 
         // make sure this is a species popover
-        if (R.every(R.not(_.isEmpty), [$input, $hidden])) {
+        if (R.all(R.complement(_.isEmpty), [$input, $hidden])) {
             otmTypeahead.create({
                 name: "species-resolver",
                 template: dom.resolver.species.typeaheadRowTemplate,
@@ -75,7 +75,7 @@ function init($container, viewStatusStream) {
     var isSpeciesPopover = function ($el) { return $el.is('[data-field-name="species"]'); };
 
     popoverSaveStream.filter(isSpeciesPopover).onValue(updateSpeciesRow, $container);
-    popoverSaveStream.filter(R.not(isSpeciesPopover)).onValue(updateRow, $container);
+    popoverSaveStream.filter(R.complement(isSpeciesPopover)).onValue(updateRow, $container);
 
     containerLoadedStream.merge(viewStatusStream).onValue(popover.activateAll);
     $container.on(dom.resolver.events.shown, initTypeaheads);
@@ -106,7 +106,7 @@ function updateRow($container, $el) {
 
 function updateSpeciesRow($container, $el) {
     var rowData = getRowData($container, $el);
-    if (R.every(R.not(_.isEmpty), [rowData.fieldName, rowData.updatedValue])) {
+    if (R.all(R.complement(_.isEmpty), [rowData.fieldName, rowData.updatedValue])) {
         $container.load(rowData.url, {species_id: rowData.updatedValue}, popover.activateAll);
     } else {
         toastr.error("Cannot save empty species");
@@ -121,7 +121,7 @@ function getRowData($container, $el) {
         fieldName: fieldName,
         updatedValue: updatedValue,
         url: $el.attr('data-url'),
-        data: _.object([fieldName], [updatedValue])
+        data: _.zipObject([fieldName], [updatedValue])
     };
 }
 

@@ -51,5 +51,12 @@
         </span>
     {% endif %}
     </td>
+    {% if type == 'invite' %}
+    <td>
+        <a href="javascript:" data-toggle="modal" data-target="#remove-invite-modal" style="color: #DB6161">
+            <i class="icon-trash-1"></i>
+        </a>
+    </td>
+    {% endif %}
 </tr>
 {% endwith %}

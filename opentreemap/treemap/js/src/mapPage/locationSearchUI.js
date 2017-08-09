@@ -75,7 +75,7 @@ function completePolygon(newPolygon) {
     var lngLats = _.map(newPolygon.getLatLngs()[0], function (p) {
             return [p.lng, p.lat];
         }),
-        ring = lngLats.concat([_.take(lngLats)]),
+        ring = lngLats.concat(_.take(lngLats)),
         data = {polygon: ring},
         anonymousBoundaryStream = createAnonymousBoundary(data)
             .map(function (result) {

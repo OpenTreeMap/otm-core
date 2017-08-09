@@ -14,6 +14,7 @@ from django.http import Http404, HttpResponse
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.core import mail
+from django.template.loader import get_template
 
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -81,9 +82,7 @@ class StaticPageViewTest(ViewTestCase):
                                      instance=self.instance)
         self.staticPage.save()
 
-        p = Point(-8515941.0, 4953519.0)
-        self.otherInstance = Instance(name='i1', geo_rev=0, center=p)
-        self.otherInstance.seed_with_dummy_default_role()
+        self.otherInstance = make_instance()
 
     def test_can_get_page(self):
         # Note- case insensitive match
@@ -103,11 +102,11 @@ class StaticPageViewTest(ViewTestCase):
     def test_can_get_pre_defined_page(self):
         # Note- case insensitive match
         rslt = static_page(None, self.instance, "AbOUt")
+        content = get_template(StaticPage.DEFAULT_CONTENT['about']).render()
 
         self.assertIsNotNone(rslt['content'])
         self.assertIsNotNone(rslt['title'])
-        self.assertEqual(len(rslt['content']),
-                         len(StaticPage.DEFAULT_CONTENT['about']))
+        self.assertEqual(len(rslt['content']), len(content))
 
 
 class BoundaryViewTest(ViewTestCase):
@@ -323,8 +322,8 @@ class TreePhotoRotationTest(TreePhotoTestCase):
         self.assertNotEqual(old_photo.image.width, old_photo.image.height)
 
         context = rotate_map_feature_photo(
-            make_request({'degrees': '-90'}, user=self.user), self.instance,
-            self.plot.pk, old_photo.pk)
+            make_request({'degrees': '-90'}, user=self.user, method='POST'),
+            self.instance, self.plot.pk, old_photo.pk)
 
         rotated_photo = TreePhoto.objects.get(pk=old_photo.pk)
 
@@ -597,13 +596,21 @@ class PlotUpdateTest(OTMTestCase):
         set_write_permissions(self.instance, self.user,
                               'Plot', ['udf:Test choice', 'udf:Test col'])
         set_write_permissions(self.instance, self.user,
-                              'Tree', ['udf:Test col'])
+                              'Tree', ['udf:Test choice', 'udf:Test col'])
 
         self.choice_field = UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
             model_type='Plot',
             datatype=json.dumps({'type': 'choice',
                                  'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        self.tree_choice_field = UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Tree',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['foo', 'bar', 'baz']}),
             iscollection=False,
             name='Test choice')
 
@@ -667,6 +674,60 @@ class PlotUpdateTest(OTMTestCase):
 
         created_plot_update.current_tree().delete_with_user(self.user)
         created_plot_update.delete_with_user(self.user)
+
+    def test_does_not_create_tree_if_tree_field_value_is_an_empty_string(self):
+        plot = Plot(instance=self.instance)
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': ''}
+
+        created_plot, __ = update_map_feature(update, self.user, plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNone(created_plot_update.current_tree())
+
+        created_plot_update.delete_with_user(self.user)
+
+    def test_does_create_tree_when_one_tree_field_is_non_empty(self):
+        plot = Plot(instance=self.instance)
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': '',
+                  'tree.diameter': 7}
+
+        created_plot, updated_tree = update_map_feature(update, self.user,
+                                                        plot)
+
+        created_plot_update = Plot.objects.get(pk=created_plot.pk)
+        self.assertIsNotNone(created_plot_update.current_tree())
+        self.assertEqual(None, updated_tree.udfs['Test choice'])
+        self.assertEqual(7, updated_tree.diameter)
+
+        created_plot_update.current_tree().delete_with_user(self.user)
+        created_plot_update.delete_with_user(self.user)
+
+    def test_does_clear_field_if_tree_already_exists(self):
+        tree = Tree(plot=self.plot, instance=self.instance)
+        tree.udfs['Test choice'] = 'bar'
+        tree.save_with_user(self.user)
+
+        tree.refresh_from_db()
+        self.assertEqual('bar', tree.udfs['Test choice'])
+
+        update = {'plot.geom': {'x': 4, 'y': 9},
+                  'plot.readonly': False,
+                  'tree.udf:Test choice': None}
+
+        updated_plot, created_tree = update_map_feature(update, self.user,
+                                                        self.plot)
+
+        self.assertIsNotNone(created_tree)
+        self.assertEqual(None, created_tree.udfs['Test choice'])
+
+        updated_plot.current_tree().delete_with_user(self.user)
+        updated_plot.delete_with_user(self.user)
 
     def test_invalid_udf_name_fails(self):
         update = {'plot.udf:INVaLiD UTF': 'z'}
@@ -1933,7 +1994,8 @@ class ForgotUsernameTests(ViewTestCase):
         self.user = make_plain_user('joe')
 
     def test_sends_email_for_existing_user(self):
-        resp = forgot_username(make_request({'email': self.user.email}))
+        resp = forgot_username(make_request({'email': self.user.email},
+                                            method='POST'))
 
         self.assertEquals(resp, {'email': self.user.email})
 
@@ -1941,7 +2003,8 @@ class ForgotUsernameTests(ViewTestCase):
         self.assertIn(self.user.username, mail.outbox[0].body)
 
     def test_no_email_if_doesnt_exist(self):
-        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'}))
+        resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'},
+                                            method='POST'))
 
         self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
 

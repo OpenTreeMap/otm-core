@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from optparse import make_option
 import random
 import math
 
@@ -16,40 +15,44 @@ from treemap.management.util import InstanceDataCommand
 
 class Command(InstanceDataCommand):
 
-    option_list = InstanceDataCommand.option_list + (
-        make_option('-r', '--radius',
-                    action='store',
-                    type='int',
-                    dest='radius',
-                    default=5000,
-                    help='Number of meters from the center'),
-        make_option('-n', '--number-of-trees',
-                    action='store',
-                    type='int',
-                    dest='n',
-                    default=100000,
-                    help='Number of trees to create'),
-        make_option('-p', '--prob-of-tree',
-                    action='store',
-                    type='int',
-                    dest='ptree',
-                    default=50,
-                    help=('Probability that a given plot will '
-                          'have a tree (0-100)')),
-        make_option('-s', '--prob-of-species',
-                    action='store',
-                    type='int',
-                    dest='pspecies',
-                    default=50,
-                    help=('Probability that a given tree will '
-                          'have a species (0-100)')),
-        make_option('-D', '--prob-of-diameter',
-                    action='store',
-                    type='int',
-                    dest='pdiameter',
-                    default=10,
-                    help=('Probability that a given tree will '
-                          'have a diameter (0-100)')))
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+
+        parser.add_argument(
+            '-r', '--radius',
+            action='store',
+            type=int,
+            dest='radius',
+            default=5000,
+            help='Number of meters from the center'),
+        parser.add_argument(
+            '-n', '--number-of-trees',
+            action='store',
+            type=int,
+            dest='n',
+            default=100000,
+            help='Number of trees to create'),
+        parser.add_argument(
+            '-p', '--prob-of-tree',
+            action='store',
+            type=int,
+            dest='ptree',
+            default=50,
+            help='Probability that a given plot will have a tree (0-100)'),
+        parser.add_argument(
+            '-s', '--prob-of-species',
+            action='store',
+            type=int,
+            dest='pspecies',
+            default=50,
+            help='Probability that a given tree will have a species (0-100)'),
+        parser.add_argument(
+            '-D', '--prob-of-diameter',
+            action='store',
+            type=int,
+            dest='pdiameter',
+            default=10,
+            help='Probability that a given tree will have a diameter (0-100)')
 
     def handle(self, *args, **options):
         """ Create some seed data """
