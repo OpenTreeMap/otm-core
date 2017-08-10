@@ -22,7 +22,7 @@ from treemap.lib.object_caches import role_field_permissions
 from treemap.lib.udf import udf_create
 
 from treemap.instance import create_stewardship_udfs
-from treemap.udf import UserDefinedFieldDefinition
+from treemap.udf import UserDefinedFieldDefinition, UDFDictionary
 from treemap.models import Instance, Plot, User
 from treemap.audit import AuthorizeException, FieldPermission, Role
 from treemap.tests.base import OTMTestCase
@@ -47,6 +47,33 @@ def make_collection_udf(instance, name='Stewardship', model='Plot',
         datatype=json.dumps(datatype),
         iscollection=True,
         name=name)
+
+
+class UDFDictionaryTestCase(OTMTestCase):
+    def setUp(self):
+        self.p = Point(0, 0)
+        self.instance = make_instance(point=self.p)
+        UserDefinedFieldDefinition.objects.create(
+            instance=self.instance,
+            model_type='Plot',
+            datatype=json.dumps({'type': 'choice',
+                                 'choices': ['a', 'b', 'c']}),
+            iscollection=False,
+            name='Test choice')
+
+        self.plot = self.plot = Plot(geom=self.p, instance=self.instance)
+        self.d = UDFDictionary()
+        self.d.set_model_instance(self.plot)
+
+    def test_set_item_to_none_removes_key(self):
+        self.d['Test choice'] = 'a'
+        self.assertEqual(1, len(self.d.keys()))
+        self.d['Test choice'] = None
+        self.assertEqual(0, len(self.d.keys()))
+
+    def test_setting_nonexistant_key_to_none_is_a_noop(self):
+        # Should not raise an error
+        self.d['Test choice'] = None
 
 
 class ScalarUDFTestCase(OTMTestCase):
