@@ -1,9 +1,13 @@
-{% load i18n %}
-{% load instance_config %}
+{% load i18n l10n instance_config %}
 
-<div data-mapfeature-type="{{ feature.feature_type }}" id="map-feature-popup">
-    <div class="popup-content">
-        <h4>{{ title }}</h4>
+<div id="map-feature-popup">
+{% for map_feature in features %}
+{% with feature=map_feature.cast_to_subtype %}
+    <div class="popup-content {% if not forloop.first %}hidden{% endif %}"
+         data-mapfeature-type="{{ feature.feature_type }}"
+         data-feature-id="{{ feature.pk|unlocalize }}"
+         data-x="{{ feature.geom.x|unlocalize }}" data-y="{{ feature.geom.y|unlocalize }}">
+        <h4>{{ feature.title }}</h4>
         {% if feature.address_full %}
             <div>
                 <strong>{% trans "Nearby Address:" %}</strong>
@@ -11,17 +15,32 @@
             {{ feature.address_full }}
         {% endif %}
         {% include 'treemap/partials/canopy_percentages.html' %}
-    </div>
-    <div>
-        <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
-           class="btn btn-sm btn-secondary">{% trans "More Details" %}</a>
+        <div class="popup-btns">
+            <a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=feature.pk %}"
+               class="btn btn-sm btn-secondary">{% trans "More Details" %}</a>
 
-        {% if feature.is_plot or feature.is_editable %}
             <a disabled="disabled"
+               {% if not feature.is_plot and not feature.is_editable %}
+               style="visibility: hidden;"
+               {% endif %}
                data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
                data-disabled-title="{% trans "Editing a tree's details is not available to all users" %}"
                data-href="{% url 'map_feature_detail_edit' instance_url_name=request.instance.url_name feature_id=feature.pk edit='edit' %}"
                class="btn btn-sm btn-info">{% trans "Edit" %}</a>
-        {% endif %}
+
+            {% if features|length > 1 %}
+            <div class="popup-paging">
+                <button class="btn btn-sm prev" {% if forloop.first %}disabled=disabled{% endif %}>
+                    <i class="icon-left-dir"></i>
+                </button>
+                <span>{{ forloop.counter }} of {{ features|length }}</span>
+                <button class="btn btn-sm next" {% if forloop.last %}disabled=disabled{% endif %}>
+                    <i class="icon-right-dir"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
+{% endwith %}
+{% endfor %}
 </div>

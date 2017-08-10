@@ -794,6 +794,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             tree_hashes = [t.hash for t in self.plot.tree_set.all()]
             string_to_hash += "," + ",".join(tree_hashes)
 
+        # Need to include nearby features in the hash, as they are in the
+        # detail sidebar & popup.
+        for feature in self.nearby_map_features():
+            string_to_hash += "," + str(feature.pk)
+
         return hashlib.md5(string_to_hash).hexdigest()
 
     def title(self):
@@ -855,6 +860,17 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return self.current_tree()
         else:
             return None
+
+    def nearby_map_features(self, distance_in_meters=None):
+        if distance_in_meters is None:
+            distance_in_meters = settings.NEARBY_TREE_DISTANCE
+
+        distance_filter = MapFeature.objects.filter(
+            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
+
+        return distance_filter\
+            .filter(instance=self.instance)\
+            .exclude(pk=self.pk)
 
     def __unicode__(self):
         geom = getattr(self, 'geom', None)
@@ -975,15 +991,8 @@ class Plot(MapFeature, ValidationMixin):
         return TreeBenefitsCalculator()
 
     def nearby_plots(self, distance_in_meters=None):
-        if distance_in_meters is None:
-            distance_in_meters = settings.NEARBY_TREE_DISTANCE
-
-        distance_filter = Plot.objects.filter(
-            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
-
-        return distance_filter\
-            .filter(instance=self.instance)\
-            .exclude(pk=self.pk)
+        return self.nearby_map_features(distance_in_meters)\
+            .filter(feature_type='Plot')
 
     def get_tree_history(self):
         """
