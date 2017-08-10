@@ -1234,7 +1234,8 @@ class UDFDictionary(dict):
             self.instance.dirty_collection_udfs.add(key)
             self.collection_fields[key] = val
         elif val == '' or val is None:
-            self.__delitem__(key)
+            if key in self:
+                self.__delitem__(key)
         elif isinstance(val, Iterable) and 0 == len(val):
             self.__delitem__(key)
         else:
