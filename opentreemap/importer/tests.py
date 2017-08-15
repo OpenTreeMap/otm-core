@@ -1499,6 +1499,36 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(p1_geom.y*100), 3109)
 
 
+    def test_import_updates_updated_at_fields(self):
+        original_creator = make_admin_user(self.instance, username='original_creator')
+        p1 = mkPlot(self.instance, original_creator)
+        t1 = mkTree(self.instance, original_creator)
+
+        p1_original_updated_at = p1.updated_at
+        p2_original_updated_at = t1.plot.updated_at
+
+        self.assertEqual(p1.updated_by, original_creator)
+        self.assertEqual(t1.plot.updated_by, original_creator)
+
+        csv = """
+        | point x | point y | planting site id | tree id |
+        | 45.53   | 31.1    | %s               |         |
+        | 45.53   | 31.1    |                  | %s      |
+        """ % (p1.pk, t1.pk)
+
+        self.run_through_commit_views(csv)
+
+        p1.refresh_from_db()
+        t1.refresh_from_db()
+        t1.plot.refresh_from_db()
+
+        self.assertEqual(p1.updated_by, self.user)
+        self.assertEqual(t1.plot.updated_by, self.user)
+
+        self.assertGreater(p1.updated_at, p1_original_updated_at)
+        self.assertGreater(t1.plot.updated_at, p2_original_updated_at)
+
+
     def test_swap_locations_using_otm_id(self):
         center = self.instance.center
         self.assertEqual(3857, center.srid)
