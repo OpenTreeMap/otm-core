@@ -176,6 +176,12 @@
             white-space: nowrap;
             margin-top: -2px;
             padding-bottom: 1px;
+
+            .prioritization-link {
+                position: absolute;
+                right: 2px;
+                top: 0;
+            }
         }
 
         #scenario-buttons {
