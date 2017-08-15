@@ -72,7 +72,7 @@ def index(request, instance):
 
 def get_map_view_context(request, instance):
     if request.user and not request.user.is_anonymous():
-        iuser = request.user.get_instance_user(instance)
+        iuser = request.user.get_effective_instance_user(instance)
         resource_classes = [resource for resource in instance.resource_classes
                             if map_feature_is_creatable(iuser, resource)]
     else:
