@@ -224,6 +224,7 @@ class TreeImportRow(GenericImportRow):
 
         if plot_edited:
             plot.save_with_system_user_bypass_auth()
+            plot.update_updated_fields(ie.owner)
 
     def _commit_tree_data(self, data, plot, tree, tree_edited):
         for tree_attr, field_name in TreeImportRow.TREE_MAP.iteritems():
@@ -250,6 +251,7 @@ class TreeImportRow(GenericImportRow):
         if tree_edited:
             tree.plot = plot
             tree.save_with_system_user_bypass_auth()
+            tree.plot.update_updated_fields(ie.owner)
 
     def validate_geom(self):
         x = self.cleaned.get(fields.trees.POINT_X, None)
