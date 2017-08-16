@@ -27,10 +27,8 @@ from treemap.audit import Authorizable, add_default_permissions
 from treemap.util import leaf_models_of_class
 from treemap.tests.base import OTMTestCase
 
-from djcelery.contrib.test_runner import CeleryTestSuiteRunner
 
-
-class OTM2TestRunner(CeleryTestSuiteRunner, DiscoverRunner):
+class OTM2TestRunner(DiscoverRunner):
 
     def run_tests(self, *args, **kwargs):
         logging.disable(logging.CRITICAL)

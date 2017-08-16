@@ -10,6 +10,9 @@ test_settings = {
     # Without this we'd need to invalidate the cache before every test.
     'USE_OBJECT_CACHES': False,
     'USE_ECO_CACHE': False,
+
+    'CELERY_TASK_ALWAYS_EAGER': True,
+    'CELERY_TASK_EAGER_PROPAGATES': True
 }
 
 
