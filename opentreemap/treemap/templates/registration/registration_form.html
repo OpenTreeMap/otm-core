@@ -25,7 +25,7 @@
         -->
         {% csrf_token %}
         <legend>{% trans "Create an Account" %}
-            <a href="{% url 'auth_login' %}" class="pull-right">{% trans "I already have an account" %}</a>
+            <a href="{% url 'auth_login' %}">{% trans "I already have an account" %}</a>
         </legend>
         <h5>Fields marked with an asterisk (*) are required.</h5>
         {% for field in form %}
