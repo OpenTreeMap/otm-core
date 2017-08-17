@@ -258,7 +258,7 @@ STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
 CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
 CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 CELERY_TASK_SERIALIZER = 'pickle'
-CELERY_ACCEPT_CONTENT = ['pickle']
+CELERY_ACCEPT_CONTENT = ['pickle', 'application/json']
 
 ROOT_URLCONF = 'opentreemap.urls'
 

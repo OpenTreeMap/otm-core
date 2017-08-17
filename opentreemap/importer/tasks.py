@@ -6,6 +6,7 @@ from __future__ import division
 import json
 
 from celery import shared_task, chord
+from celery.result import GroupResult
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.db import transaction
@@ -99,10 +100,13 @@ def run_import_event_validation(import_type, import_event_id, file_obj):
         final_task = _finalize_validation.si(import_type, import_event_id)
 
         async_result = chord(validation_tasks, final_task).delay()
-        group_result = async_result.parent
-        if group_result:  # Has value None when run in unit tests
-            group_result.save()
-            ie.task_id = group_result.id
+        async_result_parent = async_result.parent
+        if async_result_parent:  # Has value None when run in unit tests
+            # Celery 4 converts a chord with only one task in the head into
+            # a simple chain, which does not have a savable parent GroupResult
+            if isinstance(async_result_parent, GroupResult):
+                async_result_parent.save()
+            ie.task_id = async_result_parent.id
 
         _assure_status_is_at_least_verifying(ie)
 
