@@ -22,7 +22,7 @@
         }
     }
     legend {
-        padding: 0 20px 15px 20px;
+        padding: 0 20px 0 20px;
         font-size: 2.4rem;
         font-weight: 300;
         color: $main-text-color;
@@ -33,9 +33,19 @@
             font-size: 1.4rem;
             color: $primary-color;
             line-height: 4.4rem;
+            width: 100%;
+            display: block;
 
             &:hover {
                 color: darken($primary-color, 10%);
+            }
+        }
+        @media screen and (min-width: 766px) {
+            padding-bottom: 15px;
+
+            > a {
+                float: right;
+                width: auto;
             }
         }
     }
@@ -64,22 +74,24 @@
                 }
             }
         }
-        div.field-left {
-            display: inline-block;
-            width: 49%;
-            padding-right: 8px;
+        @media screen and (min-width: 766px) {
+            div.field-left {
+                display: inline-block;
+                width: 49%;
+                padding-right: 8px;
 
-            .errorlist {
-                position: absolute;
+                .errorlist {
+                    position: absolute;
+                }
             }
-        }
-        div.field-right {
-            display: inline-block;
-            width: 50%;
-            padding-left: 8px;
+            div.field-right {
+                display: inline-block;
+                width: 50%;
+                padding-left: 8px;
 
-            .errorlist {
-                position: absolute;
+                .errorlist {
+                    position: absolute;
+                }
             }
         }
         div.section-header {
