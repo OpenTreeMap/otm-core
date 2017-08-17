@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from celery import task
+from celery import shared_task
 from django.db import transaction
 from django.utils.timezone import now
 from django.conf import settings
@@ -44,13 +44,13 @@ def _get_handler_path_for_event(event):
                                  DEFAULT_HANDLER_PATH)
 
 
-@task
+@shared_task
 def queue_events_to_be_handled():
     for event in AppEvent.objects.filter(handler_assigned_at=None):
         handle_event.delay(event.pk)
 
 
-@task
+@shared_task
 def handle_event(event_id):
     event = _lookup_and_assign_handler(event_id)
     if event is None:

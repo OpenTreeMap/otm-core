@@ -41,9 +41,3 @@ RESERVED_INSTANCE_URL_NAMES += EXTRA_RESERVED_INSTANCE_URL_NAMES
 
 DISPLAY_DEFAULTS.update(EXTRA_DISPLAY_DEFAULTS)
 STORAGE_UNITS.update(EXTRA_STORAGE_UNITS)
-
-# CELERY
-# NOTE: BROKER_URL and CELERY_RESULT_BACKEND must be set
-#       to a valid redis URL in local_settings.py
-import djcelery
-djcelery.setup_loader()

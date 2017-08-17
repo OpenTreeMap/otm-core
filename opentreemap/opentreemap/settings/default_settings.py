@@ -254,8 +254,11 @@ if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
 # STATSD_CELERY_SIGNALS = True
 
 STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
-CELERY_DEFAULT_QUEUE = STACK_COLOR
-CELERY_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+
+CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
+CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+CELERY_TASK_SERIALIZER = 'pickle'
+CELERY_ACCEPT_CONTENT = ['pickle', 'application/json']
 
 ROOT_URLCONF = 'opentreemap.urls'
 
@@ -295,7 +298,6 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django.contrib.humanize',
     'django.contrib.postgres',
-    'djcelery',
     'django_js_reverse',
     'webpack_loader',
 )
