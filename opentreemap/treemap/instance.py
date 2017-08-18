@@ -101,6 +101,7 @@ def add_species_to_instance(instance):
 
 
 PERMISSION_VIEW_EXTERNAL_LINK = 'view_external_link'
+PERMISSION_MODELING = 'modeling'
 
 
 # Don't call this function directly, call plugin.get_instance_permission_spec()
@@ -113,6 +114,12 @@ def get_instance_permission_spec(instance=None):
                              'of a tree or map feature'),
             'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR],
             'label': _('Can View External Link')
+        },
+        {
+            'codename': PERMISSION_MODELING,
+            'description': _('Can access modeling page'),
+            'default_role_names': [Role.ADMINISTRATOR],
+            'label': _('Can Access Modeling')
         }
     ]
 
