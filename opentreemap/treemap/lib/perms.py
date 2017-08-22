@@ -145,7 +145,7 @@ def is_read_or_write(perm_string):
     return perm_string in [READ, WRITE]
 
 
-def is_deletable(instanceuser, obj):
+def _is_deletable(instanceuser, obj):
     # Have to ask if a specific user can delete a specific object
     # because even if the specific user's role cannot delete instances
     # of the object's class, the original creator of the object can,
@@ -154,6 +154,23 @@ def is_deletable(instanceuser, obj):
         return False
     else:
         return obj.user_can_delete(instanceuser.user)
+
+
+def is_deletable(instanceuser, obj):
+    return _is_deletable(instanceuser, obj)
+
+
+def photo_is_deletable(instanceuser, photo):
+    # TreePhoto needs the version user_can_create and user_can_delete
+    # defined in Authorizable, which is a base class for PendingAuditable,
+    # which is one of the base classes for MapFeaturePhoto.
+    #
+    # MapFeaturePhoto, used as a leaf class, overrides these methods
+    # in an incompatible way.
+    #
+    # So skip over the MapFeaturePhoto version by calling
+    # MapFeaturePhoto's superclass.
+    return _is_deletable(instanceuser, super(MapFeaturePhoto, photo))
 
 
 def udf_write_level(instanceuser, udf):
