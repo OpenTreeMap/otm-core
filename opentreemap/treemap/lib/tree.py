@@ -44,4 +44,7 @@ def add_tree_photo_helper(request, instance, feature_id, tree_id=None):
     data = get_image_from_request(request)
     treephoto = tree.add_photo(data, request.user)
 
+    # We must update a rev so that missing photo searches are up to date
+    instance.update_universal_rev()
+
     return treephoto, tree
