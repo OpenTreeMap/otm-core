@@ -378,7 +378,11 @@ module.exports = exports = {
                     return !(datum && datum.magicKey);
                 })
                 .map(Search.buildSearch),
-            resetStream = $(dom.resetButton).asEventStream("click"),
+            resetStream = $(dom.resetButton)
+                .asEventStream("click")
+                // We must also clear the location search box to avoid
+                // an inconsistent state when clicking reset after a geocode.
+                .doAction(function () { locationTypeahead.clear(); }),
             uSearch = udfcSearch.init(resetStream),
             searchChangedStream = Bacon
                 .mergeAll(searchStream, resetStream)
