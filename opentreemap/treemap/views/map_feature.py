@@ -56,7 +56,10 @@ def _request_to_update_map_feature(request, feature):
 def _add_map_feature_photo_helper(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     data = get_image_from_request(request)
-    return feature.add_photo(data, request.user)
+    photo = feature.add_photo(data, request.user)
+    # We must update a rev so that missing photo searches are up to date
+    instance.update_universal_rev()
+    return photo
 
 
 def get_photo_context_and_errors(fn):
