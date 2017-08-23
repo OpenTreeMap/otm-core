@@ -17,7 +17,7 @@
         data-endpoint="{% url 'map_feature_photo' instance_url_name=request.instance.url_name feature_id=photo.map_feature photo_id=photo.id %}">
       <img src="{{ photo.thumbnail }}" alt="{% trans 'Photo number' %} {{ forloop.counter }}">
     </a>
-    {% if last_effective_instance_user|is_deletable:photo.raw %}
+    {% if last_effective_instance_user|photo_is_deletable:photo.raw %}
     <a class="delete-photo" title="{% trans 'Delete photo number' %} {{ forloop.counter }}"
         data-toggle="modal" href="#photo-lightbox"><i class="icon-trash-1"></i>
     </a>
