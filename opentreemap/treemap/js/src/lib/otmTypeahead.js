@@ -63,6 +63,7 @@ var create = exports.create = function(options) {
         $hidden_input = $(options.hidden),
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : getSortFunction(['value']),
+        lastSelection = null,
 
         setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
             if (!key) {
@@ -223,6 +224,13 @@ var create = exports.create = function(options) {
 
         enginePostActionBus = new Bacon.Bus();
 
+    // Keep track of when an item is selected from the typeahead menu
+    // to avoid a redundant call to `autocomplete` that could mistakenly
+    // change the selected value.
+    $input.bind('typeahead:select', function(ev, suggestion) {
+        lastSelection = suggestion;
+    });
+
     selectStream.onValue(function() {
         // After the user selects a field, blur the input so that any soft
         // keyboards that are open will close (mobile)
@@ -298,9 +306,14 @@ var create = exports.create = function(options) {
 
     return {
         autocomplete: function () {
+            var top, success;
             if ($input.val()) {
-                var top = $input.data('ttTypeahead').menu.getTopSelectable(),
+                if (lastSelection && lastSelection.value == $input.val()) {
+                    success = true;
+                } else {
+                    top = $input.data('ttTypeahead').menu.getTopSelectable();
                     success = $input.typeahead('autocomplete', top);
+                }
                 if (!success) {
                     $input.removeData('datum');
                 }
