@@ -121,6 +121,7 @@ class TreeImportRow(GenericImportRow):
 
     class Meta:
         app_label = 'importer'
+        index_together = ('import_event', 'idx')
 
     @property
     def model_fields(self):
