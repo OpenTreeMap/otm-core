@@ -149,8 +149,8 @@ def species_list(request, instance):
 
     species_qs = instance.scope_model(Species)\
                          .order_by('common_name')\
-                         .values('common_name', 'genus',
-                                 'species', 'cultivar', 'id')
+                         .values('common_name', 'genus', 'species', 'cultivar',
+                                 'other_part_of_name', 'id')
 
     if max_items:
         species_qs = species_qs[:max_items]
@@ -160,7 +160,8 @@ def species_list(request, instance):
         names = (species['common_name'],
                  species['genus'],
                  species['species'],
-                 species['cultivar'])
+                 species['cultivar'],
+                 species['other_part_of_name'])
 
         tokens = set()
 
@@ -174,7 +175,8 @@ def species_list(request, instance):
     def annotate_species_dict(sdict):
         sci_name = Species.get_scientific_name(sdict['genus'],
                                                sdict['species'],
-                                               sdict['cultivar'])
+                                               sdict['cultivar'],
+                                               sdict['other_part_of_name'])
 
         display_name = "%s [%s]" % (sdict['common_name'],
                                     sci_name)
