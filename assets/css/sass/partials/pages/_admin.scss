@@ -64,9 +64,14 @@
                     }
                 }
 
+                td:not(:first-child) {
+                    max-width: 200px;
+                }
                 .brand {
                     color: $paper;
-                    padding: .5em .5em .5em 0;
+                    padding: .5em .5em .5em 4px;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
             }
 
