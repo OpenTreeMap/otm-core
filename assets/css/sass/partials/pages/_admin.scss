@@ -19,7 +19,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            bottom: 0;
+            bottom: 40px;
             background-color: $dark-primary;
             overflow: hidden;
             width: 250px;
@@ -35,6 +35,11 @@
 
             .full-section {
                 overflow: hidden;
+            }
+            .table-scroll {
+                overflow-y: auto;
+                overflow-x: hidden;
+                height: calc(100% - 49px);
             }
 
             .map-switcher {
@@ -88,11 +93,11 @@
                     padding-left: 16px;
 
 
-                    li.active  a {
+                    li.active > a {
                         color: $paper;
                     }
 
-                    li a {
+                    li > a {
                         padding: 10px 0 0 0;
                         white-space: nowrap;
 
@@ -104,6 +109,9 @@
                         .label-notification {
                             position: static;
                         }
+                    }
+                    li:last-child > a {
+                        padding-bottom: 10px;
                     }
                 }
 
@@ -140,7 +148,7 @@
 
                         i {
                             position: absolute;
-                            right: 5px;
+                            right: 0;
                         }
                     }
 
@@ -293,7 +301,7 @@
         .tab-list, .brand-icon {
             width: 25px;
 
-            .full-section {
+            .full-section:not(.brand) {
                 height: 22px;
                 width: 0%;
                 transition: width 500ms ease-in-out;
