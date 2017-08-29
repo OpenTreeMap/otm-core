@@ -20,6 +20,7 @@ var $ = require('jquery'),
     reverse = require('reverse'),
     config = require('treemap/lib/config.js'),
     stickyTitles = require('treemap/lib/stickyTitles.js'),
+    urlState = require('treemap/lib/urlState.js'),
     toastr = require('toastr'),
     mapManager = new MapManager();
 
@@ -386,7 +387,9 @@ module.exports = exports = {
             uSearch = udfcSearch.init(resetStream),
             searchChangedStream = Bacon
                 .mergeAll(searchStream, resetStream)
-                .map(true);
+                .map(true),
+
+            firstPageLoad = true;
 
         geocodedLocationStream.onError(showGeocodeError);
         initSearchUi(searchStream);
@@ -415,6 +418,16 @@ module.exports = exports = {
                 Search.applySearchToDom(search);
                 uSearch.applyFilterObjectToDom(search);
                 updateUi(search);
+                if (firstPageLoad) {
+                    firstPageLoad = false;
+                    if (search.address && $(dom.locationSearchTypeahead).val() == search.address) {
+                        locationTypeahead.getGeocodeDatums(search.address, function(datums) {
+                            if (datums.length > 0) {
+                                ui.triggerGeocode(datums[0]);
+                            }
+                        });
+                    }
+                }
             }
         };
     }

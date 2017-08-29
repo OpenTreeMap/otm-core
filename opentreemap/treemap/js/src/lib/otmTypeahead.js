@@ -319,6 +319,13 @@ var create = exports.create = function(options) {
                 }
             }
         },
+        getGeocodeDatums: function(val, cb) {
+            if (geocoderEngine) {
+                geocoderEngine.initialize().done(function() {
+                    geocoderEngine.search($input.val(), $.noop, cb);
+                });
+            }
+        },
         getDatum: function() {
             return exports.getDatum($input);
         },

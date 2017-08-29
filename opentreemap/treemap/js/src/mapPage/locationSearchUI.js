@@ -135,5 +135,6 @@ module.exports = {
     showDrawAreaControls: _.partial(showControls, dom.controls.drawArea),
     showCustomAreaControls: _.partial(showControls, dom.controls.customArea),
     showEditAreaControls: _.partial(showControls, dom.controls.editArea),
-    clearCustomArea: clearCustomArea
+    clearCustomArea: clearCustomArea,
+    showAppropriateWellButton: showAppropriateWellButton
 };
