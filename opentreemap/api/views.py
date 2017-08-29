@@ -309,6 +309,7 @@ plots_endpoint = instance_api_do(
               login_required,
               creates_instance_user,
               transform_plot_update_dict,
+              return_400_if_validation_errors,
               update_or_create_plot)))
 
 
@@ -317,7 +318,8 @@ plot_endpoint = instance_api_do(
           ELSE=do(login_required,
                   creates_instance_user,
                   route(
-                      PUT=update_or_create_plot,
+                      PUT=do(return_400_if_validation_errors,
+                             update_or_create_plot),
                       DELETE=remove_plot))))
 
 species_list_endpoint = instance_api_do(
