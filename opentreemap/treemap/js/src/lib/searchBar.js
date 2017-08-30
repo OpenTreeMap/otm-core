@@ -421,11 +421,7 @@ module.exports = exports = {
                 if (firstPageLoad) {
                     firstPageLoad = false;
                     if (search.address && $(dom.locationSearchTypeahead).val() == search.address) {
-                        locationTypeahead.getGeocodeDatums(search.address, function(datums) {
-                            if (datums.length > 0) {
-                                ui.triggerGeocode(datums[0]);
-                            }
-                        });
+                        locationTypeahead.getGeocodeDatum(search.address, ui.triggerGeocode);
                     }
                 }
             }
