@@ -73,6 +73,9 @@ var serializers = {
         if (state.search && state.search.display) {
             query.show = JSON.stringify(state.search.display);
         }
+        if (state.search && state.search.address) {
+            query.a = state.search.address;
+        }
     },
 
     modeName: function(state, query) {
@@ -112,6 +115,11 @@ var deserializers = {
     show: function(newState, query) {
         newState.search = newState.search || {};
         newState.search.display = query.show ? JSON.parse(query.show) : undefined;
+    },
+
+    a: function(newState, query) {
+        newState.search = newState.search || {};
+        newState.search.address = query.a || undefined;
     },
 
     m: function(newState, query) {

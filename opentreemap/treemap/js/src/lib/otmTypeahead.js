@@ -228,7 +228,7 @@ var create = exports.create = function(options) {
     // to avoid a redundant call to `autocomplete` that could mistakenly
     // change the selected value.
     $input.bind('typeahead:select', function(ev, suggestion) {
-        lastSelection = suggestion;
+        lastSelection = suggestion.value;
     });
 
     selectStream.onValue(function() {
@@ -308,7 +308,7 @@ var create = exports.create = function(options) {
         autocomplete: function () {
             var top, success;
             if ($input.val()) {
-                if (lastSelection && lastSelection.value == $input.val()) {
+                if (lastSelection === $input.val()) {
                     success = true;
                 } else {
                     top = $input.data('ttTypeahead').menu.getTopSelectable();
@@ -317,6 +317,19 @@ var create = exports.create = function(options) {
                 if (!success) {
                     $input.removeData('datum');
                 }
+            }
+        },
+        getGeocodeDatum: function(val, cb) {
+            if (geocoderEngine) {
+                geocoderEngine.initialize().done(function() {
+                    geocoderEngine.search($input.val(), $.noop, function(datums) {
+                        if (datums.length > 0) {
+                            lastSelection = datums[0].text;
+                            $input.data('datum', datums[0]);
+                            cb(datums[0]);
+                        }
+                    });
+                });
             }
         },
         getDatum: function() {

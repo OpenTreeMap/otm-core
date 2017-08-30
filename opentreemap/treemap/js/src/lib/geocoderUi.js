@@ -21,14 +21,20 @@ module.exports = function (options) {
             inputs: inputs,
             button: options.searchButton
         }),
+
+        manualUpdates = new Bacon.Bus(),
+
         triggerSearchStream = Bacon.mergeAll(
             enterOrClickStream,
             Bacon.mergeAll(_.map(typeaheads, 'selectStream'))
         ),
 
-        geocodeCandidateStream = triggerSearchStream
-            .flatMap(getDatum)
-            .filter(_.identity),  // ignore false values
+        geocodeCandidateStream = Bacon.mergeAll(
+            triggerSearchStream
+                .flatMap(getDatum)
+                .filter(_.identity),  // ignore false values
+            manualUpdates
+        ),
         gcoder = geocoder(),
         geocodedLocationStream = gcoder.geocodeStream(geocodeCandidateStream, options.forStorage);
 
@@ -40,7 +46,10 @@ module.exports = function (options) {
 
     return {
         geocodedLocationStream: geocodedLocationStream,
-        triggerSearchStream: triggerSearchStream
+        triggerSearchStream: triggerSearchStream,
+        triggerGeocode: function(datum) {
+            manualUpdates.push(datum);
+        }
     };
 
     function getDatum() {
