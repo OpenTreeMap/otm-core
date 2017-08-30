@@ -60,6 +60,12 @@ function calculateDiameterFromMultiple(diameters) {
         summedSquares = _.reduce(squares, function (x, y) { return x + y; }, 0),
         totalDiameter = Math.sqrt(summedSquares);
 
+    // Above method will make total diameter positive even if there are negative values.
+    // We'd rather they be reported as negative and show error validation
+    if (_.some(diameters, function(d) { return d < 0; })) {
+        totalDiameter = -totalDiameter;
+    }
+
     return totalDiameter;
 }
 
