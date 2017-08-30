@@ -469,13 +469,19 @@ class Instance(models.Model):
         # To get a unique thumbprint across instances and species updates
         # we use the instance's url_name, latest species update time, and
         # species count (to handle deletions).
+        #
+        # Note: On 8/28/17, added a version to invalidate cache after changing
+        # data included in scientific name
         from treemap.models import Species
         my_species = Species.objects \
             .filter(instance_id=self.id) \
             .order_by('-updated_at')
+        version = 1
         if my_species.exists():
-            return "%s_%s_%s" % (
-                self.url_name, my_species.count(), my_species[0].updated_at)
+            return "%s_%s_%s_%s" % (
+                self.url_name, my_species.count(), my_species[0].updated_at,
+                version
+            )
         else:
             return self.url_name
 

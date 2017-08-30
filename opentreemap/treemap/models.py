@@ -491,19 +491,20 @@ class Species(PendingAuditable, models.Model):
         return "%s [%s]" % (self.common_name, self.scientific_name)
 
     @classmethod
-    def get_scientific_name(clazz, genus, species, cultivar):
+    def get_scientific_name(clz, genus, species, cultivar, other_part_of_name):
         name = genus
         if species:
             name += " " + species
+        if other_part_of_name:
+            name += " " + other_part_of_name
         if cultivar:
             name += " '%s'" % cultivar
         return name
 
     @property
     def scientific_name(self):
-        return Species.get_scientific_name(self.genus,
-                                           self.species,
-                                           self.cultivar)
+        return Species.get_scientific_name(
+            self.genus, self.species, self.cultivar, self.other_part_of_name)
 
     def dict(self):
         props = self.as_dict()
