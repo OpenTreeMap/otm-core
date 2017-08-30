@@ -254,6 +254,13 @@ var create = exports.create = function(options) {
                 setTypeahead($input, '');
             }
         });
+        if (options.hidden) {
+            $input.on('input', function() {
+                if ($input.data('datum') === undefined) {
+                    $hidden_input.val('');
+                }
+            });
+        }
     }
     // Set data-unmatched to the input value if the value was not
     // matched to a typeahead datum. Allows for external code to take
