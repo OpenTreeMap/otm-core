@@ -75,6 +75,9 @@ function redirectToSearchPage(filters, latLng) {
     if (latLng) {
         query += '&z=' + mapManager.ZOOM_PLOT + '/' + latLng.lat + '/' + latLng.lng;
     }
+    if (filters.address) {
+        query += '&a=' + filters.address;
+    }
     window.location.href = reverse.map(config.instance.url_name) + '?' + query;
 }
 
