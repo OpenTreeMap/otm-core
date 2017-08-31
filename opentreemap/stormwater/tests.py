@@ -50,11 +50,11 @@ class ResourcePermsTest(PermissionsTestCase):
         rainbarrel.refresh_from_db()
         return MapFeature.objects.get(pk=rainbarrel.pk)
 
-    def test_map_feature_is_creatable(self):
+    def test_model_is_creatable(self):
         self._add_builtin_permission(self.role_yes, RainBarrel,
                                      'add_rainbarrel')
         self.assertTrue(
-            perms.map_feature_is_creatable(self.role_yes, RainBarrel))
+            perms.model_is_creatable(self.role_yes, RainBarrel))
 
     def test_any_resource_is_creatable(self):
         self._add_builtin_permission(self.role_yes, RainBarrel,
@@ -64,7 +64,7 @@ class ResourcePermsTest(PermissionsTestCase):
 
     def test_map_feature_is_not_creatable(self):
         self.assertFalse(
-            perms.map_feature_is_creatable(self.role_no, RainBarrel))
+            perms.model_is_creatable(self.role_no, RainBarrel))
 
     def test_no_resource_is_creatable(self):
         self.assertFalse(
