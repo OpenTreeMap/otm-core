@@ -29,7 +29,7 @@ def transform_plot_update_dict(plot_update_fn):
     def wrapper(request, *args, **kwargs):
         plot_dict = plot_update_fn(request, *args, **kwargs)
 
-        if request.api_version < 5:
+        if request.api_version < 5 and 'universalRevHash' in plot_dict:
             plot_dict['geoRevHash'] = plot_dict['universalRevHash']
             del plot_dict['universalRevHash']
         return plot_dict
