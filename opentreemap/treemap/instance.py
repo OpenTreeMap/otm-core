@@ -9,6 +9,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
@@ -162,7 +163,10 @@ class InstanceBounds(models.Model):
         web_mercator = SpatialReference(3857)
 
         def add_polygon(geom_dict):
-            geom = GEOSGeometry(json.dumps(geom_dict), 4326)
+            try:
+                geom = GEOSGeometry(json.dumps(geom_dict), 4326)
+            except GEOSException:
+                raise ValidationError('GeoJSON is not valid')
             geom.transform(web_mercator)
             geoms.append(geom)
 
@@ -181,6 +185,9 @@ class InstanceBounds(models.Model):
                     'GeoJSON features must be Polygons or MultiPolygons')
 
         bounds = MultiPolygon(geoms)
+        if not bounds.valid:
+            raise ValidationError(
+                'GeoJSON is not valid: %s' % bounds.valid_reason)
 
         return InstanceBounds.objects.create(geom=bounds)
 
