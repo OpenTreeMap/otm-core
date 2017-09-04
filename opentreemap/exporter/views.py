@@ -12,9 +12,10 @@ from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call
 
 from treemap.util import get_csv_response, get_json_response
-from treemap.decorators import instance_request, requires_feature
+from treemap.decorators import instance_request
 
-from exporter import EXPORTS_NOT_ENABLED_CONTEXT
+from exporter import (EXPORTS_NOT_ENABLED_CONTEXT,
+                      EXPORTS_FEATURE_DISABLED_CONTEXT)
 from exporter.lib import export_enabled_for
 from exporter.models import ExportJob
 from exporter.user import write_users
@@ -61,7 +62,9 @@ def begin_export_users(request, instance, data_format):
     if not request.user.is_authenticated():
         raise Http404()
 
-    if not export_enabled_for(instance, request.user):
+    if not instance.feature_enabled('exports'):
+        return EXPORTS_FEATURE_DISABLED_CONTEXT
+    elif not export_enabled_for(instance, request.user):
         return EXPORTS_NOT_ENABLED_CONTEXT
 
     job = ExportJob.objects.create(
@@ -75,7 +78,9 @@ def begin_export_users(request, instance, data_format):
 
 
 def begin_export(request, instance, model):
-    if not export_enabled_for(instance, request.user):
+    if not instance.feature_enabled('exports'):
+        return EXPORTS_FEATURE_DISABLED_CONTEXT
+    elif not export_enabled_for(instance, request.user):
         return EXPORTS_NOT_ENABLED_CONTEXT
 
     query = request.GET.get('q', None)
@@ -114,7 +119,6 @@ def check_export(request, instance, job_id):
 begin_export_endpoint = do(
     json_api_call,
     instance_request,
-    requires_feature('exports'),
     begin_export)
 
 check_export_endpoint = do(

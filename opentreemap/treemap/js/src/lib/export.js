@@ -43,6 +43,7 @@ function getQueryStringObject () {
 
 function isComplete (resp) { return resp.status === 'COMPLETE'; }
 function isFailed (resp) { return !_.includes(['COMPLETE', 'PENDING'], resp.status); }
+function startFailed(resp) { return resp.start_status === 'ERROR'; }
 
 function getJobStartStream () {
     // Some exportable links are added to the page dynamically with AJAX
@@ -133,9 +134,11 @@ exports.run = function (options) {
         cancelStream = $(BUTTON_SELECTOR).asEventStream('click'),
         checkStream = makeJobCheckStream(startStream.map('.job_id')),
         fileUrlStream = checkStream.filter(isComplete).map('.url'),
-        checkFailureMessageStream = checkStream.filter(isFailed).map('.message'),
+        failureMessageStream = Bacon.mergeAll(
+                checkStream.filter(isFailed), startStream.filter(startFailed))
+            .map('.message'),
         normalExitStream = Bacon.mergeAll(cancelStream, fileUrlStream),
-        exitStream = Bacon.mergeAll(normalExitStream, checkFailureMessageStream),
+        exitStream = Bacon.mergeAll(normalExitStream, failureMessageStream),
         globalStream = Bacon.mergeAll(exitStream, checkStream, startStream);
 
     // start waiting when a job is initiated
@@ -144,7 +147,7 @@ exports.run = function (options) {
     // handle errors
     globalStream.onError(jobManager.stop);
     globalStream.onError(displayManager.fail);
-    checkFailureMessageStream.onValue(displayManager.fail);
+    failureMessageStream.onValue(displayManager.fail);
 
     // normal exit cleanup
     normalExitStream.onValue(displayManager.dismiss);

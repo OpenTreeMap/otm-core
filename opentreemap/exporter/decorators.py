@@ -6,7 +6,8 @@ from __future__ import division
 from functools import wraps
 from celery import chain
 
-from exporter import EXPORTS_NOT_ENABLED_CONTEXT
+from exporter import (EXPORTS_NOT_ENABLED_CONTEXT,
+                      EXPORTS_FEATURE_DISABLED_CONTEXT)
 from exporter.lib import export_enabled_for
 from exporter.models import ExportJob
 from exporter.tasks import simple_async_csv, custom_async_csv
@@ -15,7 +16,9 @@ from exporter.tasks import simple_async_csv, custom_async_csv
 def queryset_as_exported_csv(fn):
     @wraps(fn)
     def wrapped_fn(request, instance, *args, **kwargs):
-        if not export_enabled_for(instance, request.user):
+        if not instance.feature_enabled('exports'):
+            return EXPORTS_FEATURE_DISABLED_CONTEXT
+        elif not export_enabled_for(instance, request.user):
             return EXPORTS_NOT_ENABLED_CONTEXT
 
         qs = fn(request, instance, *args, **kwargs)
@@ -40,7 +43,9 @@ def task_output_as_csv(fn):
     def wrapped_fn(request, instance, *args, **kwargs):
         filename, task, args, fields = fn(request, instance, *args, **kwargs)
 
-        if not export_enabled_for(instance, request.user):
+        if not instance.feature_enabled('exports'):
+            return EXPORTS_FEATURE_DISABLED_CONTEXT
+        elif not export_enabled_for(instance, request.user):
             return EXPORTS_NOT_ENABLED_CONTEXT
 
         job = ExportJob.objects.create(
