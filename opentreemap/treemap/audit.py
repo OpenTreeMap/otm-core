@@ -1458,12 +1458,18 @@ class Audit(models.Model):
         return field_modified_value
 
     def _unit_format(self, value):
+        from stormwater.models import PolygonalMapFeature
+
+        field = self.field
+        model_name = to_object_name(self.model)
 
         if isinstance(value, GEOSGeometry):
             if value.geom_type == 'Point':
                 return '%d,%d' % (value.x, value.y)
             if value.geom_type in {'MultiPolygon', 'Polygon'}:
-                value = value.area
+                value = PolygonalMapFeature.polygon_area(value)
+                field = 'area'
+                model_name = 'greenInfrastructure'
         elif isinstance(value, datetime):
             value = dformat(value, settings.SHORT_DATE_FORMAT)
         elif isinstance(value, list):
@@ -1471,14 +1477,12 @@ class Audit(models.Model):
             # list. Should be a human-friendly translation of 'null'
             value = '(%s)' % ', '.join(value) if value else _('none')
 
-        model_name = to_object_name(self.model)
-
-        if is_convertible_or_formattable(model_name, self.field):
+        if is_convertible_or_formattable(model_name, field):
             __, value = get_display_value(
-                self.instance, model_name, self.field, value)
-            if value and is_convertible(model_name, self.field):
+                self.instance, model_name, field, value)
+            if value and is_convertible(model_name, field):
                 units = get_unit_name(get_units(self.instance,
-                                                model_name, self.field))
+                                                model_name, field))
                 value += (' %s' % units)
 
         return value
