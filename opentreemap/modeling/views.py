@@ -173,31 +173,36 @@ def run_model(request, instance):
 
     growth_model = GrowthAndMortalityModel(model_params, instance)
 
-    scenario = _prepare_scenario(scenario, instance)
-
     # TODO: look up region code for each tree and group
     # TODO: this will crash if run for an instance outside
     # of the united states
     region_code = instance.itree_regions()[0].code
 
+    scenario = _prepare_scenario(scenario, instance, region_code)
+
     return _run_model(instance, growth_model, scenario, region_code)
 
 
-def _prepare_scenario(scenario, instance):
+def _prepare_scenario(scenario, instance, region_code):
     cm_to_instance = _cm_to_instance_diameter_units(instance)
     to_cm = 1.0 / cm_to_instance
 
-    def get_species(otm_code):
-        species = Species.objects.filter(instance=instance, otm_code=otm_code)
-        if species.exists():
-            return species[0]
-        else:
+    def get_species(otm_code, region_code):
+        species = Species.get_by_code(instance, otm_code, region_code)
+        if species is None:
             raise Http404(
                 "Could not find species with OTM code %s in instance %s"
                 % (otm_code, instance.url_name))
+        # The species may have been retrieved via an ITreeCodeOverride. In that
+        # case, the species will not have an otm_code value and we need to set
+        # it so it is available for the downstream code.
+        if species.otm_code != otm_code:
+            species.otm_code = otm_code
+        print(species.common_name)
+        return species
 
     def prepare_tree(tree):
-        species = get_species(tree['species'])
+        species = get_species(tree['species'], region_code)
         diameter = tree['diameter'] * to_cm
         trees = [
             {
@@ -210,7 +215,7 @@ def _prepare_scenario(scenario, instance):
 
     def prepare_group(distribution):
         return {
-            'species': get_species(distribution['species']),
+            'species': get_species(distribution['species'], region_code),
             'diameter': distribution['diameter'] * to_cm,
             'count': distribution['count'],
         }
