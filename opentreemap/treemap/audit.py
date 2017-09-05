@@ -30,7 +30,7 @@ from treemap.util import (all_models_of_class, leaf_models_of_class,
                           to_object_name, safe_get_model_class,
                           get_pk_from_collection_audit_name,
                           get_name_from_canonical_name,
-                          make_udf_name_from_key)
+                          make_udf_name_from_key, num_format)
 from treemap.decorators import classproperty
 
 from treemap.lib.object_caches import (field_permissions,
@@ -1480,6 +1480,8 @@ class Audit(models.Model):
                 units = get_unit_name(get_units(self.instance,
                                                 model_name, self.field))
                 value += (' %s' % units)
+        elif isinstance(value, float):
+            return num_format(value)
 
         return value
 

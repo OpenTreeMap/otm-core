@@ -43,7 +43,11 @@
     <input name="{{ field.identifier }}"
            type="text"
            class="{{ class|default_if_none:"" }} form-control"
-           value="{{ field.value|default_if_none:""|unlocalize }}"
+           {% if field.data_type == 'float' %}
+             value="{{ field.value|num_format|default_if_none:""|unlocalize }}"
+           {% else %}
+             value="{{ field.value|default_if_none:""|unlocalize }}"
+           {% endif %}
            {{ extra|default:"" }} />
     <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
   </div>

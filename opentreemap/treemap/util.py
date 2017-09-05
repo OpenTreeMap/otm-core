@@ -231,3 +231,10 @@ def make_udf_name_from_key(key):
 
 def make_udf_lookup_from_key(key):
     return 'udfs__{}'.format(key)
+
+
+def num_format(num):
+    if isinstance(num, float):
+        # Allow for up to 10 digits of precision, but strip trailing 0s
+        return '{0:.10f}'.format(num).rstrip('0')
+    return num
