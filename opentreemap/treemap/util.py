@@ -235,6 +235,6 @@ def make_udf_lookup_from_key(key):
 
 def num_format(num):
     if isinstance(num, float):
-        # Allow for up to 10 digits of precision, but strip trailing 0s
-        return '{0:.10f}'.format(num).rstrip('0')
+        # Allow for up to 10 digits of precision, but strip trailing '0' or '.'
+        return '{0:.10f}'.format(num).rstrip('0').rstrip('.')
     return num
