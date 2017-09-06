@@ -1507,7 +1507,13 @@ class Audit(models.Model):
     def field_display_name(self):
         if not self.field:
             return ''
-        name = self.field
+
+        cls = get_auditable_class(self.model)
+        if hasattr(cls, 'field_display_name'):
+            name = cls.field_display_name(self.field)
+        else:
+            name = self.field
+
         if name.startswith('udf:'):
             return get_name_from_canonical_name(name)
         else:

@@ -66,6 +66,14 @@ class PolygonalMapFeature(MapFeature):
             .values_list(area_col_name, flat=True)
         return feature_areas
 
+    @classmethod
+    def field_display_name(cls, field_name):
+        if field_name == 'polygon':
+            # Translators: area in this context is a measurement
+            return _('area')
+        else:
+            return field_name
+
     def calculate_area(self):
         if self.polygon is None:
             return None
