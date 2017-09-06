@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib.gis.db import models
+from django.db import connection
 from django.utils.translation import ugettext_lazy as _
 
 from stormwater.benefits import PolygonalBasinBenefitCalculator
@@ -42,6 +43,17 @@ class PolygonalMapFeature(MapFeature):
         return PolygonalBasinBenefitCalculator(cls)
 
     @classmethod
+    def polygon_area(cls, polygon):
+        """
+        Make a PostGIS query that accurately calculates the area of
+        the polygon(s) by first casting to a Geography.
+        """
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT ST_Area(ST_Transform(ST_GeomFromEWKB(%s), 4326)::geography)',  # NOQA
+                           [polygon.ewkb])
+            return cursor.fetchone()[0]
+
+    @classmethod
     def feature_qs_areas(cls, polygonal_map_feature_qs):
         """
         Make a PostGIS query that accurately calculates the area of
@@ -54,12 +66,18 @@ class PolygonalMapFeature(MapFeature):
             .values_list(area_col_name, flat=True)
         return feature_areas
 
+    @classmethod
+    def field_display_name(cls, field_name):
+        if field_name == 'polygon':
+            # Translators: area in this context is a measurement
+            return _('area')
+        else:
+            return field_name
+
     def calculate_area(self):
-        if self.pk is None:
+        if self.polygon is None:
             return None
-        feature_areas = self.feature_qs_areas(
-            PolygonalMapFeature.objects.filter(pk=self.pk))
-        return feature_areas[0]
+        return PolygonalMapFeature.polygon_area(self.polygon)
 
 
 class Bioswale(PolygonalMapFeature, ValidationMixin):
