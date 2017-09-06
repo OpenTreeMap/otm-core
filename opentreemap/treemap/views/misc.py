@@ -24,7 +24,7 @@ from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
-from treemap.lib.perms import map_feature_is_creatable
+from treemap.lib.perms import model_is_creatable
 from treemap.units import get_unit_abbreviation, get_units
 from treemap.util import leaf_models_of_class
 
@@ -74,7 +74,7 @@ def get_map_view_context(request, instance):
     if request.user and not request.user.is_anonymous():
         iuser = request.user.get_effective_instance_user(instance)
         resource_classes = [resource for resource in instance.resource_classes
-                            if map_feature_is_creatable(iuser, resource)]
+                            if model_is_creatable(iuser, resource)]
     else:
         resource_classes = []
 

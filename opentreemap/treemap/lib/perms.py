@@ -203,10 +203,20 @@ def udf_write_level(instanceuser, udf):
 
 
 def map_feature_is_writable(role_related_obj, model_obj, field=None):
-    return _allows_perm(role_related_obj,
-                        model_obj.__class__.__name__,
-                        perm_attr=ALLOWS_WRITES,
-                        predicate=any, field=field)
+    feature_is_writable = _allows_perm(role_related_obj,
+                                       model_obj.__class__.__name__,
+                                       perm_attr=ALLOWS_WRITES,
+                                       predicate=any, field=field)
+    tree_is_creatable = False
+    tree_is_writable = False
+    if (model_obj.__class__.__name__ == 'Plot' and field is None):
+        tree_is_creatable = model_is_creatable(role_related_obj, Tree)
+        tree_is_writable = _allows_perm(role_related_obj,
+                                        'Tree',
+                                        perm_attr=ALLOWS_WRITES,
+                                        predicate=any)
+
+    return feature_is_writable or tree_is_creatable or tree_is_writable
 
 
 def plot_is_writable(role_related_obj, field=None):
@@ -216,10 +226,10 @@ def plot_is_writable(role_related_obj, field=None):
 
 
 def plot_is_creatable(role_related_obj):
-    return map_feature_is_creatable(role_related_obj, Plot)
+    return model_is_creatable(role_related_obj, Plot)
 
 
-def map_feature_is_creatable(role_related_obj, Model):
+def model_is_creatable(role_related_obj, Model):
     role = _get_role_from_related_object(role_related_obj)
     if role is None:
         return False
@@ -231,7 +241,7 @@ def any_resource_is_creatable(role_related_obj):
     if role is None:
         return False
 
-    return any(map_feature_is_creatable(role, Model)
+    return any(model_is_creatable(role, Model)
                for Model in role.instance.resource_classes)
 
 
