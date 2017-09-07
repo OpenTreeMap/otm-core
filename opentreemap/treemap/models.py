@@ -512,6 +512,31 @@ class Species(PendingAuditable, models.Model):
 
         return props
 
+    @classmethod
+    def get_by_code(cls, instance, otm_code, region_code):
+        """
+        Get a Species with the specified otm_code in the specified instance. If
+        a matching Species does not exists, attempt to find and
+        ITreeCodeOverride that has a itree_code matching the specified otm_code
+        in the specified region.
+        """
+        species = Species.objects.filter(instance=instance, otm_code=otm_code)
+        if species.exists():
+            return species[0]
+        else:
+            species_ids = \
+                Species.objects.filter(instance=instance).values('pk')
+            region = ITreeRegion.objects.get(code=region_code)
+            itree_code = get_itree_code(region_code, otm_code)
+            overrides = ITreeCodeOverride.objects.filter(
+                itree_code=itree_code,
+                region=region,
+                instance_species_id__in=species_ids)
+            if overrides.exists():
+                return overrides[0].instance_species
+            else:
+                return None
+
     def get_itree_code(self, region_code=None):
         if not region_code:
             regions = self.instance.itree_regions()

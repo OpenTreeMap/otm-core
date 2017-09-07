@@ -102,6 +102,11 @@ def _get_species_for_planting(instance):
     otm_codes = _growth_data[itree_region.code].keys()
     species = [species_for_otm_code(otm_code) for otm_code in otm_codes]
     species = sorted(species, key=itemgetter('common_name'))
+
+    def can_get_species(otm_code):
+        return Species.get_by_code(instance, otm_code, itree_region.code) is not None
+    species = [s for s in species if can_get_species(s['otm_code'])]
+
     return species
 
 
