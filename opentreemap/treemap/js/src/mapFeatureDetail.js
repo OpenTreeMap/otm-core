@@ -198,10 +198,14 @@ function init() {
             location: window.otm.mapFeature.location.point
         });
         form.saveOkStream
-            .map('.formData')
-            .map(BU.getValueForKey('plot.geom'))
-            .filter(BU.isDefined)
-            .onValue(panorama.update);
+            .onValue(function () {
+                // If location is an array, we are editing a polygonal map
+                // feature. The page triggers a full postback after editing a
+                // polygon map feature.
+                if (!_.isArray(currentMover.location)) {
+                    panorama.update(currentMover.location);
+                }
+            });
     }
 
     handleFavoriteClick();
