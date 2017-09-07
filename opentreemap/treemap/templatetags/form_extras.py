@@ -17,7 +17,7 @@ from django.conf import settings
 
 from opentreemap.util import dotted_split
 
-from treemap.util import get_model_for_instance, to_object_name
+from treemap.util import get_model_for_instance, to_object_name, num_format
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
@@ -430,6 +430,8 @@ class AbstractNode(template.Node):
             display_vals = [choice['display_value'] for choice in choices
                             if choice['value'] == field_value]
             display_val = display_vals[0] if display_vals else field_value
+        elif data_type == 'float':
+            display_val = num_format(field_value)
         else:
             display_val = unicode(field_value)
 

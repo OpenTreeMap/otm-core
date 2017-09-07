@@ -1,7 +1,12 @@
 {% load l10n %}
+{% load util %}
 data-field="{{ field.identifier }}"
 data-class="{{ class }}"
+{% if field.data_type == 'float' %}
+data-value="{{ field.value|num_format|default_if_none:""|unlocalize|force_escape }}"
+{% else %}
 data-value="{{ field.value|default_if_none:""|unlocalize|force_escape }}"
+{% endif %}
 data-type="{{ field.data_type }}"
 data-units="{{ field.units }}"
 data-digits="{{ field.digits }}"
