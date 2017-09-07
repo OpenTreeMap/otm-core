@@ -28,7 +28,10 @@
 {% block content %}
     {% trans "Add a Photo" as upload_title %}
     {% include "treemap/partials/upload_file.html" with title=upload_title upload_url=upload_photo_endpoint %}
-    {% include "treemap/partials/photo_social_media_sharing.html" %}
+
+    {% if request.instance.is_public %}
+        {% include "treemap/partials/photo_social_media_sharing.html" %}
+    {% endif %}
 
     {# Modal for viewing and rotating photos #}
     <div id="photo-lightbox" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
