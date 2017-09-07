@@ -61,6 +61,13 @@ function renderPhotoModal (imageData) {
         photoDetailUrl = $photo.attr(attrs.mapFeaturePhotoDetailAbsoluteUrl),
         photoUrl = $photo.attr(attrs.mapFeaturePhotoImageAbsoluteUrl),
         $photoPreview = $(dom.photoPreview);
+
+    // Validation errors (image invalid, image too big) are only returned as DOM
+    // elements. In order to skip showing the share dialog we need to check the
+    // dialog markup for the error message element.
+    if ($(imageData.data.result).filter('[data-photo-upload-failed]').length > 0) {
+        return;
+    }
     $photoModal.modal('show');
     $photoPreview.attr('src', $photo.attr(attrs.mapFeaturePhotoPreview));
     _.each($anchors, generateHref(photoDetailUrl, photoUrl));
