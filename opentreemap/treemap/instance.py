@@ -9,6 +9,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.db.models import Extent
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import MultiPolygon, Polygon, GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import RegexValidator
 from django.conf import settings
@@ -101,6 +102,7 @@ def add_species_to_instance(instance):
 
 
 PERMISSION_VIEW_EXTERNAL_LINK = 'view_external_link'
+PERMISSION_MODELING = 'modeling'
 
 
 # Don't call this function directly, call plugin.get_instance_permission_spec()
@@ -113,6 +115,12 @@ def get_instance_permission_spec(instance=None):
                              'of a tree or map feature'),
             'default_role_names': [Role.ADMINISTRATOR, Role.EDITOR],
             'label': _('Can View External Link')
+        },
+        {
+            'codename': PERMISSION_MODELING,
+            'description': _('Can access modeling page'),
+            'default_role_names': [Role.ADMINISTRATOR],
+            'label': _('Can Access Modeling')
         }
     ]
 
@@ -155,7 +163,10 @@ class InstanceBounds(models.Model):
         web_mercator = SpatialReference(3857)
 
         def add_polygon(geom_dict):
-            geom = GEOSGeometry(json.dumps(geom_dict), 4326)
+            try:
+                geom = GEOSGeometry(json.dumps(geom_dict), 4326)
+            except GEOSException:
+                raise ValidationError('GeoJSON is not valid')
             geom.transform(web_mercator)
             geoms.append(geom)
 
@@ -174,6 +185,9 @@ class InstanceBounds(models.Model):
                     'GeoJSON features must be Polygons or MultiPolygons')
 
         bounds = MultiPolygon(geoms)
+        if not bounds.valid:
+            raise ValidationError(
+                'GeoJSON is not valid: %s' % bounds.valid_reason)
 
         return InstanceBounds.objects.create(geom=bounds)
 
@@ -469,13 +483,19 @@ class Instance(models.Model):
         # To get a unique thumbprint across instances and species updates
         # we use the instance's url_name, latest species update time, and
         # species count (to handle deletions).
+        #
+        # Note: On 8/28/17, added a version to invalidate cache after changing
+        # data included in scientific name
         from treemap.models import Species
         my_species = Species.objects \
             .filter(instance_id=self.id) \
             .order_by('-updated_at')
+        version = 1
         if my_species.exists():
-            return "%s_%s_%s" % (
-                self.url_name, my_species.count(), my_species[0].updated_at)
+            return "%s_%s_%s_%s" % (
+                self.url_name, my_species.count(), my_species[0].updated_at,
+                version
+            )
         else:
             return self.url_name
 

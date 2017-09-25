@@ -145,6 +145,44 @@ $light-to-dark-green: #ffffff 10%,
     th, td {
         padding: 0 4px;
     }
+    .popup-btns {
+        margin-top: 10px;
+    }
+    .popup-paging {
+        margin-left: 30px;
+        display: inline-block;
+        background-color: #F1F2F2;
+
+        span {
+            padding: 0 5px;
+            display: inline-block;
+            width: 55px;
+            text-align: center;
+        }
+        .btn.btn-sm {
+            color: #FFF;
+            padding: 0;
+            border: none;
+            background-color: #B3B3B3;
+            font-size: 2rem;
+
+            &:disabled {
+                background-color: #e7e9e9;
+                color: #d0d0d0;
+            }
+            > i {
+                margin-right: -9px;
+            }
+            &.prev {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+            &.next {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+        }
+    }
 }
 
 .leaflet-editing-icon {

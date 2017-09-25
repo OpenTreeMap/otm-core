@@ -491,25 +491,51 @@ class Species(PendingAuditable, models.Model):
         return "%s [%s]" % (self.common_name, self.scientific_name)
 
     @classmethod
-    def get_scientific_name(clazz, genus, species, cultivar):
+    def get_scientific_name(clz, genus, species, cultivar, other_part_of_name):
         name = genus
         if species:
             name += " " + species
+        if other_part_of_name:
+            name += " " + other_part_of_name
         if cultivar:
             name += " '%s'" % cultivar
         return name
 
     @property
     def scientific_name(self):
-        return Species.get_scientific_name(self.genus,
-                                           self.species,
-                                           self.cultivar)
+        return Species.get_scientific_name(
+            self.genus, self.species, self.cultivar, self.other_part_of_name)
 
     def dict(self):
         props = self.as_dict()
         props['scientific_name'] = self.scientific_name
 
         return props
+
+    @classmethod
+    def get_by_code(cls, instance, otm_code, region_code):
+        """
+        Get a Species with the specified otm_code in the specified instance. If
+        a matching Species does not exists, attempt to find and
+        ITreeCodeOverride that has a itree_code matching the specified otm_code
+        in the specified region.
+        """
+        species = Species.objects.filter(instance=instance, otm_code=otm_code)
+        if species.exists():
+            return species[0]
+        else:
+            species_ids = \
+                Species.objects.filter(instance=instance).values('pk')
+            region = ITreeRegion.objects.get(code=region_code)
+            itree_code = get_itree_code(region_code, otm_code)
+            overrides = ITreeCodeOverride.objects.filter(
+                itree_code=itree_code,
+                region=region,
+                instance_species_id__in=species_ids)
+            if overrides.exists():
+                return overrides[0].instance_species
+            else:
+                return None
 
     def get_itree_code(self, region_code=None):
         if not region_code:
@@ -794,6 +820,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             tree_hashes = [t.hash for t in self.plot.tree_set.all()]
             string_to_hash += "," + ",".join(tree_hashes)
 
+        # Need to include nearby features in the hash, as they are in the
+        # detail sidebar & popup.
+        for feature in self.nearby_map_features():
+            string_to_hash += "," + str(feature.pk)
+
         return hashlib.md5(string_to_hash).hexdigest()
 
     def title(self):
@@ -855,6 +886,17 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return self.current_tree()
         else:
             return None
+
+    def nearby_map_features(self, distance_in_meters=None):
+        if distance_in_meters is None:
+            distance_in_meters = settings.NEARBY_TREE_DISTANCE
+
+        distance_filter = MapFeature.objects.filter(
+            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
+
+        return distance_filter\
+            .filter(instance=self.instance)\
+            .exclude(pk=self.pk)
 
     def __unicode__(self):
         geom = getattr(self, 'geom', None)
@@ -975,15 +1017,8 @@ class Plot(MapFeature, ValidationMixin):
         return TreeBenefitsCalculator()
 
     def nearby_plots(self, distance_in_meters=None):
-        if distance_in_meters is None:
-            distance_in_meters = settings.NEARBY_TREE_DISTANCE
-
-        distance_filter = Plot.objects.filter(
-            geom__distance_lte=(self.geom, D(m=distance_in_meters)))
-
-        return distance_filter\
-            .filter(instance=self.instance)\
-            .exclude(pk=self.pk)
+        return self.nearby_map_features(distance_in_meters)\
+            .filter(feature_type='Plot')
 
     def get_tree_history(self):
         """

@@ -26,8 +26,7 @@ from manage_treemap.views.user_roles import (
     user_roles_list, update_user_roles, create_user_role,
     remove_invited_user_from_instance)
 from treemap.decorators import (require_http_method, admin_instance_request,
-                                return_400_if_validation_errors,
-                                requires_feature)
+                                return_400_if_validation_errors)
 
 admin_route = lambda **kwargs: admin_instance_request(route(**kwargs))
 
@@ -120,7 +119,6 @@ user_invites = admin_route(DELETE=remove_invited_user_from_instance)
 begin_export_users = do(
     json_api_call,
     admin_instance_request,
-    requires_feature('exports'),
     begin_export_users)
 
 roles = admin_route(

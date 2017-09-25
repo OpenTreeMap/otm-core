@@ -63,6 +63,7 @@ var create = exports.create = function(options) {
         $hidden_input = $(options.hidden),
         reverse = options.reverse,
         sorter = _.isArray(options.sortKeys) ? getSortFunction(options.sortKeys) : getSortFunction(['value']),
+        lastSelection = null,
 
         setTypeaheadAfterDataLoaded = function($typeahead, key, query) {
             if (!key) {
@@ -223,6 +224,13 @@ var create = exports.create = function(options) {
 
         enginePostActionBus = new Bacon.Bus();
 
+    // Keep track of when an item is selected from the typeahead menu
+    // to avoid a redundant call to `autocomplete` that could mistakenly
+    // change the selected value.
+    $input.bind('typeahead:select', function(ev, suggestion) {
+        lastSelection = suggestion.value;
+    });
+
     selectStream.onValue(function() {
         // After the user selects a field, blur the input so that any soft
         // keyboards that are open will close (mobile)
@@ -246,6 +254,13 @@ var create = exports.create = function(options) {
                 setTypeahead($input, '');
             }
         });
+        if (options.hidden) {
+            $input.on('input', function() {
+                if ($input.data('datum') === undefined) {
+                    $hidden_input.val('');
+                }
+            });
+        }
     }
     // Set data-unmatched to the input value if the value was not
     // matched to a typeahead datum. Allows for external code to take
@@ -298,12 +313,30 @@ var create = exports.create = function(options) {
 
     return {
         autocomplete: function () {
+            var top, success;
             if ($input.val()) {
-                var top = $input.data('ttTypeahead').menu.getTopSelectable(),
+                if (lastSelection === $input.val()) {
+                    success = true;
+                } else {
+                    top = $input.data('ttTypeahead').menu.getTopSelectable();
                     success = $input.typeahead('autocomplete', top);
+                }
                 if (!success) {
                     $input.removeData('datum');
                 }
+            }
+        },
+        getGeocodeDatum: function(val, cb) {
+            if (geocoderEngine) {
+                geocoderEngine.initialize().done(function() {
+                    geocoderEngine.search($input.val(), $.noop, function(datums) {
+                        if (datums.length > 0) {
+                            lastSelection = datums[0].text;
+                            $input.data('datum', datums[0]);
+                            cb(datums[0]);
+                        }
+                    });
+                });
             }
         },
         getDatum: function() {

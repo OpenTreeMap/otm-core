@@ -20,6 +20,7 @@ var $ = require('jquery'),
     reverse = require('reverse'),
     config = require('treemap/lib/config.js'),
     stickyTitles = require('treemap/lib/stickyTitles.js'),
+    urlState = require('treemap/lib/urlState.js'),
     toastr = require('toastr'),
     mapManager = new MapManager();
 
@@ -73,6 +74,9 @@ function redirectToSearchPage(filters, latLng) {
     var query = Search.makeQueryStringFromFilters(filters);
     if (latLng) {
         query += '&z=' + mapManager.ZOOM_PLOT + '/' + latLng.lat + '/' + latLng.lng;
+    }
+    if (filters.address) {
+        query += '&a=' + filters.address;
     }
     window.location.href = reverse.map(config.instance.url_name) + '?' + query;
 }
@@ -378,11 +382,17 @@ module.exports = exports = {
                     return !(datum && datum.magicKey);
                 })
                 .map(Search.buildSearch),
-            resetStream = $(dom.resetButton).asEventStream("click"),
+            resetStream = $(dom.resetButton)
+                .asEventStream("click")
+                // We must also clear the location search box to avoid
+                // an inconsistent state when clicking reset after a geocode.
+                .doAction(function () { locationTypeahead.clear(); }),
             uSearch = udfcSearch.init(resetStream),
             searchChangedStream = Bacon
                 .mergeAll(searchStream, resetStream)
-                .map(true);
+                .map(true),
+
+            firstPageLoad = true;
 
         geocodedLocationStream.onError(showGeocodeError);
         initSearchUi(searchStream);
@@ -411,6 +421,12 @@ module.exports = exports = {
                 Search.applySearchToDom(search);
                 uSearch.applyFilterObjectToDom(search);
                 updateUi(search);
+                if (firstPageLoad) {
+                    firstPageLoad = false;
+                    if (search.address && $(dom.locationSearchTypeahead).val() == search.address) {
+                        locationTypeahead.getGeocodeDatum(search.address, ui.triggerGeocode);
+                    }
+                }
             }
         };
     }

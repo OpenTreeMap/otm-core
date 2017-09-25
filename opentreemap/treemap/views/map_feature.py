@@ -31,8 +31,7 @@ from treemap.lib.object_caches import udf_defs
 from treemap.lib.map_feature import (get_map_feature_or_404,
                                      raise_non_instance_404,
                                      context_dict_for_plot,
-                                     context_dict_for_resource,
-                                     context_dict_for_map_feature)
+                                     context_dict_for_resource)
 from treemap.views.misc import add_map_info_to_context
 
 
@@ -57,7 +56,10 @@ def _request_to_update_map_feature(request, feature):
 def _add_map_feature_photo_helper(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
     data = get_image_from_request(request)
-    return feature.add_photo(data, request.user)
+    photo = feature.add_photo(data, request.user)
+    # We must update a rev so that missing photo searches are up to date
+    instance.update_universal_rev()
+    return photo
 
 
 def get_photo_context_and_errors(fn):
@@ -406,7 +408,8 @@ def delete_photo(request, instance, feature_id, photo_id):
 
 def map_feature_popup(request, instance, feature_id):
     feature = get_map_feature_or_404(feature_id, instance)
-    context = context_dict_for_map_feature(request, feature)
+    context = {}
+    context['features'] = [feature] + list(feature.nearby_map_features())
     if instance.canopy_enabled:
         context['boundaries_with_canopy'] = \
             _get_boundaries_with_canopy(instance, feature.geom)

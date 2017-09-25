@@ -1711,6 +1711,7 @@ class SpeciesViewTests(ViewTestCase):
             js_species['genus'] = species.genus
             js_species['species'] = species.species
             js_species['cultivar'] = species.cultivar
+            js_species['other_part_of_name'] = species.other_part_of_name
 
     def test_get_species_list(self):
         self.assertEquals(species_list(make_request(), self.instance),

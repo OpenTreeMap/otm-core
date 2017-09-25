@@ -95,7 +95,8 @@ function init(options) {
         }),
         geocodedLocationStream = geocoderUi({
             locationTypeahead: addressTypeahead,
-            searchButton: '.geocode'
+            searchButton: '.geocode',
+            forStorage: true
         }).geocodedLocationStream;
 
     geocodedLocationStream.onValue(onLocationChosen);

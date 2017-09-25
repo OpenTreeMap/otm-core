@@ -10,7 +10,7 @@ from opentreemap.util import dotted_split
 from treemap.models import MapFeature, Tree, TreePhoto, MapFeaturePhoto, Audit
 from treemap.udf import UserDefinedCollectionValue
 from treemap.util import (get_filterable_audit_models, to_model_name,
-                          safe_get_model_class)
+                          safe_get_model_class, num_format as util_num_format)
 from treemap.units import Convertible
 
 
@@ -199,3 +199,8 @@ def udf_name(udf_identifier):
         raise ValueError('Unrecognized identifier %(id)s' % udf_identifier)
 
     return udf_identifier.split("udf:", 1)[1]
+
+
+@register.filter
+def num_format(num):
+    return util_num_format(num)

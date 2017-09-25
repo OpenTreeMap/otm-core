@@ -24,7 +24,7 @@ from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
-from treemap.lib.perms import map_feature_is_creatable
+from treemap.lib.perms import model_is_creatable
 from treemap.units import get_unit_abbreviation, get_units
 from treemap.util import leaf_models_of_class
 
@@ -72,9 +72,9 @@ def index(request, instance):
 
 def get_map_view_context(request, instance):
     if request.user and not request.user.is_anonymous():
-        iuser = request.user.get_instance_user(instance)
+        iuser = request.user.get_effective_instance_user(instance)
         resource_classes = [resource for resource in instance.resource_classes
-                            if map_feature_is_creatable(iuser, resource)]
+                            if model_is_creatable(iuser, resource)]
     else:
         resource_classes = []
 
@@ -149,8 +149,8 @@ def species_list(request, instance):
 
     species_qs = instance.scope_model(Species)\
                          .order_by('common_name')\
-                         .values('common_name', 'genus',
-                                 'species', 'cultivar', 'id')
+                         .values('common_name', 'genus', 'species', 'cultivar',
+                                 'other_part_of_name', 'id')
 
     if max_items:
         species_qs = species_qs[:max_items]
@@ -160,7 +160,8 @@ def species_list(request, instance):
         names = (species['common_name'],
                  species['genus'],
                  species['species'],
-                 species['cultivar'])
+                 species['cultivar'],
+                 species['other_part_of_name'])
 
         tokens = set()
 
@@ -174,7 +175,8 @@ def species_list(request, instance):
     def annotate_species_dict(sdict):
         sci_name = Species.get_scientific_name(sdict['genus'],
                                                sdict['species'],
-                                               sdict['cultivar'])
+                                               sdict['cultivar'],
+                                               sdict['other_part_of_name'])
 
         display_name = "%s [%s]" % (sdict['common_name'],
                                     sci_name)

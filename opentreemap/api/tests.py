@@ -489,13 +489,12 @@ class CreatePlotAndTree(OTMTestCase):
         self.assertIsNotNone(tree)
         self.assertEqual(10.0, tree.height)
 
-    @skip("this validation should be in the main app")
     def test_create_plot_with_invalid_tree_returns_400(self):
         data = {
             "plot":
-            {'geom': {"y": 35,
-                      "x": 25,
-                      "srid": 4326}},
+            {'geom': {"y": 25,
+                      "x": 35,
+                      "srid": 3857}},
             "tree": {
                 "height": 1000000
             }}
@@ -513,14 +512,15 @@ class CreatePlotAndTree(OTMTestCase):
                          "tall tree to return 400:" + response.content)
 
         body_dict = loads(response.content)
-        self.assertTrue('error' in body_dict,
-                        "Expected the body JSON to contain an 'error' key")
+        self.assertTrue('fieldErrors' in body_dict,
+                        "Expected the body JSON to have a 'fieldErrors' key")
 
-        errors = body_dict['error']
-        self.assertTrue(len(errors) == 1,
-                        "Expected a single error message to be returned")
+        fieldErrors = body_dict['fieldErrors']
+        self.assertTrue('tree.height' in fieldErrors,
+                        'Expected "treeHeight" to be in "fieldErrors"')
 
-        self.assertEqual('Height is too large.', errors[0])
+        self.assertEqual('The height is too large',
+                         fieldErrors['tree.height'][0])
 
         # Assert that a tree was _not_ added
         self.assertEqual(tree_count, Tree.objects.count())
@@ -874,6 +874,27 @@ class UpdatePlotAndTree(OTMTestCase):
         tree = Tree.objects.get(pk=test_tree_id)
         self.assertIsNotNone(tree)
         self.assertEqual(3.9, tree.diameter)
+
+    def test_invalid_tree_update_returns_400(self):
+        test_plot = mkPlot(self.instance, self.user)
+        test_tree = mkTree(self.instance, self.user, plot=test_plot)
+        test_tree_id = test_tree.id
+        test_tree.diameter = 2.3
+        test_tree.save_with_user(self.user)
+
+        # Include `updated_by` because the app does send it,
+        # and the endpoint must ignore it.
+        updated_values = {'tree': {'diameter': 0}}
+        response = put_json("%s/instance/%s/plots/%d" %
+                            (API_PFX, self.instance.url_name, test_plot.id),
+                            updated_values, self.client, self.user)
+
+        self.assertEqual(400, response.status_code)
+
+        # Verify that the diameter was not changed
+        tree = Tree.objects.get(pk=test_tree_id)
+        self.assertIsNotNone(tree)
+        self.assertEqual(2.3, tree.diameter)
 
     @skip("ignore pending")
     def test_update_tree_with_pending(self):

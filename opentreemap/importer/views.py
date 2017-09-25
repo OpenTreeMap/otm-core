@@ -782,6 +782,10 @@ def download_import_template(request, instance, import_type):
         ie = TreeImportEvent(instance=instance)
         field_names = ie.ordered_legal_fields_title_case()
 
+    # Encoding the field names prevents an error when the field names have
+    # non-ASCII characters.
+    field_names = [field_name.encode('utf-8') for field_name in field_names]
+
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = "attachment; filename=%s" % filename
     writer = csv.DictWriter(response, field_names)

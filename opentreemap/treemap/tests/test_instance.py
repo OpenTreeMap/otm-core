@@ -8,7 +8,8 @@ import json
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 
-from treemap.instance import (add_species_to_instance, create_stewardship_udfs)
+from treemap.instance import (add_species_to_instance, create_stewardship_udfs,
+                              InstanceBounds)
 from treemap.models import ITreeRegion, Species
 from treemap.search_fields import (INSTANCE_FIELD_ERRORS,
                                    DEFAULT_MOBILE_API_FIELDS,
@@ -368,3 +369,131 @@ class InstanceWebDetailFieldsTests(OTMTestCase):
             {'header': 'Trees', 'model': 'plot',
              'field_keys': ['plot.doesnotexist']}
         ])
+
+
+class InstanceBoundsTests(OTMTestCase):
+    def test_create_from_geojson(self):
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    -75.20416259765625,
+                                    40.011838968100335
+                                ],
+                                [
+                                    -75.19866943359375,
+                                    40.02551125229787
+                                ],
+                                [
+                                    -75.20484924316406,
+                                    40.029717557833266
+                                ],
+                                [
+                                    -75.21171569824219,
+                                    40.02340800226773
+                                ],
+                                [
+                                    -75.21102905273438,
+                                    40.01762373035351
+                                ],
+                                [
+                                    -75.20416259765625,
+                                    40.011838968100335
+                                ]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        }
+        i = InstanceBounds.create_from_geojson(json.dumps(geojson))
+        self.assertTrue(i.geom.valid)
+
+    def test_create_from_geojson_missing_point(self):
+        # Same as above, but last point is missing
+        invalid_geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    -75.20416259765625,
+                                    40.011838968100335
+                                ],
+                                [
+                                    -75.19866943359375,
+                                    40.02551125229787
+                                ],
+                                [
+                                    -75.20484924316406,
+                                    40.029717557833266
+                                ],
+                                [
+                                    -75.21171569824219,
+                                    40.02340800226773
+                                ],
+                                [
+                                    -75.21102905273438,
+                                    40.01762373035351
+                                ]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        }
+        with self.assertRaises(ValidationError):
+            InstanceBounds.create_from_geojson(json.dumps(invalid_geojson))
+
+    def test_create_from_geojson_self_intersection(self):
+        invalid_geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    -78.28857421875,
+                                    41.19518982948959
+                                ],
+                                [
+                                    -76.79443359375,
+                                    41.65649719441145
+                                ],
+                                [
+                                    -78.134765625,
+                                    39.04478604850143
+                                ],
+                                [
+                                    -74.970703125,
+                                    40.896905775860006
+                                ],
+                                [
+                                    -78.28857421875,
+                                    41.19518982948959
+                                ]
+                            ]
+                        ]
+                    }
+                }
+            ]
+        }
+
+        with self.assertRaises(ValidationError):
+            InstanceBounds.create_from_geojson(json.dumps(invalid_geojson))

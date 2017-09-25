@@ -55,4 +55,10 @@ module.exports.init = function (updateStream) {
                 $elem.html(count);
             });
         });
+
+    $(window).on('beforeunload', function() {
+        if ($('.editBtn').is(':hidden')) {
+            return 'Are you sure you want to leave?';
+        }
+    });
 };

@@ -9,7 +9,7 @@ import logging
 from contextlib import contextmanager
 from functools import wraps
 from collections import OrderedDict
-from celery import task
+from celery import shared_task
 from tempfile import TemporaryFile
 
 from django.core.files import File
@@ -114,7 +114,7 @@ def _values_for_model(
     return prefixed_names
 
 
-@task
+@shared_task
 @_job_transaction
 def async_users_export(job, data_format):
     instance = job.instance
@@ -130,7 +130,7 @@ def async_users_export(job, data_format):
     job.save()
 
 
-@task
+@shared_task
 @_job_transaction
 def async_csv_export(job, model, query, display_filters):
     instance = job.instance
@@ -269,7 +269,7 @@ def _csv_field_header_map(field_names):
     return map
 
 
-@task
+@shared_task
 @_job_transaction
 def simple_async_csv(job, qs):
     file_obj = TemporaryFile()
@@ -278,7 +278,7 @@ def simple_async_csv(job, qs):
     job.save()
 
 
-@task
+@shared_task
 def custom_async_csv(csv_rows, job_pk, filename, fields):
     with _job_transaction_manager(job_pk) as job:
         csv_obj = TemporaryFile()

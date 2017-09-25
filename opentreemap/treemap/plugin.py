@@ -102,3 +102,7 @@ can_add_user = get_plugin_function(
 
 does_user_own_instance = get_plugin_function(
     'INSTANCE_OWNER_FUNCTION', lambda instance, user: False)
+
+
+invitation_accepted_notification_emails = get_plugin_function(
+    'INVITATION_ACCEPTED_NOTIFICATION_EMAILS', lambda invitation: [])

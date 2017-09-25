@@ -9,14 +9,17 @@ var $ = require('jquery'),
     buttonEnabler = require('treemap/lib/buttonEnabler.js'),
     config = require('treemap/lib/config.js'),
     format = require('util').format,
-    plotMarker = require('treemap/lib/plotMarker.js');
+    plotMarker = require('treemap/lib/plotMarker.js'),
+    webMercatorToLeafletLatLng = require('treemap/lib/utility').webMercatorToLeafletLatLng;
 
 var dom = {
         sidebarContent: '#map-info',
         mapFeatureAccordion: '#map-feature-accordion',
         treeDetailAccordion: '#tree-detail',
         fullDetailsButton: '#full-details-button',
-        quickEditButton: '#quick-edit-button'
+        quickEditButton: '#quick-edit-button',
+        popupSections: '#map-feature-popup .popup-content',
+        popupPagingButtons: '#map-feature-popup .popup-paging .btn'
     },
 
     map,
@@ -49,11 +52,19 @@ function init(options) {
                 .filter(inMyMode),
 
         popupHtmlStream = utfEventStream.flatMap(getPopupContent),
+
         clickedIdStream = utfEventStream.map('.data.' + config.utfGrid.mapfeatureIdKey),
-        accordionHtmlStream = BU.fetchFromIdStream(clickedIdStream,
+        pagingIdStream = $('body').asEventStream('click', dom.popupPagingButtons)
+            .doAction(changePopupSelection)
+            .doAction(toggleAccordion, '')
+            .debounce(300)
+            .map(getIdFromPopup),
+        idStream = Bacon.mergeAll(clickedIdStream, pagingIdStream),
+
+        accordionHtmlStream = BU.fetchFromIdStream(idStream,
                                                    getPlotAccordionContent,
                                                    ''),
-        plotUrlStream = clickedIdStream.map(idToPlotDetailUrl);
+        plotUrlStream = idStream.map(idToPlotDetailUrl);
 
     plotUrlStream.onValue($(dom.fullDetailsButton), 'attr', 'href');
     plotUrlStream.onValue(inlineEditForm.setUpdateUrl);
@@ -158,7 +169,7 @@ function makePopup(latLon, html) {
             .setLatLng(latLon)
             .setContent($popupContents[0]);
 
-        var mapFeatureType = $popup.data('mapfeature-type');
+        var mapFeatureType = $popup.find('[data-mapfeature-type]').data('mapfeature-type');
         popup.isMapFeature = mapFeatureType !== undefined;
         popup.isPlot = mapFeatureType === 'Plot';
 
@@ -227,6 +238,23 @@ function deactivate(options) {
 function clearSelection() {
     toggleAccordion(false);
     plotMarker.hide();
+}
+
+function changePopupSelection(e) {
+    var $sections = $(dom.popupSections),
+        $current = $sections.filter(':not(.hidden)'),
+        $new = $(e.currentTarget).is('.next') ? $current.next() : $current.prev(),
+        loc = webMercatorToLeafletLatLng($new.data('x'), $new.data('y'));
+
+    $sections.addClass('hidden');
+    $new.removeClass('hidden');
+
+    plotMarker.useTreeIcon($new.data('mapfeature-type') === 'Plot');
+    plotMarker.place(loc);
+}
+
+function getIdFromPopup(e) {
+    return $(dom.popupSections).filter(':visible').data('feature-id');
 }
 
 module.exports = {

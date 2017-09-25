@@ -8,7 +8,8 @@ var $ = require('jquery'),
     isTypeaheadHiddenField = require('treemap/lib/fieldHelpers.js'),
     FH = require('treemap/lib/fieldHelpers.js'),
     config = require('treemap/lib/config.js'),
-    querystring = require('querystring');
+    querystring = require('querystring'),
+    locationSearchUI = require('treemap/mapPage/locationSearchUI.js');
 
 var DATETIME_FORMAT = FH.DATETIME_FORMAT;
 var TREE_MODELS = ['Tree', 'EmptyPlot'];
@@ -136,9 +137,17 @@ function applyDisplayListToDom(displayList) {
     }
 }
 
+function applyAddressToBoundaryTypeahead(filter, address) {
+    if (!hasBoundaryFilter(filter) && address) {
+        $('#boundary-typeahead').typeahead('val', address);
+        locationSearchUI.showAppropriateWellButton();
+    }
+}
+
 function applySearchToDom(search) {
     applyFilterObjectToDom(search.filter || {});
     applyDisplayListToDom(search.display);
+    applyAddressToBoundaryTypeahead(search.filter, search.address);
 }
 
 exports.applySearchToDom = applySearchToDom;
@@ -146,9 +155,11 @@ exports.applySearchToDom = applySearchToDom;
 exports.reset = _.partialRight(applySearchToDom, {});
 
 exports.buildSearch = function () {
+    var filter = buildFilterObject();
     return {
-        'filter': buildFilterObject(),
-        'display': buildDisplayList()
+        'filter': filter,
+        'display': buildDisplayList(),
+        'address': getAddressIfSet(filter)
     };
 };
 
@@ -218,6 +229,19 @@ function buildDisplayList() {
         return filtersWithoutTreeModels.concat('Plot');
     }
     return filters;
+}
+
+function getAddressIfSet(filter) {
+    // If the filter contains a boundary query, the text in the location search
+    // box is not an address
+    if (hasBoundaryFilter(filter)) {
+        return undefined;
+    }
+    return $('#boundary-typeahead').val() || undefined;
+}
+
+function hasBoundaryFilter(filter) {
+    return filter && filter['mapFeature.geom'] && filter['mapFeature.geom'].IN_BOUNDARY;
 }
 
 // Arguments

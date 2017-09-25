@@ -15,7 +15,6 @@ from unittest.case import skip, skipIf
 
 from django.conf import settings
 from django.db import connection
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.http import HttpRequest, HttpResponseBadRequest
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
@@ -30,6 +29,7 @@ from treemap.models import (Species, Plot, Tree, ITreeCodeOverride,
 from treemap.plugin import get_tree_limit
 from treemap.tests import (make_admin_user, make_instance, login,
                            ecoservice_not_running, make_request)
+from treemap.tests.base import OTMTestCase
 from treemap.udf import UserDefinedFieldDefinition
 
 from importer import errors, fields
@@ -40,7 +40,7 @@ from importer.views import (process_status,
                             commit, merge_species, start_import)
 
 
-class MergeTest(TestCase):
+class MergeTest(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
@@ -98,7 +98,7 @@ class MergeTest(TestCase):
         self.assertEqual(t2r.species.pk, self.s2.pk)
 
 
-class ValidationTest(TestCase):
+class ValidationTest(OTMTestCase):
 
     def assertHasError(self, thing, error, data=None, df=None):
         local_errors = ''
@@ -962,7 +962,7 @@ class FileLevelTreeValidationTest(ValidationTest):
 
 
 @override_settings(TREE_LIMIT_FUNCTION=None)
-class IntegrationTests(TestCase):
+class IntegrationTests(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
 
@@ -1078,7 +1078,7 @@ class SpeciesIntegrationTests(IntegrationTests):
         self.assertEqual(species.max_height, int(100 * m_to_ft))
 
 
-class SpeciesExportTests(TestCase):
+class SpeciesExportTests(OTMTestCase):
     def setUp(self):
         instance = make_instance()
         user = make_admin_user(instance)
@@ -1497,6 +1497,36 @@ class TreeIntegrationTests(IntegrationTests):
         p1_geom.transform(4326)
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
+
+
+    def test_import_updates_updated_at_fields(self):
+        original_creator = make_admin_user(self.instance, username='original_creator')
+        p1 = mkPlot(self.instance, original_creator)
+        t1 = mkTree(self.instance, original_creator)
+
+        p1_original_updated_at = p1.updated_at
+        p2_original_updated_at = t1.plot.updated_at
+
+        self.assertEqual(p1.updated_by, original_creator)
+        self.assertEqual(t1.plot.updated_by, original_creator)
+
+        csv = """
+        | point x | point y | planting site id | tree id |
+        | 45.53   | 31.1    | %s               |         |
+        | 45.53   | 31.1    |                  | %s      |
+        """ % (p1.pk, t1.pk)
+
+        self.run_through_commit_views(csv)
+
+        p1.refresh_from_db()
+        t1.refresh_from_db()
+        t1.plot.refresh_from_db()
+
+        self.assertEqual(p1.updated_by, self.user)
+        self.assertEqual(t1.plot.updated_by, self.user)
+
+        self.assertGreater(p1.updated_at, p1_original_updated_at)
+        self.assertGreater(t1.plot.updated_at, p2_original_updated_at)
 
 
     def test_swap_locations_using_otm_id(self):

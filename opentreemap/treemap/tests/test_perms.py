@@ -7,6 +7,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point
 
+from treemap.audit import AuthorizeException
 from treemap.instance import Instance
 from treemap.models import Role, Plot, Tree
 from treemap.models import TreePhoto
@@ -201,3 +202,37 @@ class InstancePermissionsTest(PermissionsTestCase):
         self._add_new_permission(self.role_yes, Instance, 'can_fly')
         self.assertTrue(self.role_yes.has_permission('can_fly'))
         self.assertFalse(self.role_no.has_permission('can_fly'))
+
+
+class WritableTest(PermissionsTestCase):
+    def test_plot_is_writable_if_can_create_tree(self):
+        self.commander_user = make_commander_user(self.instance)
+        self.commander_role = \
+            self.commander_user.get_instance_user(self.instance).role
+        self.tree_only_user = make_user(self.instance)
+        self.tree_only_role = self.instance.default_role
+
+        content_type = ContentType.objects.get_for_model(Tree)
+        add_tree_perm = Permission.objects.get(content_type=content_type,
+                                               codename='add_tree')
+        self.tree_only_role.instance_permissions.add(add_tree_perm)
+        self.tree_only_role.save()
+
+        self.p = Point(-8515941.0, 4953519.0)
+        self.plot = Plot(instance=self.instance, width=12, geom=self.p)
+        self.plot.save_with_user(self.commander_user)
+
+        plot2 = Plot(instance=self.instance, width=12, geom=self.p)
+        self.assertRaises(AuthorizeException,
+                          plot2.save_with_user,
+                          self.tree_only_user)
+
+        self.tree = Tree(instance=self.instance, plot=self.plot)
+        self.tree.save_with_user(self.tree_only_user)
+
+        self.assertTrue(self.tree.user_can_create(self.tree_only_user))
+
+        # The plot should be writable if the user can create a tree
+        self.assertTrue(perms.map_feature_is_writable(
+            self.tree_only_role,
+            self.plot))
