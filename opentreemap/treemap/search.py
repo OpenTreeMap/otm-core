@@ -15,6 +15,7 @@ from opentreemap.util import dotted_split
 from treemap.lib.dates import DATETIME_FORMAT
 from treemap.models import Boundary, Tree, Plot, Species, TreePhoto
 from treemap.udf import UDFModel, UserDefinedCollectionValue
+from treemap.units import storage_to_instance_units_factor
 from treemap.util import to_object_name
 
 
@@ -127,6 +128,41 @@ class FilterContext(Q):
         return super(FilterContext, self).add(thing, conn)
 
 
+def convert_filter_units(instance, filter_dict):
+    """
+    Convert the values in a filter dictionary from display units to database
+    units. Mutates the `filter_dict` argument and returns it.
+    """
+    for field_name, value in filter_dict.iteritems():
+        if field_name not in ['tree.diameter', 'tree.height',
+                              'tree.canopy_height', 'plot.width',
+                              'plot.length', 'bioswale.drainage_area',
+                              'rainBarrel.capacity',
+                              'rainGarden.drainage_area']:
+            continue
+
+        model_name, field = dotted_split(field_name, 2, maxsplit=1)
+
+        if isinstance(value, dict):
+            factor = 1 / storage_to_instance_units_factor(instance,
+                                                          model_name,
+                                                          field)
+            for k in ['MIN', 'MAX', 'IS']:
+                if k in value:
+                    try:
+                        if isinstance(value[k], dict):
+                            float_val = float(value[k]['VALUE'])
+                            value[k]['VALUE'] = factor * float_val
+                        else:
+                            float_val = float(value[k])
+                            value[k] = factor * float_val
+                    except ValueError:
+                        # If the value is non-numeric we can just leave is as
+                        # is and let the filter logic handle it.
+                        pass
+    return filter_dict
+
+
 def create_filter(instance, filterstr, mapping):
     """
     A filter is a string that must be valid json and conform to
@@ -154,6 +190,7 @@ def create_filter(instance, filterstr, mapping):
     """
     if filterstr is not None and filterstr != '':
         query = loads(filterstr)
+        convert_filter_units(instance, query)
         q = _parse_filter(query, mapping)
     else:
         q = FilterContext()

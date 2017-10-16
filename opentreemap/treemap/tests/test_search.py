@@ -16,6 +16,7 @@ from django.utils.tree import Node
 
 from django.contrib.gis.geos import Point, MultiPolygon
 
+from treemap.json_field import set_attr_on_json_field
 from treemap.tests import (make_instance, make_commander_user,
                            make_simple_polygon, set_write_permissions)
 from treemap.tests.base import OTMTestCase
@@ -768,6 +769,43 @@ class SearchTests(OTMTestCase):
             t.save_with_user(self.commander)
 
         return [p1, p2, p3, p4]
+
+    def test_diameter_units(self):
+        p1, p2, p3, p4 = self.setup_diameter_test()
+
+        filter = json.dumps({'tree.diameter': {'MAX': 9.0}})
+
+        plots = search.Filter(filter, '', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+        self.assertEqual(ids, {p1.pk, p2.pk, p3.pk, p4.pk})
+
+        set_attr_on_json_field(self.instance,
+                               'config.value_display.tree.diameter.units',
+                               'cm')
+        self.instance.save()
+
+        filter = json.dumps({'tree.diameter': {'MAX': 9.0}})
+
+        plots = search.Filter(filter, '', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+        # The filter range equates to 0 to 3.54.
+        self.assertEqual(ids, {p1.pk})
+
+        # This is also testing the alternative range syntax
+        filter = json.dumps({'tree.diameter':
+                             {'MIN': {'VALUE': 10, 'EXCLUSIVE': True},
+                              'MAX': {'VALUE': 15.3, 'EXCLUSIVE': True}}})
+
+        plots = search.Filter(filter, '', self.instance)\
+                      .get_objects(Plot)
+
+        ids = {p.pk for p in plots}
+        # The filter range equates to 3.93 to 6.02 inches
+        self.assertEqual(ids, {p2.pk, p3.pk})
 
     def test_diameter_min_filter(self):
         p1, p2, p3, p4 = self.setup_diameter_test()
