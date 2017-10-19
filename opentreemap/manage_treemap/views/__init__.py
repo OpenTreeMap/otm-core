@@ -21,10 +21,15 @@ def update_instance_fields_with_validator(validation_fn):
 
 def update_instance_fields(request, instance, validation_fn=None):
     json_data = json_from_request(request)
-    return _update_instance_fields(json_data, instance, validation_fn)
+    # The update is a PUT request but the query string param appears in the GET
+    # dict
+    should_update_universal_rev = 'update_universal_rev' in request.GET
+    return _update_instance_fields(json_data, instance, validation_fn,
+                                   should_update_universal_rev)
 
 
-def _update_instance_fields(json_data, instance, validation_fn=None):
+def _update_instance_fields(json_data, instance, validation_fn=None,
+                            should_update_universal_rev=False):
     error_dict = {}
     for identifier, value in json_data.iteritems():
         model, field_name = dotted_split(identifier, 2, maxsplit=1)
@@ -47,6 +52,8 @@ def _update_instance_fields(json_data, instance, validation_fn=None):
         try:
             validate_is_public(instance)
             instance.save()
+            if should_update_universal_rev:
+                instance.update_universal_rev()
             return {'ok': True}
         except ValidationError, ve:
             validation_error = ve
