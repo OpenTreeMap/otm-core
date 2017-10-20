@@ -19,6 +19,8 @@ from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr
 from treemap.udf import UserDefinedCollectionValue
+from treemap.units import (storage_to_instance_units_factor,
+                           get_value_display_attr)
 
 from treemap.lib.object_caches import udf_defs
 
@@ -138,6 +140,7 @@ def async_csv_export(job, model, query, display_filters):
     select = OrderedDict()
     select_params = []
     field_header_map = {}
+    field_serializer_map = {}
     if model == 'species':
         initial_qs = (Species.objects.
                       filter(instance=instance))
@@ -190,6 +193,8 @@ def async_csv_export(job, model, query, display_filters):
 
         if field_names:
             field_header_map = _csv_field_header_map(field_names)
+            field_serializer_map = _csv_field_serializer_map(instance,
+                                                             field_names)
             limited_qs = (initial_qs
                           .extra(select=select,
                                  select_params=select_params)
@@ -209,7 +214,8 @@ def async_csv_export(job, model, query, display_filters):
         csv_file = TemporaryFile()
         write_csv(limited_qs, csv_file,
                   field_order=field_header_map.keys(),
-                  field_header_map=field_header_map)
+                  field_header_map=field_header_map,
+                  field_serializer_map=field_serializer_map)
         filename = generate_filename(limited_qs).replace('plot', 'tree')
         job.complete_with(filename, File(csv_file))
 
@@ -266,6 +272,32 @@ def _csv_field_header_map(field_names):
                         extra={'extra_data': {'field_name': name}})
             continue
         map[name] = header
+    return map
+
+
+def _csv_field_serializer_map(instance, field_names):
+    """
+    Create serializer functions that convert values to the proper units.
+    """
+    map = {}
+    convertable_fields = {'tree__diameter': ('tree', 'diameter'),
+                          'tree__height': ('tree', 'height'),
+                          'tree__canopy_height': ('tree', 'canopy_height'),
+                          'width': ('plot', 'width'),
+                          'length': ('plot', 'length')}
+
+    def make_serializer(factor, digits):
+        return lambda x: str(round(factor * x, digits))
+
+    for name, details in convertable_fields.iteritems():
+        model_name, field = details
+        factor = storage_to_instance_units_factor(instance,
+                                                  model_name,
+                                                  field)
+        _, digits = get_value_display_attr(instance, model_name, field,
+                                           'digits')
+        digits = int(digits)
+        map[name] = make_serializer(factor, digits)
     return map
 
 
