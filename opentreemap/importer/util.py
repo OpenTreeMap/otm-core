@@ -36,7 +36,7 @@ def _as_utf8(f):
 
 
 def _guess_dialect_and_reset_read_pointer(f):
-    dialect = csv.Sniffer().sniff(_as_utf8(f).read(4096))
+    dialect = csv.Sniffer().sniff(_as_utf8(f).read(4096), delimiters=',\t')
     f.seek(0)
     return dialect
 
