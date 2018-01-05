@@ -4,16 +4,16 @@
 [![Build Status](https://travis-ci.org/OpenTreeMap/otm-core.svg?branch=master)](https://travis-ci.org/OpenTreeMap/otm-core)
 [![Coverage Status](https://coveralls.io/repos/OpenTreeMap/otm-core/badge.png)](https://coveralls.io/r/OpenTreeMap/otm-core)
 
-#OpenTreeMap 2
+# OpenTreeMap 2
 
-##Questions?
+## Questions?
 
 Join the user mailing list and let us know: 
 http://groups.google.com/group/opentreemap-user
 
 Or, try our Gitter channel: [![Join the chat at https://gitter.im/OpenTreeMap/otm-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenTreeMap/otm-core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-##Installation
+## Installation
 
 For full installation instructions, see the [Github 
 wiki](https://github.com/OpenTreeMap/otm-core/wiki/Installation-Guide).
@@ -33,7 +33,7 @@ GOOGLE_MAPS_KEY=...
 `ROLLBAR_SERVER_SIDE_ACCESS_TOKEN` is a token for [Rollbar](rollbar.com).
 `GOOGLE_MAPS_KEY` is a browser key for the Google Maps Javascript API, [which can be obtained here](https://developers.google.com/maps/documentation/javascript/get-api-key).
 
-##Other Repositories
+## Other Repositories
 
 This repository (ie, otm-core) is but one of a few separate repositories 
 that together compose the OpenTreeMap project. Others include:
@@ -48,7 +48,7 @@ OpenTreeMap client for iOS devices.
 
 
 
-###Deprecated Repositories
+### Deprecated Repositories
 
 OpenTreeMap has a long history. These repositories still exist, but are 
 deprecated and no development is happening here moving forward.
