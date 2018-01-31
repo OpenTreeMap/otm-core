@@ -8,6 +8,10 @@ require("autotrack");
 require("treemap/lib/buttonEnabler.js").run();
 require("treemap/lib/export.js").run();
 
+// TODO: Remove these two temporary imports after migration testing
+require("jquery");
+require("jquery-migrate");
+
 // Polyfill for String.startsWith(), not supported in IE 11
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (searchString, position) {
