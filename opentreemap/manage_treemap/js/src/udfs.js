@@ -486,7 +486,7 @@ function canBeSaved() {
 
 function enableDisableSaveBtn() {
     if (canBeSaved()) {
-        $(dom.saveBtn).removeAttr('disabled');
+        $(dom.saveBtn).prop('disabled', false);
     } else {
         $(dom.saveBtn).attr('disabled', 'disabled');
     }
@@ -514,7 +514,7 @@ function removeChoice($choice, keep) {
                 checkAllDuplicates($list);
                 enableDisableSaveBtn();
             }
-            $(dom.cancelBtn).removeAttr('disabled');
+            $(dom.cancelBtn).prop('disabled', false);
         });
 }
 

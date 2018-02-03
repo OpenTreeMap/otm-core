@@ -89,7 +89,7 @@ exports.handle = function(options) {
                 showEdit(false);
             },
             complete: function() {
-                $saveButton.removeProp('disabled');
+                $saveButton.prop('disabled', false);
             },
             error: function(resp) {
                 if (resp.responseJSON && resp.responseJSON.fieldErrors &&
@@ -109,7 +109,7 @@ exports.handle = function(options) {
         $cancelButton.prop('disabled', true);
         $mainContainer.load(url + ' ' + dom.mainContainer, function() {
             showEdit(false);
-            $cancelButton.removeProp('disabled');
+            $cancelButton.prop('disabled', false);
             // Because we reloaded the DOM, we need to setup drag events again
             setupDrag();
         });
