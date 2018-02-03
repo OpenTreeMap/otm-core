@@ -227,7 +227,7 @@ var create = exports.create = function(options) {
     // Keep track of when an item is selected from the typeahead menu
     // to avoid a redundant call to `autocomplete` that could mistakenly
     // change the selected value.
-    $input.bind('typeahead:select', function(ev, suggestion) {
+    $input.on('typeahead:select', function(ev, suggestion) {
         lastSelection = suggestion.value;
     });
 

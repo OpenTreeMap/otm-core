@@ -80,7 +80,7 @@ module.exports.init = function(options) {
         }
     });
 
-    fileupload.bind('fileuploadadd', function(e, data) {
+    fileupload.on('fileuploadadd', function(e, data) {
         data.process(function() {
             var defer = $.Deferred();
             _.each(data.files, function(file) {
