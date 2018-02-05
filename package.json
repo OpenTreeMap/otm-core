@@ -11,7 +11,6 @@
     "dragula": "^2.0.2",
     "esri-leaflet": "~1.0.2",
     "es6-promise": "~4.1.0",
-    "jquery-migrate": "3.0.0",
     "leaflet": "~1.0.3",
     "leaflet-draw": "~0.4.9",
     "leaflet.gridlayer.googlemutant ": "~0.4.3",
