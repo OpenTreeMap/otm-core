@@ -28,9 +28,9 @@ function init(options) {
     polygonFeatureGroup = new L.FeatureGroup();
     editor = new L.EditToolbar.Edit(map, { featureGroup: polygonFeatureGroup });
 
-    $(dom.editArea).click(modes.activateEditAreaMode);
-    $(dom.saveArea).click(saveArea);
-    $(dom.cancelEdit).click(cancelEditing);
+    $(dom.editArea).on('click', modes.activateEditAreaMode);
+    $(dom.saveArea).on('click', saveArea);
+    $(dom.cancelEdit).on('click', cancelEditing);
 }
 
 function activate() {

@@ -75,7 +75,7 @@ function renderPhotoModal (imageData) {
 
 module.exports.init = function(options) {
     var imageFinishedStream = options.imageFinishedStream || Bacon.never();
-    $(dom.toggle).click(function () {
+    $(dom.toggle).on('click', function () {
         $(dom.container).toggle(_SHARE_CONTAINER_SIZE);
     });
 

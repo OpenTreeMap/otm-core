@@ -43,7 +43,7 @@ module.exports = function(commentContainerSelector) {
             classname: 'comment-reply-form'
         }));
 
-        $('#id_comment').focus();
+        $('#id_comment').trigger('focus');
     });
 
     $container.on('change keyup paste', 'textarea', function (e) {

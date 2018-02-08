@@ -33,8 +33,8 @@ function init(options) {
     customAreaSearchBus = new Bacon.Bus();
     map = mapManager.map;
     $(dom.locationInput).on('input', showAppropriateWellButton);
-    $(dom.clearLocationInput).click(clearLocationInput);
-    $(dom.clearCustomArea).click(clearCustomArea);
+    $(dom.clearLocationInput).on('click', clearLocationInput);
+    $(dom.clearCustomArea).on('click', clearCustomArea);
 
     return customAreaSearchBus.map(_.identity);
 }

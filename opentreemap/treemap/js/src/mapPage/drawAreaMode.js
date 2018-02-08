@@ -23,8 +23,8 @@ function init(options) {
     originalTooltips = L.drawLocal.draw.handlers.polygon.tooltip;
     customTooltips = formatTooltips(options.tooltipStrings);
 
-    $(dom.drawArea).click(modes.activateDrawAreaMode);
-    $(dom.cancel).click(cancelDraw);
+    $(dom.drawArea).on('click', modes.activateDrawAreaMode);
+    $(dom.cancel).on('click', cancelDraw);
 }
 
 function activate() {

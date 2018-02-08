@@ -30,7 +30,7 @@ function hideAssociatedPopup(event) {
 function showPopup (event) {
     $(dom.popupTriggers).not(event.currentTarget).popover(actions.hide);
     $(event.currentTarget).popover(actions.show);
-    $(dom.popup.input).focus().select();
+    $(dom.popup.input).trigger('focus').trigger('select');
 }
 
 exports.init = function ($container) {

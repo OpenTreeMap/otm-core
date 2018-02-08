@@ -458,7 +458,7 @@ function resetModal() {
 
     _.each([$udfType, $udfModel], function ($el) {
         $el.val($el.children().first().val());
-        $el.change();
+        $el.trigger('change');
     });
 }
 

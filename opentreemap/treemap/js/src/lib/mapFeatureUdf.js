@@ -36,7 +36,7 @@ exports.init = function(form) {
             $unresolved = $tables.find('tr[data-value-id] td:contains("Unresolved")');
         $buttons.remove();
         $unresolved.next().append(resolveButtonMarkup);
-        $tables.find('.resolveBtn').click(markTargetAsResolved);
+        $tables.find('.resolveBtn').on('click', markTargetAsResolved);
     }
 
     function formatField (field) {
@@ -58,7 +58,7 @@ exports.init = function(form) {
     }
 
     // Wire up collection udfs
-    $('a[data-udf-id]').click(function() {
+    $('a[data-udf-id]').on('click', function() {
         var id = $(this).data('udf-id'),
             selector = format('table[data-udf-id="%s"] * [data-field-name]', id),
             fields = $(selector).toArray(),

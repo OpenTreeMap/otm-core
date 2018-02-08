@@ -235,7 +235,7 @@ var create = exports.create = function(options) {
         // After the user selects a field, blur the input so that any soft
         // keyboards that are open will close (mobile)
         _.defer(function() {
-            $input.blur();
+            $input.trigger('blur');
         });
     });
 

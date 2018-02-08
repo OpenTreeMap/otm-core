@@ -3,5 +3,5 @@
 var $ = require('jquery');
 
 $(function () {
-    $('input[type!="hidden"]').first().focus();
+    $('input[type!="hidden"]').first().trigger('focus');
 });

@@ -19,7 +19,7 @@ var dom = {
 exports.init = function(options) {
     options = options || {};
 
-    $(dom.deleteConfirm).click(function () {
+    $(dom.deleteConfirm).on('click', function () {
         var deleteUrl = options.deleteUrl || document.URL,
             successUrl = options.successUrl || mapPageUrl();
         $(dom.spinner).show();
@@ -35,10 +35,10 @@ exports.init = function(options) {
         });
     });
 
-    $(dom.deleteCancel).click(function () {
+    $(dom.deleteCancel).on('click', function () {
         $(dom.deleteConfirmationBox).hide();
     });
-    $(dom.delete).click(function () {
+    $(dom.delete).on('click', function () {
         $(dom.deleteConfirmationBox).show();
     });
 };

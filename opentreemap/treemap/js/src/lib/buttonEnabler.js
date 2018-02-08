@@ -49,7 +49,7 @@ function makeRedirectToLogin(loginUrl, $el, href) {
         if ($el.attr('data-href')) {
             $el.attr('data-href', fullHref);
         }
-        $el.click(function () {
+        $el.on('click', function () {
             window.location = fullHref;
         });
     }
