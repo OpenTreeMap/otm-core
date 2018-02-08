@@ -220,7 +220,7 @@ exports.exportToCsv = function (rows, filename) {
             link.setAttribute("download", filename);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
-            link.click();
+            link.trigger('click');
             document.body.removeChild(link);
         } else {
             var csvContent = "data:text/csv;charset=utf-8;\n" + csvFile,
@@ -232,6 +232,6 @@ exports.exportToCsv = function (rows, filename) {
 
 exports.modalsFocusOnFirstInputWhenShown = function () {
     $('.modal').on('shown.bs.modal', function() {
-        $(this).find('input').first().focus().select();
+        $(this).find('input').first().trigger('focus').trigger('select');
     });
 };

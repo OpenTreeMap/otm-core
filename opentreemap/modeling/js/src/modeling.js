@@ -240,7 +240,7 @@ function handleDetailsChanged(planState) {
 }
 
 function handleStaleRevision(planState) {
-    $(dom.staleRevisionDialogOk).click(function () {
+    $(dom.staleRevisionDialogOk).on('click', function () {
         var option = $(dom.staleRevisionDialog).find(
             'input[name=staleRevisionOptions]:checked').val();
         if (option === 'saveAs') {

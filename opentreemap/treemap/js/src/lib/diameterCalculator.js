@@ -194,7 +194,7 @@ exports = module.exports = function diameterCalculator (options) {
     $parentForm.find(_tbodySelector).on('input', 'input',
                          _.partial(updateRowValues, $parentForm));
 
-    $parentForm.find(_addRowBtnSelector).click(
+    $parentForm.find(_addRowBtnSelector).on('click',
         _.partial(createWorksheetRow, $parentForm));
 
     init($parentForm, initialDiameter);

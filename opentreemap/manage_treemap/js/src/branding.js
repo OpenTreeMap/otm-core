@@ -39,7 +39,7 @@ var cssUrl = reverse.scss() + '?' + config.instance.scssQuery,
 
 uploadPanel.init(dom.uploadPanel);
 
-$(dom.useDefaultColors).click(function () {
+$(dom.useDefaultColors).on('click', function () {
     setColor(dom.colorInput.primary, '8BAA3D');
     setColor(dom.colorInput.secondary, '56ABB2');
 });

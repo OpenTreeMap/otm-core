@@ -157,7 +157,7 @@ function createMortalityRate(args) {
             $row = $(createMortalityRateRow(params, item));
 
         $(dom.mortalityRateTable).find('tbody').append($row);
-        $row.find('input').first().select();
+        $row.find('input').trigger('first').trigger('select');
         updateAddSpeciesDropdown(getSelectedCodesFromUI());
     }
 }
