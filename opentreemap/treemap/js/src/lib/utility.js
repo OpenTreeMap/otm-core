@@ -220,7 +220,7 @@ exports.exportToCsv = function (rows, filename) {
             link.setAttribute("download", filename);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
-            link.trigger('click');
+            link.click();
             document.body.removeChild(link);
         } else {
             var csvContent = "data:text/csv;charset=utf-8;\n" + csvFile,
