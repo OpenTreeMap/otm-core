@@ -4,11 +4,12 @@ var $ = require('jquery'),
     _ = require('lodash'),
     mustache = require('mustache');
 
-var fieldErrorsTemplate = mustache.compile(
-    $('#field-error-template').html());
+var fieldErrorsTemplate = $('#field-error-template').html();
+var globalErrorsTemplate = $('#global-errors-template').html();
 
-var globalErrorsTemplate = mustache.compile(
-    $('#global-errors-template').html());
+// Parsing speeds up future, repeated usages of the template
+mustache.parse(fieldErrorsTemplate);
+mustache.parse(globalErrorsTemplate);
 
 module.exports.convertErrorObjectIntoHtml = function (rawErrorObject) {
     var errorObject = JSON.parse(rawErrorObject.responseText),
@@ -19,8 +20,8 @@ module.exports.convertErrorObjectIntoHtml = function (rawErrorObject) {
             errors: cleanFieldErrors,
             globalErrors: errorObject.globalErrors
         },
-        globalErrorHtml = globalErrorsTemplate(cleanErrorObject),
-        fieldErrorHtml = fieldErrorsTemplate(cleanErrorObject);
+        globalErrorHtml = mustache.render(globalErrorsTemplate, cleanErrorObject),
+        fieldErrorHtml = mustache.render(fieldErrorsTemplate, cleanErrorObject);
 
     return globalErrorHtml + fieldErrorHtml;
 };
