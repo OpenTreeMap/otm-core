@@ -58,7 +58,13 @@ var getSortFunction = function(sortKeys) {
 };
 
 var create = exports.create = function(options) {
-    var template = mustache.compile($(options.template).html()),
+    var templateMarkup = $(options.template).html(),
+        // As of 0.8.0 mustache no longer generates template functions. We
+        // create an old style template function so that the older version of
+        // typeahead does not notice the API change.
+        template = function(data) {
+            return mustache.render(templateMarkup, data);
+        },
         $input = $(options.input),
         $hidden_input = $(options.hidden),
         reverse = options.reverse,
@@ -124,6 +130,9 @@ var create = exports.create = function(options) {
             },
             display: 'text'
         };
+
+    // Parsing speeds up future, repeated usages of the template
+    mustache.parse(templateMarkup);
 
     if (options.url) {
         prefetchEngine = new Bloodhound({
