@@ -26,6 +26,7 @@ require('leafletbing');
 require('es6-promise').polyfill(); // https://gitlab.com/IvanSanchez/Leaflet.GridLayer.GoogleMutant
 require('leaflet.gridlayer.googlemutant');
 require('esri-leaflet');
+require('leaflet.locatecontrol');
 
 var MapManager = function() {};  // constructor
 
@@ -145,7 +146,11 @@ MapManager.prototype = {
             bounds = options.bounds,
             map = L.map(options.domId),
             type = options.type,
-            basemapMapping = getBasemapLayers(type);
+            basemapMapping = getBasemapLayers(type);	
+
+	L.control.locate({
+	    icon: "icon icon-location"
+	}).addTo(map);
 
         layersLib.initPanes(map);
 
