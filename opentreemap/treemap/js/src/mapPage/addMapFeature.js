@@ -48,8 +48,8 @@ function init(options) {
         editFields = formSelector + ' [data-class="edit"]',
         validationFields = options.validationFields || formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
-        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar),
-	boundsGeoJson = L.geoJson(config.instance.bounds);
+        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar), 
+        boundsGeoJson = L.geoJson(config.instance.bounds);
 
     $(editFields).show();
     $form.find('[data-class="display"]').hide();  // Hide display fields
@@ -193,7 +193,7 @@ function init(options) {
 
     function onGeolocateSuccess(lonLat) {
 	if (!pointInMap(lonLat)) {
-	    $pointInStreamError.show();
+            $pointInStreamError.show();
 	} else {
             var latLng = L.latLng(lonLat.coords.latitude, lonLat.coords.longitude);
             onLocationChosen(latLng);
