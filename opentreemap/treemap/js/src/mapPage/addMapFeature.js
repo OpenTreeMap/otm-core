@@ -49,13 +49,7 @@ function init(options) {
         validationFields = options.validationFields || formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
         $moveMarkerMessage = U.$find('.move-marker-message', $sidebar),
-	boundsGeoJson = L.geoJson(config.instance.bounds, {
-            style: {
-                color: "#dddddd",
-                fill: false,
-                dashArray: "5, 10"
-            }
-        });
+	boundsGeoJson = L.geoJson(config.instance.bounds);
 
     $(editFields).show();
     $form.find('[data-class="display"]').hide();  // Hide display fields
@@ -208,9 +202,6 @@ function init(options) {
 
     function pointInMap(lonLat) {
         var polysForPoint = leafletPip.pointInLayer(lonLat, boundsGeoJson, true);
-        if (polysForPoint.length > 0) {
-                
-        }
     }
 
     function onLocationChosen(latLng) {
