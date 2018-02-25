@@ -29,6 +29,9 @@
         <div class="alert alert-info move-marker-message hidden-xs" style="display: none;">
             {% trans "Please move marker to exact location of the" %} {{ feature_name }}
         </div>
+        <div class="alert alert-danger text-danger pointnotinmap-error" style="display: none;">
+            {% trans "Current location not within map bounds." %}
+        </div>
         <div class="alert alert-danger" data-class="error" data-field="mapFeature.geom"></div>
     </div>
     {% include 'treemap/partials/step_controls.html' %}
