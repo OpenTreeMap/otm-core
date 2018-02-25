@@ -166,11 +166,17 @@ MapManager.prototype = {
                     map.addLayer(layer);
                 });
         } else {
-            var visible = _.keys(basemapMapping)[0];
+            var visible = window.localStorage.getItem('basemapMapping');
+             if (visible === null) {
+                visible = _.keys(basemapMapping)[0];                  
+            }
             map.addLayer(basemapMapping[visible]);
             this.layersControl = L.control.layers(basemapMapping, null, {
                 autoZIndex: false
             }).addTo(map);
+            map.on('baselayerchange', function(e) {
+                window.localStorage.setItem('basemapMapping', e.name);  
+            });
         }
 
         if (options.disableScrollWithMouseWheel) {
