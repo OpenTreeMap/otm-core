@@ -29,7 +29,7 @@ var errors = [],
 // utility functions
 var focusSelectSnippet = function () {
     if (!_.isEmpty($snippet.val())) {
-        $snippet.focus().select();
+        $snippet.trigger('focus').trigger('select');
     }
 };
 

@@ -27,14 +27,14 @@ function init(obj, options) {
         obj.disable({isCancel: true});
     });
 
-    $editLocationButton.click(function () {
+    $editLocationButton.on('click', function () {
         // User clicked the "Move Location" button
         $editLocationButton.hide();
         $cancelEditLocationButton.show();
         obj.enable();
     });
 
-    $cancelEditLocationButton.click(function () {
+    $cancelEditLocationButton.on('click', function () {
         // User clicked the "Cancel Move Location" button
         $editLocationButton.show();
         $cancelEditLocationButton.hide();

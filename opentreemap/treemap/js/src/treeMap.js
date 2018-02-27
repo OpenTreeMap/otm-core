@@ -53,11 +53,11 @@ modeChangeStream.onValue(function (modeOptions) {
     }
 });
 
-$('[data-action="addtree"]').click(function(e) {
+$('[data-action="addtree"]').on('click', function(e) {
     performAdd(e, modes.activateAddTreeMode);
 });
 
-$('[data-action="addresource"]').click(function(e) {
+$('[data-action="addresource"]').on('click', function(e) {
     performAdd(e, modes.activateAddResourceMode);
 });
 

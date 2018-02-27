@@ -87,13 +87,13 @@ Four spaces. No tabs, please.
 
 ### Modules
 
-We use [browserify](http://browserify.org/) to compile nodejs-style modules
+We use [Webpack](https://webpack.github.io/) to compile nodejs-style modules
 for use in the browser. If you are using
-[otm-vagrant](https://github.com/OpenTreeMap/otm-vagrant) running this command
+[otm-vagrant](https://github.com/OpenTreeMap/otm-vagrant) running these commands
 will compile a JavaScript bundle and collect all the static Django assets.
 
 ```
-vagrant ssh -c 'cd /vagrant/otm-core/; ./node_modules/.bin/grunt --dev'
+vagrant ssh -c 'cd /vagrant/otm-core/; yarn run build; python opentreemap/manage.py collectstatic'
 ```
 
 ### Bacon.js
@@ -111,7 +111,7 @@ are using [otm-vagrant](https://github.com/OpenTreeMap/otm-vagrant), you can
 use this command to run jshint:
 
 ```
-vagrant ssh -c 'cd /vagrant/otm-core && npm run check'
+vagrant ssh -c 'cd /vagrant/otm-core && yarn run check'
 ```
 
 To avoid build failures make sure to run this command against

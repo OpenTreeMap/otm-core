@@ -106,8 +106,8 @@ module.exports.init = function(options) {
 
         if (1 === $deleteToggleEl.length) {
             $lightbox.find('[data-photo-confirm]').attr('data-photo-confirm', endpoint);
-            $lightbox.find('[data-class="delete"] button').removeProp('disabled');
-            $lightbox.find('[data-photo-delete-start]').removeProp('disabled');
+            $lightbox.find('[data-class="delete"] button').prop('disabled', false);
+            $lightbox.find('[data-photo-delete-start]').prop('disabled', false);
 
             if (mode === 'delete') {
                 $keepControl.one('click.delete-mode', function () {
@@ -139,7 +139,7 @@ module.exports.init = function(options) {
         if (currentRotation === 0) {
             $saveButton.prop('disabled', true);
         } else {
-            $saveButton.removeProp('disabled');
+            $saveButton.prop('disabled', false);
         }
     });
 
