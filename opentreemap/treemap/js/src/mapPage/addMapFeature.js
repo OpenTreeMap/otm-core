@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
+    leafletPip = require('leaflet-pip'),
     toastr = require('toastr'),
     FH = require('treemap/lib/fieldHelpers.js'),
     U = require('treemap/lib/utility.js'),
@@ -40,13 +41,15 @@ function init(options) {
         $geolocateButton = U.$find('.geolocate', $sidebar),
         $geocodeError = U.$find('.geocode-error', $sidebar),
         $geolocateError = U.$find('.geolocate-error', $sidebar),
+        $pointInStreamError = U.$find('.pointnotinmap-error', $sidebar),
         triggerSearchBus = options.triggerSearchBus,
 
         $form = U.$find(formSelector, $sidebar),
         editFields = formSelector + ' [data-class="edit"]',
         validationFields = options.validationFields || formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
-        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar);
+        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar), 
+        boundsGeoJson = L.geoJson(config.instance.bounds);
 
     $(editFields).show();
     $form.find('[data-class="display"]').hide();  // Hide display fields
@@ -117,6 +120,10 @@ function init(options) {
     });
     reverseGeocodeStream.onError($addressInput, 'val', '');
 
+    markerMoveStream.onValue(function() {
+	$pointInStreamError.hide();
+    });
+
     if (config.instance.basemap.type === 'google') {
         var $streetViewContainer = $("#streetview");
         var container = null;
@@ -185,8 +192,16 @@ function init(options) {
     }
 
     function onGeolocateSuccess(lonLat) {
-        var latLng = L.latLng(lonLat.coords.latitude, lonLat.coords.longitude);
-        onLocationChosen(latLng);
+	if (!pointInMap(lonLat)) {
+            $pointInStreamError.show();
+	} else {
+            var latLng = L.latLng(lonLat.coords.latitude, lonLat.coords.longitude);
+            onLocationChosen(latLng);
+        }
+    }
+
+    function pointInMap(lonLat) {
+        var polysForPoint = leafletPip.pointInLayer(lonLat, boundsGeoJson, true);
     }
 
     function onLocationChosen(latLng) {
