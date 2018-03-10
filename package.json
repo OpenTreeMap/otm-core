@@ -17,7 +17,7 @@
     "leaflet.gridlayer.googlemutant ": "~0.4.3",
     "leaflet.locatecontrol": "^0.62.0",
     "lodash": "^4.17.4",
-    "moment": "~2.11.2",
+    "moment": "2.19.3",
     "mustache": "~2.2.1",
     "numeral": "1.5.3",
     "ramda": "^0.23.0",
