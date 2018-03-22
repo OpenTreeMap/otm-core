@@ -146,7 +146,7 @@ MapManager.prototype = {
             bounds = options.bounds,
             map = L.map(options.domId),
             type = options.type,
-            basemapMapping = getBasemapLayers(type);	
+            basemapMapping = getBasemapLayers(type);
 
 	L.control.locate({
 	    icon: "icon icon-location"
@@ -172,15 +172,15 @@ MapManager.prototype = {
                 });
         } else {
             var visible = window.localStorage.getItem('basemapMapping');
-             if (visible === null) {
-                visible = _.keys(basemapMapping)[0];                  
+            if (visible === null) {
+                visible = _.keys(basemapMapping)[0];
             }
             map.addLayer(basemapMapping[visible]);
             this.layersControl = L.control.layers(basemapMapping, null, {
                 autoZIndex: false
             }).addTo(map);
             map.on('baselayerchange', function(e) {
-                window.localStorage.setItem('basemapMapping', e.name);  
+                window.localStorage.setItem('basemapMapping', e.name);
             });
         }
 
