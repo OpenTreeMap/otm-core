@@ -1810,6 +1810,10 @@ leaflet-pip@~1.0.0:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/leaflet.gridlayer.googlemutant/-/leaflet.gridlayer.googlemutant-0.4.4.tgz#64bad7d091df5fc150b6efb0cbd67474f8ba531c"
 
+leaflet.locatecontrol@^0.62.0:
+  version "0.62.0"
+  resolved "https://registry.yarnpkg.com/leaflet.locatecontrol/-/leaflet.locatecontrol-0.62.0.tgz#cf0c65170a87f2ed4b1a59e3307b773cd268d27d"
+
 leaflet@^0.7.3:
   version "0.7.7"
   resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-0.7.7.tgz#1e352ba54e63d076451fa363c900890cb2cf75ee"
@@ -2082,9 +2086,9 @@ mocha@~1.14.0:
     jade "0.26.3"
     mkdirp "0.3.5"
 
-moment@~2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.2.1.tgz#9793e45f549bb698f2e8755bcddc05edc539bc64"
+moment@2.19.3:
+  version "2.19.3"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.19.3.tgz#bdb99d270d6d7fda78cc0fbace855e27fe7da69f"
 
 ms@0.6.2:
   version "0.6.2"
@@ -2102,9 +2106,9 @@ mustache@^2.0.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/mustache/-/mustache-2.3.0.tgz#4028f7778b17708a489930a6e52ac3bca0da41d0"
 
-mustache@~0.7.2:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/mustache/-/mustache-0.7.3.tgz#248d68d0b1050397848fa634c2446c18f30490e9"
+mustache@~2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/mustache/-/mustache-2.2.1.tgz#2c40ca21c278f53150682bcf9090e41a3339b876"
 
 nan@^2.3.0, nan@^2.3.2:
   version "2.5.1"

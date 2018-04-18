@@ -19,6 +19,8 @@
             <div class="alert alert-danger text-danger"
                 style="display: none;"
                 {% include "treemap/field/attrs.html" with class="error" %}></div>
+            {% block diameter_video %}
+            {% endblock diameter_video %}
         {% endif %}
     </div>
 {% endif %}

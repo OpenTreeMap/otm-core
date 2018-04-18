@@ -26,6 +26,7 @@ require('leafletbing');
 require('es6-promise').polyfill(); // https://gitlab.com/IvanSanchez/Leaflet.GridLayer.GoogleMutant
 require('leaflet.gridlayer.googlemutant');
 require('esri-leaflet');
+require('leaflet.locatecontrol');
 
 var MapManager = function() {};  // constructor
 
@@ -145,7 +146,12 @@ MapManager.prototype = {
             bounds = options.bounds,
             map = L.map(options.domId),
             type = options.type,
-            basemapMapping = getBasemapLayers(type);
+            basemapMapping = getBasemapLayers(type),
+            basemapStorageKey = ['basemapMapping', type].join(':');
+
+	L.control.locate({
+	    icon: "icon icon-location"
+	}).addTo(map);
 
         layersLib.initPanes(map);
 
@@ -166,11 +172,17 @@ MapManager.prototype = {
                     map.addLayer(layer);
                 });
         } else {
-            var visible = _.keys(basemapMapping)[0];
+            var visible = window.localStorage.getItem(basemapStorageKey);
+            if (visible === null) {
+                visible = _.keys(basemapMapping)[0];
+            }
             map.addLayer(basemapMapping[visible]);
             this.layersControl = L.control.layers(basemapMapping, null, {
                 autoZIndex: false
             }).addTo(map);
+            map.on('baselayerchange', function(e) {
+                window.localStorage.setItem(basemapStorageKey, e.name);
+            });
         }
 
         if (options.disableScrollWithMouseWheel) {
