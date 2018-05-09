@@ -156,8 +156,11 @@ function resetAction(state) {
 function resetDateBox(widgetName, state) {
     var name = makeNameAttribute(state, state.dateFieldKey),
         $widget = $(widgets[widgetName].selector),
-        longDate = moment(state[widgetName], DATETIME_FORMAT),
-        shortDate = moment(state[widgetName], 'MM/DD/YYYY'),
+        // Passing `true` as the third argument when creating a moment enables
+        // strict mode, which we need for the `isValid` check below to work
+        // properly.
+        longDate = moment(state[widgetName], DATETIME_FORMAT, true),
+        shortDate = moment(state[widgetName], 'MM/DD/YYYY', true),
         shouldEnable = !_.isNull(state.modelName) && !_.isNull(state.type),
         val;
 
