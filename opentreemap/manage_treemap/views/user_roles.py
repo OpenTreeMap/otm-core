@@ -260,6 +260,13 @@ def activate_user(sender, user, request, password=None, **kwargs):
 
             user.is_active = True
             user.save_with_user(user)
+            # The registration system uses both the `activated` field in
+            # addition to the `User.is_active` fields. Setting `User.is_active`
+            # to false after activation lets us disable an account and prevent
+            # the user from reactivating it. Because of this we must also
+            # update the `activated` field.
+            user.registrationprofile.activated = True
+            user.registrationprofile.save()
 
             auser = authenticate(username=user.username,
                                  password=password)
