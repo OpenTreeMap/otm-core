@@ -38,7 +38,7 @@ Pillow==4.2.1
 psycopg2==2.7.3                          # http://initd.org/psycopg/docs/news.html
 pyflakes==1.6.0
 python-dateutil==2.6.1                   # https://github.com/dateutil/dateutil/blob/master/NEWS
-python-omgeo==3.0.0
+python-omgeo==5.1.0
 pytz==2017.2                             # https://launchpad.net/pytz/+announcements
 redis==2.10.5
 requests==2.18.3
