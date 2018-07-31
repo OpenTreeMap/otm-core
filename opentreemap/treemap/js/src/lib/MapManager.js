@@ -30,6 +30,90 @@ require('leaflet.locatecontrol');
 
 var MapManager = function() {};  // constructor
 
+function monkeyPatchLeafletLayersControlForMobileSafari(layersControl) {
+    /*
+      WARNING: This method will likely break if Leaflet is upgraded.
+
+      Tapping on the layers control in Mobile Safari was not opening the layer
+      selector. I was not able to reproduce this issue in a separate test
+      application, only within OTM.
+
+      After much trial and error I discovered that changing this line
+        L.DomEvent.on(el, L.Draggable.START.join(' '), stop);
+      to
+        L.DomEvent.on(container, 'mousedown', stop);
+      in DomEvent.disableClickPropagation resolved the issue. Effectively, this
+      prevents the `touchstart` event from being stopped.
+
+      I opted to implement this as a runtime patch applied within MapManager
+      instead of a global patch to the Leaflet source because there are no other
+      Leaflet behaviors that are known to be broken in Mobile Safari and I did
+      not want to risk introducing a regression in some other event handling.
+    */
+
+    // Original source for _initLayout taken from
+    // https://github.com/Leaflet/Leaflet/blob/v1.0.1/src/control/Control.Layers.js#L142-L192
+    layersControl._initLayout = function () {
+		    var className = 'leaflet-control-layers',
+		        container = this._container = L.DomUtil.create('div', className);
+
+		    // makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
+		    container.setAttribute('aria-haspopup', true);
+
+        // Original source for disableClickPropagation taken from
+        // https://github.com/Leaflet/Leaflet/blob/v1.0.1/src/dom/DomEvent.js#L179-L188
+        var stop = L.DomEvent.stopPropagation;
+		    L.DomEvent.on(container, 'mousedown', stop);
+		    L.DomEvent.on(container, {
+			      click: L.DomEvent._fakeStop,
+			      dblclick: stop
+		    });
+
+		    if (!L.Browser.touch) {
+			      L.DomEvent.disableScrollPropagation(container);
+		    }
+
+		    var form = this._form = L.DomUtil.create('form', className + '-list');
+
+		    if (this.options.collapsed) {
+			      if (!L.Browser.android) {
+				        L.DomEvent.on(container, {
+					          mouseenter: this.expand,
+					          mouseleave: this.collapse
+				        }, this);
+			      }
+
+			      var link = this._layersLink = L.DomUtil.create('a', className + '-toggle', container);
+			      link.href = '#';
+			      link.title = 'Layers';
+
+			      if (L.Browser.touch) {
+				        L.DomEvent
+				            .on(link, 'click', L.DomEvent.stop)
+				            .on(link, 'click', this.expand, this);
+			      } else {
+				        L.DomEvent.on(link, 'focus', this.expand, this);
+			      }
+
+			      // work around for Firefox Android issue https://github.com/Leaflet/Leaflet/issues/2033
+			      L.DomEvent.on(form, 'click', function () {
+				        setTimeout(L.bind(this._onInputClick, this), 0);
+			      }, this);
+
+			      this._map.on('click', this.collapse, this);
+			      // TODO keyboard accessibility
+		    } else {
+			      this.expand();
+		    }
+
+		    this._baseLayersList = L.DomUtil.create('div', className + '-base', form);
+		    this._separator = L.DomUtil.create('div', className + '-separator', form);
+		    this._overlaysList = L.DomUtil.create('div', className + '-overlays', form);
+
+		    container.appendChild(form);
+	  };
+}
+
 MapManager.prototype = {
     ZOOM_DEFAULT: 11,
     ZOOM_PLOT: 18,
@@ -179,7 +263,11 @@ MapManager.prototype = {
             map.addLayer(basemapMapping[visible]);
             this.layersControl = L.control.layers(basemapMapping, null, {
                 autoZIndex: false
-            }).addTo(map);
+            });
+
+            monkeyPatchLeafletLayersControlForMobileSafari(this.layersControl);
+
+            this.layersControl.addTo(map);
             map.on('baselayerchange', function(e) {
                 window.localStorage.setItem(basemapStorageKey, e.name);
             });
