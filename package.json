@@ -4,6 +4,9 @@
   "directories": {
     "doc": "doc"
   },
+  "//": ["!!! WARNING !!!",
+         "If you upgrade Leaflet you must update the patch in MapManager.js",
+         "!!! WARNING !!!"],
   "dependencies": {
     "autotrack": "^0.6.5",
     "baconjs": "~0.6",
