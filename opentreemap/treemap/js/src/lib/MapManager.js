@@ -257,7 +257,7 @@ MapManager.prototype = {
                 });
         } else {
             var visible = window.localStorage.getItem(basemapStorageKey);
-            if (visible === null) {
+            if (visible === null || !basemapMapping[visible]) {
                 visible = _.keys(basemapMapping)[0];
             }
             map.addLayer(basemapMapping[visible]);
