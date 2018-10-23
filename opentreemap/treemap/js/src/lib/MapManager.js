@@ -256,7 +256,12 @@ MapManager.prototype = {
                     map.addLayer(layer);
                 });
         } else {
-            var visible = window.localStorage.getItem(basemapStorageKey);
+            var visible;
+            try {
+                visible = window.localStorage.getItem(basemapStorageKey);
+            } catch (err) {
+                visible = null;
+            }
             if (visible === null || !basemapMapping[visible]) {
                 visible = _.keys(basemapMapping)[0];
             }
