@@ -565,7 +565,7 @@ function validate($choiceList, $choice, $input) {
 
 // For use in jQuery filters
 function trimOrNull(value) {
-    return !!value ? value.trim() : null;
+    return !!value ? value.toString().trim() : null;
 }
 function getValue(choiceElem) {
     var value = $(choiceElem).find('.form-control').val();
