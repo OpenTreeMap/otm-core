@@ -41,6 +41,7 @@ var dom = {
     saveBtn: '.saveBtn',
     cancelBtn: '.cancelBtn',
 
+    udfCreate: '#udf-create',
     createNewUdf: '#create-new-udf',
     createUdfPopup: '#add-udf-panel',
     udfFieldsContainer: '#udf-create-fields',
@@ -215,6 +216,7 @@ $('body').on('keydown paste cut', dom.choiceInput, function(e) {
         validate($choiceList, $choice, $input);
         checkDuplicates($choiceList, $choice, $input);
         enableDisableSaveBtn();
+        enableDisableCreateBtn();
     });
 });
 $('body').on('blur', dom.choiceInput, function(e) {
@@ -255,6 +257,7 @@ function prepareChoiceForRemoval($trashButton, $choice) {
                 $choice.appendTo($trashCan);
                 checkAllDuplicates($choiceList);
                 enableDisableSaveBtn();
+                enableDisableCreateBtn();
             });
     } else {
         removeChoice($choice);
@@ -395,6 +398,7 @@ function restoreValues() {
         $choiceList.find('.reused-error').removeClass('reused-error');
         $choiceList.find('.blank-error').removeClass('blank-error');
         $choiceList.find('.empty-error').removeClass('empty-error');
+        $choiceList.find('.whitespace-error').removeClass('whitespace-error');
         $choiceList.find('.no-double-quotes-error').removeClass('no-double-quotes-error');
         $choiceList.find('input[type="text"]').each(function() {
             var $input = $(this),
@@ -484,11 +488,23 @@ function canBeSaved() {
     return 0 === $(dom.udfs).find('.form-control.error').length && 0 < getChanged().length;
 }
 
+function canBeCreated() {
+    return 0 === $(dom.udfCreate).find('.form-control.error').length;
+}
+
 function enableDisableSaveBtn() {
     if (canBeSaved()) {
         $(dom.saveBtn).prop('disabled', false);
     } else {
         $(dom.saveBtn).attr('disabled', 'disabled');
+    }
+}
+
+function enableDisableCreateBtn() {
+    if (canBeCreated()) {
+        $(dom.createNewUdf).prop('disabled', false);
+    } else {
+        $(dom.createNewUdf).prop('disabled', 'disabled');
     }
 }
 
@@ -513,6 +529,7 @@ function removeChoice($choice, keep) {
                 $choice.remove();
                 checkAllDuplicates($list);
                 enableDisableSaveBtn();
+                enableDisableCreateBtn();
             }
             $(dom.cancelBtn).prop('disabled', false);
         });
@@ -557,9 +574,12 @@ function validate($choiceList, $choice, $input) {
     } else if ($choice.is(':only-child') ||
         ($choice.is(':first-child:not(' + dom.existingChoice + ')') && $input.val() === '')) {
         $choice.toggleClass('empty-error', true);
+    } else if ($input.val() !== $input.val().trim()) {
+        $choice.toggleClass('whitespace-error', true);
     } else {
         $choice.toggleClass('blank-error', false);
         $choice.toggleClass('empty-error', false);
+        $choice.toggleClass('whitespace-error', false);
     }
 }
 
@@ -655,6 +675,8 @@ function highlightErrors($choiceList) {
     $choiceList.find('.blank-error .form-control')
         .toggleClass('error', true);
     $choiceList.find('.empty-error .form-control')
+        .toggleClass('error', true);
+    $choiceList.find('.whitespace-error .form-control')
         .toggleClass('error', true);
     $choiceList.find('.no-double-quotes-error .form-control')
         .toggleClass('error', true);
