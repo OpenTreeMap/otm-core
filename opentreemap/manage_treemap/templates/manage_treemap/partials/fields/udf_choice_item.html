@@ -23,6 +23,10 @@
         <i class="icon-attention"></i>{% trans "Double quotes are not allowed in multiple choice fields" %}
     </div>
 
+    <div class="error" data-item="whitespace">
+        <i class="icon-attention"></i>{% trans "You cannot have extra spaces before or after the choice" %}
+    </div>
+
     {# Necessary for adding choices on existing custom field definitions #}
     <div class="error" data-item="reused">
         <i class="icon-attention"></i>{% trans "You cannot reuse a former name without saving first" %}
