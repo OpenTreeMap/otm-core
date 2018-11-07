@@ -41,7 +41,7 @@ python-dateutil==2.6.1                   # https://github.com/dateutil/dateutil/
 python-omgeo==5.1.0
 pytz==2017.2                             # https://launchpad.net/pytz/+announcements
 redis==2.10.5
-requests==2.18.3
+requests==2.20.0
 rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 six==1.10.0
 statsd==3.2.1
