@@ -904,6 +904,11 @@
                 display: block;
             }
         }
+        &.whitespace-error {
+            [data-item="whitespace"] {
+                display: block;
+            }
+        }
         &.blank-error {
             [data-item="blank"] {
                 display: block;
