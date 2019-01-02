@@ -14,7 +14,6 @@ var $ = require('jquery'),
 
 var dom = {
     form: '#map-feature-form',
-    treeIdColumn: '#tree-id-column',
     treePresenceSection: '#tree-presence-section',
     beginAddTree: '#begin-add-tree',
     addTreeControls: '#add-tree-controls',
@@ -27,8 +26,8 @@ exports.init = function(form) {
             .filter(R.complement(_.isUndefined))
             .filter(R.complement(_.isNull));
     }
-    
-    var treeId = $(dom.treeIdColumn).attr('data-tree-id'),
+
+    var treeId = $(dom.treeSection).attr('data-tree-id'),
         newTreeIdStream = excludeNullMap(form.saveOkStream,
             '.responseData.treeId');
 
