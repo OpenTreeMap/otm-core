@@ -11,7 +11,11 @@
 {% include "treemap/partials/plot_detail_add_tree.html" %}
 
 <!-- Tree Information -->
-<div id="tree-details" {{ has_tree|yesno:",style=display:none;" }}>
+{% if has_tree %}
+<div id="tree-details" data-tree-id="{{ tree.id|unlocalize }}">
+{% else %}
+<div id="tree-details" style="display:none;">
+{% endif %}
     <table class="table table-hover">
         <tbody>
         {% for tuple in group.fields %}

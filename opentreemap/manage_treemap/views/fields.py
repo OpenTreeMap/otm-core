@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 
 from opentreemap.util import json_from_request
 
-from treemap.models import Species
+from treemap.models import Species, Tree
 from treemap.util import to_model_name, safe_get_model_class, to_object_name
 from treemap.lib.object_caches import udf_defs
 from treemap.search_fields import (
@@ -37,7 +37,7 @@ def set_fields_page(request, instance):
         mobj = Model(instance=instance)
 
         model_fields = {field for field in mobj.tracked_fields
-                        if _should_show_field(mobj, field)}
+                        if _should_show_field(Model, field)}
         model_fields = {'%s.%s' % (group['model'], f) for f in model_fields}
         disabled_fields = model_fields - set(group['field_keys'])
 
@@ -210,7 +210,9 @@ def _add_field_info(instance, field_names):
 def _should_show_field(model, field_name):
     if field_name.startswith('udf:'):
         return True
-    elif field_name == 'id':
+    elif field_name == 'id' and model != Tree:
+        # We show tree.id on the detail and have special handling for it so we
+        # do not want to filter it out. Other id fields are always hidden.
         return False
     elif model == Species:
         # latreemap shows these; it's easiest to include them for all maps
