@@ -229,6 +229,12 @@ def plot_is_creatable(role_related_obj):
     return model_is_creatable(role_related_obj, Plot)
 
 
+def tree_is_writable(role_related_obj, field=None):
+    return _allows_perm(role_related_obj, 'Tree',
+                        perm_attr=ALLOWS_WRITES,
+                        predicate=any, field=field)
+
+
 def model_is_creatable(role_related_obj, Model):
     role = _get_role_from_related_object(role_related_obj)
     if role is None:
