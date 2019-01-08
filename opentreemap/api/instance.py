@@ -275,7 +275,8 @@ def instance_info(request, instance):
 
     info['meta_perms'] = {
         'can_add_tree': perms_lib.plot_is_creatable(role),
-        'can_edit_tree': perms_lib.plot_is_writable(role),
+        'can_edit_tree': (perms_lib.plot_is_writable(role) or
+                          perms_lib.tree_is_writable(role)),
         'can_edit_tree_photo': perms_lib.photo_is_addable(role, Plot),
     }
 
