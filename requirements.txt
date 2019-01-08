@@ -46,5 +46,5 @@ rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/
 six==1.10.0
 statsd==3.2.1
 unicodecsv==0.14.1
-urllib3==1.22
+urllib3==1.23
 wsgiref==0.1.2
