@@ -5,6 +5,7 @@ from __future__ import division
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
@@ -62,6 +63,10 @@ class RegistrationForm(DefaultRegistrationForm):
         required=False,
         label=_('I wish to receive occasional email '
                 'updates from the tree maps to which I contribute.'))
+
+    if settings.USE_RECAPTCHA:
+        from captcha.fields import ReCaptchaField
+        captcha = ReCaptchaField(label='Verification')
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
