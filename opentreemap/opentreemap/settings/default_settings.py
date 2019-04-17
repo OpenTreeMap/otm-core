@@ -277,6 +277,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sites',
     'django.contrib.auth',
+    'captcha',
     'treemap',
     'geocode',
     'api',
@@ -405,3 +406,16 @@ WEBPACK_LOADER = {
                                    'webpack-stats.json')
     }
 }
+
+# For django-recaptcha https://github.com/praekelt/django-recaptcha
+# Setting NOCAPTCHA to True enables v2
+NOCAPTCHA = True
+
+if os.environ.get('RECAPTCHA_PUBLIC_KEY', '') != '':
+    # We use an if block here because django-recaptcha will only use a default
+    # test key if these settings are undefined.
+    RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', None)
+    RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY', None)
+    USE_RECAPTCHA = True
+else:
+    USE_RECAPTCHA = False
