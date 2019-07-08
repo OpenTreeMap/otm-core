@@ -189,7 +189,7 @@ var create = exports.create = function(options) {
                     if (options.geocoderBbox) {
                         // wkid 102100 == webmercator
                         var searchExtent = _.extend({spatialReference:{wkid:102100}}, options.geocoderBbox);
-                        settings.url += '&searchExtent=' + JSON.stringify(searchExtent);
+                        settings.url += '&searchExtent=' + encodeURI(JSON.stringify(searchExtent));
                     }
 
                     settings = _.extend({crossDomain: true}, settings);
