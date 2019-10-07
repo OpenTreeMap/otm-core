@@ -246,13 +246,6 @@ if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
     MIDDLEWARE += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
 
-# Settings for StatsD metrics aggregation
-# TODO: Enable when django-statsd is compatible with Django > 1.8
-# STATSD_CLIENT = 'django_statsd.clients.normal'
-# STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
-# STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
-# STATSD_CELERY_SIGNALS = True
-
 STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
 
 CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
