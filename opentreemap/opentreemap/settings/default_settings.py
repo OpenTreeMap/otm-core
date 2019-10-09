@@ -9,7 +9,7 @@ FEATURE_BACKEND_FUNCTION = None
 USER_ACTIVATION_FUNCTION = None
 INSTANCE_PERMISSIONS_FUNCTION = 'treemap.instance.get_instance_permission_spec'
 
-ECOSERVICE_NAME = 'ecoservice'
+ECOSERVICE_NAME = 'otm-ecoservice'
 
 UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
 UITEST_SETUP_FUNCTION = None
