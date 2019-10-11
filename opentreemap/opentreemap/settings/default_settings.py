@@ -9,7 +9,7 @@ FEATURE_BACKEND_FUNCTION = None
 USER_ACTIVATION_FUNCTION = None
 INSTANCE_PERMISSIONS_FUNCTION = 'treemap.instance.get_instance_permission_spec'
 
-ECOSERVICE_NAME = 'ecoservice'
+ECOSERVICE_NAME = 'otm-ecoservice'
 
 UITEST_CREATE_INSTANCE_FUNCTION = 'treemap.tests.make_instance'
 UITEST_SETUP_FUNCTION = None
@@ -245,13 +245,6 @@ if ROLLBAR_SERVER_ACCESS_TOKEN is not None:
     }
     MIDDLEWARE += (
         'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',)
-
-# Settings for StatsD metrics aggregation
-# TODO: Enable when django-statsd is compatible with Django > 1.8
-# STATSD_CLIENT = 'django_statsd.clients.normal'
-# STATSD_PREFIX = '{}.django'.format(STACK_TYPE.lower())
-# STATSD_HOST = os.environ.get('OTM_STATSD_HOST', 'localhost')
-# STATSD_CELERY_SIGNALS = True
 
 STACK_COLOR = os.environ.get('OTM_STACK_COLOR', 'Black')
 
