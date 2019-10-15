@@ -19,6 +19,9 @@ from django.test.utils import override_settings
 
 from stormwater.models import Bioswale, RainGarden, RainBarrel
 
+ASSERT_ALMOST_EQUAL_AREA_DELTA = 0.00000005
+ASSERT_ALMOST_EQUAL_RUNOFF_REDUCTION_DELTA = 0.00000004
+
 
 @override_settings(FEATURE_BACKEND_FUNCTION=None)
 class UdfGenericCreateTest(UdfCRUTestCase):
@@ -222,7 +225,8 @@ class PolygonalMapFeatureTest(OTMTestCase):
     def test_calculate_area(self):
         bioswale = self._make_map_feature(Bioswale)
         self.assertAlmostEqual(bioswale.calculate_area(),
-                               self.polygon_area_sq_meters, places=0)
+                               self.polygon_area_sq_meters,
+                               delta=ASSERT_ALMOST_EQUAL_AREA_DELTA * self.polygon_area_sq_meters)  # NOQA
 
     def assert_basis(self, basis, n_used, n_discarded):
         self.assertEqual(basis['resource']['n_objects_used'], n_used)
@@ -247,7 +251,8 @@ class PolygonalMapFeatureTest(OTMTestCase):
         rainfall_ft = self.instance.annual_rainfall_inches * FEET_PER_INCH
         adjusted_area = area + (drainage_area * diversion_rate)
         expected = rainfall_ft * adjusted_area * GALLONS_PER_CUBIC_FT
-        self.assertAlmostEqual(runoff_reduced, expected, places=0)
+        self.assertAlmostEqual(runoff_reduced, expected,
+                               delta=ASSERT_ALMOST_EQUAL_RUNOFF_REDUCTION_DELTA * expected)  # NOQA
 
     def test_rain_garden(self):
         RainGarden.set_config_property(self.instance, 'should_show_eco', True)
