@@ -57,7 +57,7 @@ def _update_instance_fields(
             if should_update_universal_rev:
                 instance.update_universal_rev()
             return {"ok": True}
-        except ValidationError, ve:
+        except ValidationError as ve:
             validation_error = ve
 
     raise ValidationError(package_field_errors("instance", validation_error))

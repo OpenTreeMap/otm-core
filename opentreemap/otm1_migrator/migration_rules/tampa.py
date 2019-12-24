@@ -1,3 +1,4 @@
+from __future__ import print_function
 from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
 from treemap.models import ITreeCodeOverride, ITreeRegion, User

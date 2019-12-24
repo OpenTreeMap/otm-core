@@ -1,3 +1,4 @@
+from __future__ import print_function
 import dateutil.parser
 
 from treemap.models import User
@@ -163,7 +164,7 @@ def create_udfs(udfs, instance):
             }
 
             if not udf_lib.udf_exists(udf_params, instance):
-                print "Creating udf %s" % name
+                print("Creating udf %s" % name)
                 udf_lib.udf_create(udf_params, instance)
 
 

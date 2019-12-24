@@ -233,10 +233,10 @@ class UserExportsTest(UserExportsTestCase):
         reader = csv.reader(resp)
 
         # Skip BOM and entry line
-        reader.next()
-        reader.next()
+        next(reader)
+        next(reader)
 
-        header = reader.next()
+        header = next(reader)
 
         data = [dict(zip(header, [x.decode("utf8") for x in row])) for row in reader]
 

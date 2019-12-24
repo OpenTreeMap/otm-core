@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 import json
 import hashlib
@@ -1741,7 +1742,7 @@ def _get_model_class(class_dict, cls, model_name):
     Convert a model name (as a string) into the model class
     """
     if model_name.startswith("udf:"):
-        from udf import UserDefinedCollectionValue
+        from .udf import UserDefinedCollectionValue
 
         return UserDefinedCollectionValue
 

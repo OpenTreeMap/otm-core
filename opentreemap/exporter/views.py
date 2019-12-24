@@ -2,11 +2,12 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
-from tasks import async_csv_export, async_users_export
+from .tasks import async_csv_export, async_users_export
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call

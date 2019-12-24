@@ -23,6 +23,7 @@ from treemap.lib.object_caches import role_field_permissions
 from treemap.plugin import get_instance_permission_spec
 
 from manage_treemap.views import remove_udf_notification
+from functools import reduce
 
 
 WRITE_PERM = (_("Full Write Access"), FieldPermission.WRITE_DIRECTLY)

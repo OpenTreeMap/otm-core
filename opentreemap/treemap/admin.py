@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from django.contrib import admin
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.signals import user_logged_in
 
-import models
-import udf
+from . import models
+from . import udf
 
 user_logged_in.disconnect(auth_models.update_last_login)
 

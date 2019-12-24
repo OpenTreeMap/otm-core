@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 from django.conf.urls import include
 from django.conf.urls import url
 from django.contrib.auth.views import login
 from django.views.generic.base import TemplateView
 
 
-from views import RegistrationView, ActivationView, LoginForm, PasswordResetView
+from .views import RegistrationView, ActivationView, LoginForm, PasswordResetView
 
 
 urlpatterns = [

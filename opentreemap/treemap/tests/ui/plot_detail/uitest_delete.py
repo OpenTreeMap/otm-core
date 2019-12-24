@@ -2,12 +2,13 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
+from __future__ import absolute_import
 
 from unittest.case import skip
 
 from treemap.models import Tree
 
-from cases import PlotDetailDeleteUITestCase
+from .cases import PlotDetailDeleteUITestCase
 
 
 class PlotEditDeleteTest(PlotDetailDeleteUITestCase):
