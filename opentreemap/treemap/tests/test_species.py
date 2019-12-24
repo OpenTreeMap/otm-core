@@ -11,9 +11,9 @@ class SpeciesTests(OTMTestCase):
     """Test species lookup utility functions."""
 
     def test_species_for_otm_code(self):
-        species = species_for_otm_code('ABAL')
-        self.assertEqual(species['common_name'], 'Silver fir')
+        species = species_for_otm_code("ABAL")
+        self.assertEqual(species["common_name"], "Silver fir")
 
     def test_species_for_scientific_name(self):
-        species_dict = species_for_scientific_name('Abies', 'alba', '', '')
-        self.assertEqual(species_dict['otm_code'], 'ABAL')
+        species_dict = species_for_scientific_name("Abies", "alba", "", "")
+        self.assertEqual(species_dict["otm_code"], "ABAL")

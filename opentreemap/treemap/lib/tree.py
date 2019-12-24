@@ -12,7 +12,7 @@ from treemap.lib.map_feature import get_map_feature_or_404
 
 
 def add_tree_photo_helper(request, instance, feature_id, tree_id=None):
-    plot = get_map_feature_or_404(feature_id, instance, 'Plot')
+    plot = get_map_feature_or_404(feature_id, instance, "Plot")
     tree_ids = [t.pk for t in plot.tree_set.all()]
 
     if tree_id and int(tree_id) in tree_ids:
@@ -37,10 +37,9 @@ def add_tree_photo_helper(request, instance, feature_id, tree_id=None):
 
     else:
         # Tree id is invalid or not in this plot
-        raise Http404('Tree id %s not found on plot %s'
-                      % (tree_id, feature_id))
+        raise Http404("Tree id %s not found on plot %s" % (tree_id, feature_id))
 
-    #TODO: Auth Error
+    # TODO: Auth Error
     data = get_image_from_request(request)
     treephoto = tree.add_photo(data, request.user)
 

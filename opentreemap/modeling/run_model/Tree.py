@@ -5,13 +5,14 @@ from __future__ import division
 
 
 class Tree(object):
-    def __init__(self, growth_model, mortality_model,
-                 spec=None, tree=None, year_planted=0):
+    def __init__(
+        self, growth_model, mortality_model, spec=None, tree=None, year_planted=0
+    ):
 
         if spec:
-            self.name = spec.get('name')
-            self.initial_diameter = spec['diameter']
-            self.species = spec['species']
+            self.name = spec.get("name")
+            self.initial_diameter = spec["diameter"]
+            self.species = spec["species"]
 
         elif tree:  # replant
             self.name = tree.name
@@ -19,7 +20,7 @@ class Tree(object):
             self.species = tree.species
 
         else:
-            raise Exception('Internal error, no spec or tree')
+            raise Exception("Internal error, no spec or tree")
 
         self.id = None  # set by caller
         self.is_alive = True
@@ -71,8 +72,8 @@ class Tree(object):
 
     def summary(self):
         return {
-            'id': self.id,
-            'name': self.name,
-            'species': self.species,
-            'diameter': self.diameter,
+            "id": self.id,
+            "name": self.name,
+            "species": self.species,
+            "diameter": self.diameter,
         }

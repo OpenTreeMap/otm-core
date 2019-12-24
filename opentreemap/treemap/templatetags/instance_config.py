@@ -14,9 +14,9 @@ register = template.Library()
 def _get_color_from_config(config, name):
     color = config.get(name)
     if color:
-        return '#' + color
+        return "#" + color
     else:
-        return ''
+        return ""
 
 
 @register.filter
@@ -65,6 +65,7 @@ def get_udfc_search_fields(instance, user):
 @register.filter
 def as_json(d):
     return json.dumps(d)
+
 
 udf_write_level = register.filter(perms.udf_write_level)
 map_feature_is_writable = register.filter(perms.map_feature_is_writable)

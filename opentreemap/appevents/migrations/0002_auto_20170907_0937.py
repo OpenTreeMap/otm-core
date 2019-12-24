@@ -10,13 +10,15 @@ import treemap.json_field
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('appevents', '0001_initial'),
+        ("appevents", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='appevent',
-            name='data',
-            field=treemap.json_field.JSONField(blank=True, default=treemap.DotDict.DotDict),
+            model_name="appevent",
+            name="data",
+            field=treemap.json_field.JSONField(
+                blank=True, default=treemap.DotDict.DotDict
+            ),
         ),
     ]

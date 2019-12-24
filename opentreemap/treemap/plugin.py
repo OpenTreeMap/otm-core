@@ -43,8 +43,9 @@ def get_plugin_function(plugin_fn_setting, default_fn):
     default_fn - The function to call if plugin_fn_setting is not set
     """
     # cache the function
-    _plugin_fn_dict[plugin_fn_setting] =\
-        _resolve_plugin_function(plugin_fn_setting, default_fn)
+    _plugin_fn_dict[plugin_fn_setting] = _resolve_plugin_function(
+        plugin_fn_setting, default_fn
+    )
 
     def wrapper(*args, **kwargs):
         plugin_fn = _plugin_fn_dict.get(plugin_fn_setting)
@@ -73,36 +74,40 @@ def reset(sender, setting, value, **kwargs):
         _plugin_fn_dict[setting] = None
 
 
-feature_enabled = get_plugin_function('FEATURE_BACKEND_FUNCTION',
-                                      lambda instance, feature: True)
+feature_enabled = get_plugin_function(
+    "FEATURE_BACKEND_FUNCTION", lambda instance, feature: True
+)
 
 
-setup_for_ui_test = get_plugin_function('UITEST_SETUP_FUNCTION', lambda: None)
+setup_for_ui_test = get_plugin_function("UITEST_SETUP_FUNCTION", lambda: None)
 
 
 get_viewable_instances_filter = get_plugin_function(
-    'VIEWABLE_INSTANCES_FUNCTION', lambda: Q())
+    "VIEWABLE_INSTANCES_FUNCTION", lambda: Q()
+)
 
 
-get_tree_limit = get_plugin_function('TREE_LIMIT_FUNCTION',
-                                     lambda instance: None)
+get_tree_limit = get_plugin_function("TREE_LIMIT_FUNCTION", lambda instance: None)
 
 
 get_instance_permission_spec = get_plugin_function(
-    'INSTANCE_PERMISSIONS_FUNCTION', lambda instance: [])
+    "INSTANCE_PERMISSIONS_FUNCTION", lambda instance: []
+)
 
 
 validate_is_public = get_plugin_function(
-    'VALIDATE_IS_PUBLIC_FUNCTION', lambda instance: None)
+    "VALIDATE_IS_PUBLIC_FUNCTION", lambda instance: None
+)
 
 
-can_add_user = get_plugin_function(
-    'CAN_ADD_USER_FUNCTION', lambda instance: True)
+can_add_user = get_plugin_function("CAN_ADD_USER_FUNCTION", lambda instance: True)
 
 
 does_user_own_instance = get_plugin_function(
-    'INSTANCE_OWNER_FUNCTION', lambda instance, user: False)
+    "INSTANCE_OWNER_FUNCTION", lambda instance, user: False
+)
 
 
 invitation_accepted_notification_emails = get_plugin_function(
-    'INVITATION_ACCEPTED_NOTIFICATION_EMAILS', lambda invitation: [])
+    "INVITATION_ACCEPTED_NOTIFICATION_EMAILS", lambda invitation: []
+)

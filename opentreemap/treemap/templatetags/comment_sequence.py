@@ -5,9 +5,9 @@ register = Library()
 
 @register.filter
 def in_thread_order(comments):
-    '''Convert a list of comments in chronological order into a list of
+    """Convert a list of comments in chronological order into a list of
     comments in tree order, where the children of a comment appear
-    directly after the comment in the list.'''
+    directly after the comment in the list."""
     roots = []
     children_of = {}
     for c in comments:

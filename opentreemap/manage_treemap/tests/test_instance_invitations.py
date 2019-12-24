@@ -13,8 +13,11 @@ from treemap.models import User, InstanceUser
 from treemap.tests import make_user, make_instance
 from treemap.tests.test_urls import UrlTestCase
 
-from registration_backend.views import (RegistrationView, ActivationView,
-                                        RegistrationForm)
+from registration_backend.views import (
+    RegistrationView,
+    ActivationView,
+    RegistrationForm,
+)
 
 from manage_treemap.models import InstanceInvitation
 
@@ -25,17 +28,16 @@ class InstanceInvitationTest(UrlTestCase):
             pass
 
     def setUp(self):
-        self.user = make_user(username='test', password='password')
+        self.user = make_user(username="test", password="password")
         self.instance = make_instance()
 
         # Create an admin user to verify that not all admins get notifications
-        self.admin = make_user(instance=self.instance, username='admin',
-                               admin=True)
+        self.admin = make_user(instance=self.instance, username="admin", admin=True)
 
     def _login(self):
-        self.client.post('/accounts/login/',
-                         {'username': 'test',
-                          'password': 'password'})
+        self.client.post(
+            "/accounts/login/", {"username": "test", "password": "password"}
+        )
 
     def _make_registration_view(self):
         rv = RegistrationView()
@@ -44,8 +46,7 @@ class InstanceInvitationTest(UrlTestCase):
 
     def _make_request(self):
         request = HttpRequest()
-        request.META = {'SERVER_NAME': 'localhost',
-                        'SERVER_PORT': '80'}
+        request.META = {"SERVER_NAME": "localhost", "SERVER_PORT": "80"}
         request.session = self.MockSession()
         return request
 
@@ -55,13 +56,15 @@ class InstanceInvitationTest(UrlTestCase):
         email = "arst@neio.com"
 
         rv = self._make_registration_view()
-        form = RegistrationForm(data={
-            'email': email,
-            'email2': email,
-            'username': "u1",
-            'password1': "pass",
-            'password2': "pass"
-        })
+        form = RegistrationForm(
+            data={
+                "email": email,
+                "email2": email,
+                "username": "u1",
+                "password1": "pass",
+                "password2": "pass",
+            }
+        )
         self.assertTrue(form.is_valid())
         rv.register(form)
 
@@ -74,10 +77,9 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertEquals(len(InstanceUser.objects.filter(user=user)), 0)
 
         success_url = rv.get_success_url(user)
-        self.assertEqual(success_url, 'registration_complete')
+        self.assertEqual(success_url, "registration_complete")
 
-    def _invite_and_register(self, invite_email, user_email=None,
-                             key_matches=True):
+    def _invite_and_register(self, invite_email, user_email=None, key_matches=True):
         if user_email is None:
             user_email = invite_email
 
@@ -85,7 +87,8 @@ class InstanceInvitationTest(UrlTestCase):
             created_by=self.user,
             instance=self.instance,
             email=invite_email,
-            role=self.instance.default_role)
+            role=self.instance.default_role,
+        )
 
         # Clear the outbox after creating the instance so that emails
         # triggered by instance creation do not affect this test
@@ -94,15 +97,17 @@ class InstanceInvitationTest(UrlTestCase):
         rv = self._make_registration_view()
 
         if key_matches:
-            rv.request.GET = {'key': invite.activation_key}
+            rv.request.GET = {"key": invite.activation_key}
 
-        form = RegistrationForm(data={
-            'email': user_email,
-            'email2': user_email,
-            'username': "u1",
-            'password1': "pass",
-            'password2': "pass"
-        })
+        form = RegistrationForm(
+            data={
+                "email": user_email,
+                "email2": user_email,
+                "username": "u1",
+                "password1": "pass",
+                "password2": "pass",
+            }
+        )
         self.assertTrue(form.is_valid())
         rv.register(form)
 
@@ -113,7 +118,7 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertIsNotNone(new_user.get_instance_user(self.instance))
 
         success_url, __, __ = view.get_success_url(new_user)
-        self.assertEqual(success_url, '/%s/map/' % self.instance.url_name)
+        self.assertEqual(success_url, "/%s/map/" % self.instance.url_name)
 
         self.assertEquals(len(mail.outbox), 1)
         msg = mail.outbox[0]
@@ -150,7 +155,7 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertIsNone(new_user.get_instance_user(self.instance))
 
         success_url = rv.get_success_url(new_user)
-        self.assertEqual(success_url, 'registration_complete')
+        self.assertEqual(success_url, "registration_complete")
 
         # We should get an activation email, and no others, because the emails
         # did not match
@@ -173,7 +178,7 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertIsNone(new_user.get_instance_user(self.instance))
 
         success_url = rv.get_success_url(new_user)
-        self.assertEqual(success_url, 'registration_complete')
+        self.assertEqual(success_url, "registration_complete")
 
         # We should get an activation email, and no others, because the emails
         # did not match

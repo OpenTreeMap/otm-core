@@ -30,21 +30,18 @@ MIN_ZOOM = 0
 def recompute_hide_at_zoom(instance, verbose=False):
     # TODO: skip if geo_rev hasn't changed
     if verbose:
-        print('\nUpdating instance %s' % instance.url_name)
+        print("\nUpdating instance %s" % instance.url_name)
 
-    MapFeature.objects.all() \
-        .filter(instance=instance) \
-        .update(hide_at_zoom=None)
+    MapFeature.objects.all().filter(instance=instance).update(hide_at_zoom=None)
 
     _print_summary(instance, MAX_ZOOM + 1, verbose)
     for zoom in range(MAX_ZOOM, MIN_ZOOM - 1, -1):
         grid_size_wm = _get_grid_size_wm(GRID_PIXELS, zoom)
         with connection.cursor() as cursor:
-            cursor.execute(_SQL_RECOMPUTE, {
-                'instance_id': instance.id,
-                'grid_size': grid_size_wm,
-                'zoom': zoom
-            })
+            cursor.execute(
+                _SQL_RECOMPUTE,
+                {"instance_id": instance.id, "grid_size": grid_size_wm, "zoom": zoom},
+            )
         _print_summary(instance, zoom, verbose)
 
     instance.update_geo_rev()
@@ -52,8 +49,7 @@ def recompute_hide_at_zoom(instance, verbose=False):
 
 def _print_summary(instance, zoom, verbose):
     if verbose:
-        features = MapFeature.objects.filter(instance=instance,
-                                             hide_at_zoom=None)
+        features = MapFeature.objects.filter(instance=instance, hide_at_zoom=None)
         print("{1:>2}  {0:>7}".format(features.count(), zoom))
 
 
@@ -103,9 +99,8 @@ _SQL_RECOMPUTE = """
 
 
 def update_hide_at_zoom_after_delete(feature):
-    if feature.feature_type == 'Plot':
-        _reveal_a_hidden_plot(
-            feature.instance, feature.geom, feature.hide_at_zoom)
+    if feature.feature_type == "Plot":
+        _reveal_a_hidden_plot(feature.instance, feature.geom, feature.hide_at_zoom)
 
 
 def update_hide_at_zoom_after_move(feature, user, point_old):
@@ -115,7 +110,7 @@ def update_hide_at_zoom_after_move(feature, user, point_old):
     # For the "add" we show the plot at all zoom levels (by clearing its
     # hide_at_zoom). For the "delete" we reveal a plot hidden by the old
     # position to prevent holes in the canopy.
-    if feature.feature_type == 'Plot':
+    if feature.feature_type == "Plot":
         hide_at_zoom_old = feature.hide_at_zoom
         feature.hide_at_zoom = None
         feature.save_with_user(user)
@@ -131,14 +126,17 @@ def _reveal_a_hidden_plot(instance, point, hide_at_zoom):
         # Plot that disappeared was visible at this zoom level.
         # Reveal a hidden plot if there's one in this cell.
         with connection.cursor() as cursor:
-            cursor.execute(_SQL_REVEAL, {
-                'instance_id': instance.id,
-                'grid_size': grid_size_wm,
-                'zoom': zoom,
-                'hide_at_zoom': hide_at_zoom,
-                'cell_x': floor(point.x / grid_size_wm),
-                'cell_y': floor(point.y / grid_size_wm),
-            })
+            cursor.execute(
+                _SQL_REVEAL,
+                {
+                    "instance_id": instance.id,
+                    "grid_size": grid_size_wm,
+                    "zoom": zoom,
+                    "hide_at_zoom": hide_at_zoom,
+                    "cell_x": floor(point.x / grid_size_wm),
+                    "cell_y": floor(point.y / grid_size_wm),
+                },
+            )
             result = cursor.fetchone()
             if result is not None:
                 # Found one. Its hide_at_zoom has been lowered so it will fill

@@ -7,18 +7,25 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stormwater', '0001_initial'),
+        ("stormwater", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RainGarden',
+            name="RainGarden",
             fields=[
-                ('polygonalmapfeature_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='stormwater.PolygonalMapFeature')),
+                (
+                    "polygonalmapfeature_ptr",
+                    models.OneToOneField(
+                        parent_link=True,
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="stormwater.PolygonalMapFeature",
+                    ),
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('stormwater.polygonalmapfeature',),
+            options={"abstract": False,},
+            bases=("stormwater.polygonalmapfeature",),
         ),
     ]

@@ -17,7 +17,6 @@ from importer import errors
 
 
 class GenericImportEvent(models.Model):
-
     class Meta:
         abstract = True
 
@@ -38,9 +37,9 @@ class GenericImportEvent(models.Model):
     file_name = models.CharField(max_length=255)
 
     # Global errors and notices (json)
-    errors = models.TextField(default='')
+    errors = models.TextField(default="")
 
-    field_order = models.TextField(default='')
+    field_order = models.TextField(default="")
 
     # Metadata about this particular import
     owner = models.ForeignKey(User)
@@ -54,7 +53,7 @@ class GenericImportEvent(models.Model):
     is_lost = models.BooleanField(default=False)
 
     # The id of a running verification task.  Used for canceling imports
-    task_id = models.CharField(max_length=50, default='', blank=True)
+    task_id = models.CharField(max_length=50, default="", blank=True)
 
     def save(self, *args, **kwargs):
         if self.pk is None:
@@ -77,7 +76,7 @@ class GenericImportEvent(models.Model):
             GenericImportEvent.FINISHED_CREATING,
             GenericImportEvent.FAILED_FILE_VERIFICATION,
             GenericImportEvent.CANCELED,
-            GenericImportEvent.VERIFICATION_ERROR
+            GenericImportEvent.VERIFICATION_ERROR,
         }
 
     def status_description(self):
@@ -98,31 +97,33 @@ class GenericImportEvent(models.Model):
         return self.status == self.LOADING
 
     def is_running(self):
-        return (
-            self.status == self.VERIFIYING or
-            self.status == self.CREATING)
+        return self.status == self.VERIFIYING or self.status == self.CREATING
 
     def is_finished(self):
         return (
-            self.status == self.FINISHED_VERIFICATION or
-            self.status == self.FINISHED_CREATING or
-            self.status == self.FAILED_FILE_VERIFICATION or
-            self.status == self.CANCELED or
-            self.status == self.VERIFICATION_ERROR)
+            self.status == self.FINISHED_VERIFICATION
+            or self.status == self.FINISHED_CREATING
+            or self.status == self.FAILED_FILE_VERIFICATION
+            or self.status == self.CANCELED
+            or self.status == self.VERIFICATION_ERROR
+        )
 
     def can_export(self):
-        return (not self.is_running()
-                and self.has_current_schema_version()
-                and self.status != self.FAILED_FILE_VERIFICATION
-                and self.status != self.VERIFICATION_ERROR)
+        return (
+            not self.is_running()
+            and self.has_current_schema_version()
+            and self.status != self.FAILED_FILE_VERIFICATION
+            and self.status != self.VERIFICATION_ERROR
+        )
 
     def can_cancel(self):
         return self.status == self.LOADING or self.status == self.VERIFIYING
 
     def can_add_to_map(self):
         return self.has_current_schema_version() and (
-            self.status == self.FINISHED_VERIFICATION or
-            self.status == self.FINISHED_CREATING)
+            self.status == self.FINISHED_VERIFICATION
+            or self.status == self.FINISHED_CREATING
+        )
 
     def has_current_schema_version(self):
         return self.schema_version == self.import_schema_version
@@ -131,7 +132,7 @@ class GenericImportEvent(models.Model):
         waiting = self.row_set().filter(status=GenericImportRow.WAITING)
         row_count = self.row_count
         n_complete = row_count - waiting.count()
-        return '{:,} / {:,}'.format(n_complete, row_count)
+        return "{:,} / {:,}".format(n_complete, row_count)
 
     def update_status(self):
         """ Update the status field based on current row statuses """
@@ -143,19 +144,17 @@ class GenericImportEvent(models.Model):
         if data and not isinstance(data, list):
             raise ValidationError(_("For this class, data must be a list"))
 
-        if self.errors is None or self.errors == '':
-            self.errors = '[]'
+        if self.errors is None or self.errors == "":
+            self.errors = "[]"
 
         self.errors = json.dumps(
-            self._errors_as_array() + [
-                {'code': code,
-                 'data': data,
-                 'fatal': fatal}])
+            self._errors_as_array() + [{"code": code, "data": data, "fatal": fatal}]
+        )
 
         return self
 
     def _errors_as_array(self):
-        if self.errors is None or self.errors == '':
+        if self.errors is None or self.errors == "":
             return []
         else:
             return json.loads(self.errors)
@@ -163,7 +162,7 @@ class GenericImportEvent(models.Model):
     def errors_array_with_messages(self):
         errs = self._errors_as_array()
         for error in errs:
-            error['msg'] = errors.get_message(error['code'])
+            error["msg"] = errors.get_message(error["code"])
         return errs
 
     def has_errors(self):
@@ -171,23 +170,23 @@ class GenericImportEvent(models.Model):
 
     def has_error(self, error):
         code, msg, fatal = error
-        error_codes = {e['code'] for e in self._errors_as_array()}
+        error_codes = {e["code"] for e in self._errors_as_array()}
         return code in error_codes
 
     def row_set(self):
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")
 
     def rows(self):
-        return self.row_set().order_by('idx').all()
+        return self.row_set().order_by("idx").all()
 
     def legal_and_required_fields(self):
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")
 
     def legal_and_required_fields_title_case(self):
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")
 
     def ignored_fields(self):
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")
 
     def validate_field_names(self, input_fields):
         """
@@ -198,8 +197,7 @@ class GenericImportEvent(models.Model):
         legal_fields, required_fields = self.legal_and_required_fields()
 
         # Extra input fields cause a fatal error
-        extra = [field for field in input_fields
-                 if field not in legal_fields]
+        extra = [field for field in input_fields if field not in legal_fields]
         if len(extra) > 0:
             is_valid = False
             self.append_error(errors.UNMATCHED_FIELDS, list(extra))
@@ -212,7 +210,7 @@ class GenericImportEvent(models.Model):
         return is_valid
 
     def mark_finished_and_save(self):
-        self.task_id = ''
+        self.task_id = ""
         self.last_processed_at = None
         self.save()
 
@@ -243,7 +241,7 @@ class GenericImportRow(models.Model):
     finished = models.BooleanField(default=False)
 
     # JSON field containing error information
-    errors = models.TextField(default='')
+    errors = models.TextField(default="")
 
     # Status
     SUCCESS = 0
@@ -261,7 +259,7 @@ class GenericImportRow(models.Model):
 
     @property
     def model_fields(self):
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")
 
     @property
     def datadict(self):
@@ -276,7 +274,7 @@ class GenericImportRow(models.Model):
         self.data = json.dumps(self.jsondata)
 
     def _errors_as_array(self):
-        if self.errors is None or self.errors == '':
+        if self.errors is None or self.errors == "":
             return []
         else:
             return json.loads(self.errors)
@@ -284,12 +282,13 @@ class GenericImportRow(models.Model):
     def errors_array_with_messages(self):
         errs = self._errors_as_array()
         for error in errs:
-            error['msg'] = errors.get_message(error['code'])
+            error["msg"] = errors.get_message(error["code"])
         return errs
 
     def errors_array_without_merge_errors(self):
-        errs = [e for e in self._errors_as_array()
-                if e['code'] != errors.MERGE_REQUIRED[0]]
+        errs = [
+            e for e in self._errors_as_array() if e["code"] != errors.MERGE_REQUIRED[0]
+        ]
         return errs
 
     def has_errors(self):
@@ -300,7 +299,7 @@ class GenericImportRow(models.Model):
         datadict = self.datadict
 
         for e in self._errors_as_array():
-            for field in e['fields']:
+            for field in e["fields"]:
                 data[field] = datadict[field]
 
         return data
@@ -308,7 +307,7 @@ class GenericImportRow(models.Model):
     def has_fatal_error(self):
         if self.errors:
             for err in json.loads(self.errors):
-                if err['fatal']:
+                if err["fatal"]:
                     return True
 
         return False
@@ -316,8 +315,8 @@ class GenericImportRow(models.Model):
     def append_error(self, err, fields, data=None):
         code, msg, fatal = err
 
-        if self.errors is None or self.errors == '':
-            self.errors = '[]'
+        if self.errors is None or self.errors == "":
+            self.errors = "[]"
 
         # If you give append_error a single field
         # there is no need to get angry
@@ -325,11 +324,9 @@ class GenericImportRow(models.Model):
             fields = (fields,)  # make into tuple
 
         self.errors = json.dumps(
-            json.loads(self.errors) + [
-                {'code': code,
-                 'fields': fields,
-                 'data': data,
-                 'fatal': fatal}])
+            json.loads(self.errors)
+            + [{"code": code, "fields": fields, "data": data, "fatal": fatal}]
+        )
 
         return self
 
@@ -342,13 +339,13 @@ class GenericImportRow(models.Model):
 
     def safe_bool(self, fld):
         """ Returns a tuple of (success, bool value) """
-        v = self.datadict.get(fld, '').lower()
+        v = self.datadict.get(fld, "").lower()
 
-        if v == '':
+        if v == "":
             return (True, None)
-        if v == 'true' or v == 't' or v == 'yes':
+        if v == "true" or v == "t" or v == "yes":
             return (True, True)
-        elif v == 'false' or v == 'f' or v == 'no':
+        elif v == "false" or v == "f" or v == "no":
             return (True, False)
         else:
             self.append_error(errors.BOOL_ERROR, fld)
@@ -402,14 +399,11 @@ class GenericImportRow(models.Model):
 
             return has_errors
 
-        pfloat_ok = cleanup(self.model_fields.POS_FLOAT_FIELDS,
-                            self.safe_pos_float)
+        pfloat_ok = cleanup(self.model_fields.POS_FLOAT_FIELDS, self.safe_pos_float)
 
-        float_ok = cleanup(self.model_fields.FLOAT_FIELDS,
-                           self.safe_float)
+        float_ok = cleanup(self.model_fields.FLOAT_FIELDS, self.safe_float)
 
-        int_ok = cleanup(self.model_fields.POS_INT_FIELDS,
-                         self.safe_pos_int)
+        int_ok = cleanup(self.model_fields.POS_INT_FIELDS, self.safe_pos_int)
 
         return pfloat_ok and float_ok and int_ok
 
@@ -445,7 +439,7 @@ class GenericImportRow(models.Model):
             value = self.datadict.get(field, None)
             if value:
                 try:
-                    datep = datetime.strptime(value, '%Y-%m-%d')
+                    datep = datetime.strptime(value, "%Y-%m-%d")
                     self.cleaned[field] = datep
                 except ValueError:
                     self.append_error(errors.INVALID_DATE, field)
@@ -470,4 +464,4 @@ class GenericImportRow(models.Model):
         - The 'cleaned' field on self will be set as fields
           get validated
         """
-        raise Exception('Abstract Method')
+        raise Exception("Abstract Method")

@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0014_change_empty_multichoice_values'),
+        ("treemap", "0014_change_empty_multichoice_values"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='instanceuser',
-            name='last_seen',
+            model_name="instanceuser",
+            name="last_seen",
             field=models.DateField(null=True, blank=True),
         ),
     ]

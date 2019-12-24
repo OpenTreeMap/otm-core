@@ -27,13 +27,17 @@ def merge_view_contexts(viewfns):
             context.update(viewfn(*args, **kwargs))
 
         return context
+
     return wrapped
 
 
-def dotted_split(string, item_count,
-                 maxsplit=None,
-                 failure_format_string="Malformed string: '%s'",
-                 cls=Exception):
+def dotted_split(
+    string,
+    item_count,
+    maxsplit=None,
+    failure_format_string="Malformed string: '%s'",
+    cls=Exception,
+):
     """
     Split at period characters, validating
     that the number of splits is as it was intended
@@ -46,9 +50,9 @@ def dotted_split(string, item_count,
     number of returned values.
     """
     if maxsplit is not None:
-        parts = string.split('.', maxsplit)
+        parts = string.split(".", maxsplit)
     else:
-        parts = string.split('.')
+        parts = string.split(".")
     if len(parts) != item_count:
         raise cls(failure_format_string % string)
     else:
@@ -98,9 +102,9 @@ def force_obj_to_pk(obj):
     """
     if obj is None:
         return None
-    elif hasattr(obj, 'pk'):
+    elif hasattr(obj, "pk"):
         return obj.pk
-    elif hasattr(obj, 'id'):
+    elif hasattr(obj, "id"):
         return obj.id
     else:
         return obj
@@ -108,9 +112,9 @@ def force_obj_to_pk(obj):
 
 def get_ids_from_request(request):
     # Check both the POST & GET dictionaries
-    ids_string = request.POST.get('ids', request.GET.get('ids', None))
+    ids_string = request.POST.get("ids", request.GET.get("ids", None))
     if ids_string:
-        return [int(id) for id in ids_string.split(',')]
+        return [int(id) for id in ids_string.split(",")]
     else:
         return []
 
@@ -125,7 +129,7 @@ def add_rollbar_handler(logger, level=logging.WARNING):
 def extent_as_json(extent):
     xmin, ymin, xmax, ymax = extent
 
-    return json.dumps({'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax})
+    return json.dumps({"xmin": xmin, "ymin": ymin, "xmax": xmax, "ymax": ymax})
 
 
 def extent_intersection(*extents):
@@ -137,7 +141,7 @@ def extent_intersection(*extents):
 def request_is_embedded(request):
     embed_value = None
     try:
-        embed_value = request.GET.get('embed')
+        embed_value = request.GET.get("embed")
     except:
         pass
     return embed_value is not None and 0 < len(embed_value)

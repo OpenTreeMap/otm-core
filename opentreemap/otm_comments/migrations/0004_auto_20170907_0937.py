@@ -8,12 +8,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('otm_comments', '0003_auto_20160923_1413'),
+        ("otm_comments", "0003_auto_20160923_1413"),
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='enhancedthreadedcomment',
-            options={},
-        ),
+        migrations.AlterModelOptions(name="enhancedthreadedcomment", options={},),
     ]

@@ -28,6 +28,7 @@ def field_permissions(user, instance, model_name=None):
     else:
         return _permissions_from_db(user, instance, model_name)
 
+
 permissions = field_permissions
 
 
@@ -35,8 +36,7 @@ def role_field_permissions(role, instance=None, model_name=None):
     if settings.USE_OBJECT_CACHES:
         if not instance:
             instance = role.instance
-        return _get_adjuncts(instance).role_field_permissions(
-            role.id, model_name)
+        return _get_adjuncts(instance).role_field_permissions(role.id, model_name)
     else:
         return _role_permissions_from_db(role, model_name)
 
@@ -56,7 +56,7 @@ def clear_caches():
 def invalidate_adjuncts(*args, **kwargs):
     # Called by 'save' and 'delete' signal handlers for adjunct objects
     if settings.USE_OBJECT_CACHES:
-        adjunct_object = kwargs['instance']  # 'instance' is a Django term here
+        adjunct_object = kwargs["instance"]  # 'instance' is a Django term here
         instance = adjunct_object.instance
         if instance.id in _adjuncts:
             del _adjuncts[instance.id]
@@ -68,8 +68,9 @@ def increment_adjuncts_timestamp(instance):
     # Don't call save(), to avoid storing possibly-stale data in "instance".
     # Use a SQL increment, to prevent race conditions between servers.
     from treemap.models import Instance
+
     qs = Instance.objects.filter(pk=instance.id)
-    qs.update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+    qs.update(adjuncts_timestamp=F("adjuncts_timestamp") + 1)
 
     # Update timestamp from DB to prevent saving stale timestamps
     instance.adjuncts_timestamp = qs[0].adjuncts_timestamp
@@ -81,6 +82,7 @@ def increment_adjuncts_timestamp(instance):
 
 def _permissions_from_db(user, instance, model_name):
     from treemap.audit import Role
+
     role = Role.objects.get_role(instance, user)
     return _role_permissions_from_db(role, model_name)
 
@@ -95,10 +97,12 @@ def _role_permissions_from_db(role, model_name):
 
 def _udf_defs_from_db(instance, model_name):
     from treemap.udf import UserDefinedFieldDefinition
+
     defs = UserDefinedFieldDefinition.objects.filter(instance=instance)
     if model_name:
         defs = defs.filter(model_type=model_name)
     return list(defs)
+
 
 # ------------------------------------------------------------------------
 # Fetch info from cache
@@ -149,6 +153,7 @@ class _InstanceAdjuncts:
 
     def _load_permissions(self):
         from treemap.audit import FieldPermission
+
         for fp in FieldPermission.objects.filter(instance=self._instance):
             dict = self._permissions
             self._append_value(dict, (fp.role_id, fp.model_name), fp)
@@ -161,6 +166,7 @@ class _InstanceAdjuncts:
 
     def _load_udf_defs(self):
         from treemap.udf import UserDefinedFieldDefinition
+
         qs = UserDefinedFieldDefinition.objects.filter(instance=self._instance)
         for udfd in qs:
             self._append_value(self._udf_defs, udfd.model_type, udfd)

@@ -28,5 +28,6 @@ class AppEvent(models.Model):
         app_event.save()
         return app_event
 
+
 # The signals need to be imported after the models are defined
 import signals  # NOQA

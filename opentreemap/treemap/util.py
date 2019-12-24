@@ -35,34 +35,33 @@ def safe_get_model_class(model_string):
 
     # All of our base models live in 'treemap.models', so
     # we can start with that namespace
-    models_module = __import__('treemap.models')
+    models_module = __import__("treemap.models")
 
     if hasattr(models_module.models, model_string):
         return getattr(models_module.models, model_string)
     elif MapFeature.has_subclass(model_string):
         return MapFeature.get_subclass(model_string)
     else:
-        raise ValidationError(
-            _('invalid model type: "%s"') % model_string)
+        raise ValidationError(_('invalid model type: "%s"') % model_string)
 
 
 def get_model_for_instance(object_name, instance=None):
     Model = safe_get_model_class(to_model_name(object_name))
 
-    if instance and hasattr(Model, 'instance'):
+    if instance and hasattr(Model, "instance"):
         return Model(instance=instance)
     else:
         return Model()
 
 
 def add_visited_instance(request, instance):
-    if not (hasattr(request, 'session') and request.session):
+    if not (hasattr(request, "session") and request.session):
         return
 
     # get the visited instances as a list of tuples, read into
     # OrderedDict. OrderedDict has nice convenience methods for this
     # purpose, but doesn't serialize well, so we pass it through.
-    visited_instances = request.session.get('visited_instances', [])
+    visited_instances = request.session.get("visited_instances", [])
     visited_instances = OrderedDict(visited_instances)
 
     # delete the existing entry for this instance so it can be
@@ -74,15 +73,15 @@ def add_visited_instance(request, instance):
     visited_instances[instance.pk] = stamp
 
     # turn back into a list of tuples
-    request.session['visited_instances'] = visited_instances.items()
+    request.session["visited_instances"] = visited_instances.items()
     request.session.modified = True
 
 
 def get_last_visited_instance(request):
-    if not hasattr(request, 'session'):
+    if not hasattr(request, "session"):
         instance = None
     else:
-        visited_instances = request.session.get('visited_instances', [])
+        visited_instances = request.session.get("visited_instances", [])
         if not visited_instances:
             instance = None
         else:
@@ -104,26 +103,26 @@ def get_login_redirect_path(request, resolved_login_url):
     # use the path as the "next" url.
     login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
     current_scheme, current_netloc = urlparse(path)[:2]
-    if (not login_scheme or login_scheme == current_scheme)\
-    and (not login_netloc or login_netloc == current_netloc):  # NOQA
+    if (not login_scheme or login_scheme == current_scheme) and (
+        not login_netloc or login_netloc == current_netloc
+    ):  # NOQA
         path = request.get_full_path()
     return path
 
 
 def login_redirect(request):
     # urlparse chokes on lazy objects in Python 3, force to str
-    resolved_login_url = force_str(
-        resolve_url(settings.LOGIN_URL))
+    resolved_login_url = force_str(resolve_url(settings.LOGIN_URL))
     path = get_login_redirect_path(request, resolved_login_url)
     from django.contrib.auth.views import redirect_to_login
-    return redirect_to_login(
-        path, resolved_login_url, REDIRECT_FIELD_NAME)
+
+    return redirect_to_login(path, resolved_login_url, REDIRECT_FIELD_NAME)
 
 
 def get_instance_or_404(**kwargs):
-    url_name, found = dict_pop(kwargs, 'url_name')
+    url_name, found = dict_pop(kwargs, "url_name")
     if found:
-        kwargs['url_name__iexact'] = url_name
+        kwargs["url_name__iexact"] = url_name
     return get_object_or_404(Instance, **kwargs)
 
 
@@ -133,8 +132,10 @@ def package_field_errors(model_name, validation_error):
     {fieldname1: [messages], fieldname2: [messages]}.
     Return a version keyed by "objectname.fieldname" instead of "fieldname".
     """
-    dict = {'%s.%s' % (to_object_name(model_name), field): msgs
-            for (field, msgs) in validation_error.message_dict.iteritems()}
+    dict = {
+        "%s.%s" % (to_object_name(model_name), field): msgs
+        for (field, msgs) in validation_error.message_dict.iteritems()
+    }
 
     return dict
 
@@ -180,35 +181,36 @@ def to_model_name(object_name):
 
 def get_filterable_audit_models():
     from treemap.models import MapFeature
+
     map_features = [c.__name__ for c in leaf_models_of_class(MapFeature)]
-    models = map_features + ['Tree']
+    models = map_features + ["Tree"]
 
     return models
 
 
 def get_csv_response(filename):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s;' % filename
-    response['Cache-Control'] = 'no-cache'
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = "attachment; filename=%s;" % filename
+    response["Cache-Control"] = "no-cache"
 
     # add BOM to support CSVs in MS Excel
     # http://en.wikipedia.org/wiki/Byte_order_mark
-    response.write(u'\ufeff'.encode('utf8'))
+    response.write("\ufeff".encode("utf8"))
     return response
 
 
 def get_json_response(filename):
-    response = HttpResponse(content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=%s;' % filename
-    response['Cache-Control'] = 'no-cache'
+    response = HttpResponse(content_type="application/json")
+    response["Content-Disposition"] = "attachment; filename=%s;" % filename
+    response["Cache-Control"] = "no-cache"
     return response
 
 
 def can_read_as_super_admin(request):
-    if not hasattr(request.user, 'is_super_admin'):
+    if not hasattr(request.user, "is_super_admin"):
         return False
     else:
-        return request.user.is_super_admin() and request.method == 'GET'
+        return request.user.is_super_admin() and request.method == "GET"
 
 
 # UDF utilitites
@@ -226,15 +228,15 @@ def get_name_from_canonical_name(canonical_name):
 
 
 def make_udf_name_from_key(key):
-    return 'udf:{}'.format(key)
+    return "udf:{}".format(key)
 
 
 def make_udf_lookup_from_key(key):
-    return 'udfs__{}'.format(key)
+    return "udfs__{}".format(key)
 
 
 def num_format(num):
     if isinstance(num, float):
         # Allow for up to 10 digits of precision, but strip trailing '0' or '.'
-        return '{0:.10f}'.format(num).rstrip('0').rstrip('.')
+        return "{0:.10f}".format(num).rstrip("0").rstrip(".")
     return num

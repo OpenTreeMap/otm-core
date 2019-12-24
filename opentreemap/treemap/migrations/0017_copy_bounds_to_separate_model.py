@@ -5,8 +5,8 @@ from django.db import migrations, models
 
 
 def copy_bounds_to_separate_model(apps, schema_editor):
-    Instance = apps.get_model('treemap', 'Instance')
-    InstanceBounds = apps.get_model('treemap', 'InstanceBounds')
+    Instance = apps.get_model("treemap", "Instance")
+    InstanceBounds = apps.get_model("treemap", "InstanceBounds")
 
     for instance in Instance.objects.all():
         ib = InstanceBounds(geom=instance.bounds)
@@ -16,7 +16,7 @@ def copy_bounds_to_separate_model(apps, schema_editor):
 
 
 def copy_separate_model_to_bounds(apps, schema_editor):
-    Instance = apps.get_model('treemap', 'Instance')
+    Instance = apps.get_model("treemap", "Instance")
 
     for instance in Instance.objects.all():
         ib = instance.bounds_obj
@@ -27,10 +27,11 @@ def copy_separate_model_to_bounds(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0016_make_bounds_nullable'),
+        ("treemap", "0016_make_bounds_nullable"),
     ]
 
     operations = [
-        migrations.RunPython(copy_bounds_to_separate_model,
-                             reverse_code=copy_separate_model_to_bounds)
+        migrations.RunPython(
+            copy_bounds_to_separate_model, reverse_code=copy_separate_model_to_bounds
+        )
     ]

@@ -19,8 +19,7 @@ from treemap.models import Species, Plot
 from treemap.util import safe_get_model_class
 from treemap.audit import model_hasattr
 from treemap.udf import UserDefinedCollectionValue
-from treemap.units import (storage_to_instance_units_factor,
-                           get_value_display_attr)
+from treemap.units import storage_to_instance_units_factor, get_value_display_attr
 
 from treemap.lib.object_caches import udf_defs
 
@@ -55,28 +54,27 @@ def _job_transaction(fn):
     def wrapper(job_pk, *args, **kwargs):
         with _job_transaction_manager(job_pk) as job:
             return fn(job, *args, **kwargs)
+
     return wrapper
 
 
-def _values_for_model(
-        instance, job, table, model,
-        select, select_params, prefix=None):
+def _values_for_model(instance, job, table, model, select, select_params, prefix=None):
     if prefix:
-        prefix += '__'
+        prefix += "__"
     else:
-        prefix = ''
+        prefix = ""
 
     prefixed_names = []
     model_class = safe_get_model_class(model)
     dummy_instance = model_class()
 
-    if hasattr(model_class, 'instance'):
+    if hasattr(model_class, "instance"):
         dummy_instance.instance = instance
 
     for field_name in dummy_instance.visible_fields(job.user):
         prefixed_name = prefix + field_name
 
-        if field_name.startswith('udf:'):
+        if field_name.startswith("udf:"):
             name = field_name[4:]
             if name in model_class.collection_udf_settings.keys():
                 field_definition_id = None
@@ -87,8 +85,9 @@ def _values_for_model(
                 if field_definition_id is None:
                     continue
 
-                select[prefixed_name] = (
-                    """
+                select[
+                    prefixed_name
+                ] = """
                     WITH formatted_data AS (
                         SELECT concat('(', data, ')') as fdata
                         FROM %s
@@ -97,9 +96,11 @@ def _values_for_model(
 
                     SELECT array_to_string(array_agg(fdata), ', ', '*')
                     FROM formatted_data
-                    """
-                    % (UserDefinedCollectionValue._meta.db_table,
-                       field_definition_id, table))
+                    """ % (
+                    UserDefinedCollectionValue._meta.db_table,
+                    field_definition_id,
+                    table,
+                )
             else:
                 select[prefixed_name] = "{0}.udfs->%s".format(table)
                 select_params.append(name)
@@ -121,10 +122,10 @@ def _values_for_model(
 def async_users_export(job, data_format):
     instance = job.instance
 
-    if data_format == 'csv':
-        filename = 'users.csv'
+    if data_format == "csv":
+        filename = "users.csv"
     else:
-        filename = 'users.json'
+        filename = "users.json"
 
     file_obj = TemporaryFile()
     write_users(data_format, file_obj, instance)
@@ -141,16 +142,15 @@ def async_csv_export(job, model, query, display_filters):
     select_params = []
     field_header_map = {}
     field_serializer_map = {}
-    if model == 'species':
-        initial_qs = (Species.objects.
-                      filter(instance=instance))
-        values = _values_for_model(instance, job, 'treemap_species',
-                                   'Species', select, select_params)
+    if model == "species":
+        initial_qs = Species.objects.filter(instance=instance)
+        values = _values_for_model(
+            instance, job, "treemap_species", "Species", select, select_params
+        )
         field_names = values + select.keys()
-        limited_qs = (initial_qs
-                      .extra(select=select,
-                             select_params=select_params)
-                      .values(*field_names))
+        limited_qs = initial_qs.extra(
+            select=select, select_params=select_params
+        ).values(*field_names)
     else:
         # model == 'tree'
 
@@ -160,45 +160,46 @@ def async_csv_export(job, model, query, display_filters):
 
         # get the plots for the provided
         # query and turn them into a tree queryset
-        initial_qs = Filter(query, display_filters, instance)\
-            .get_objects(Plot)
+        initial_qs = Filter(query, display_filters, instance).get_objects(Plot)
 
         tree_fields = _values_for_model(
-            instance, job, 'treemap_tree', 'Tree',
-            select, select_params,
-            prefix='tree')
+            instance, job, "treemap_tree", "Tree", select, select_params, prefix="tree"
+        )
         plot_fields = _values_for_model(
-            instance, job, 'treemap_mapfeature', 'Plot',
-            select, select_params)
+            instance, job, "treemap_mapfeature", "Plot", select, select_params
+        )
         species_fields = _values_for_model(
-            instance, job, 'treemap_species', 'Species',
-            select, select_params,
-            prefix='tree__species')
+            instance,
+            job,
+            "treemap_species",
+            "Species",
+            select,
+            select_params,
+            prefix="tree__species",
+        )
 
-        if 'geom' in plot_fields:
-            plot_fields = [f for f in plot_fields if f != 'geom']
-            plot_fields += ['geom__x', 'geom__y']
+        if "geom" in plot_fields:
+            plot_fields = [f for f in plot_fields if f != "geom"]
+            plot_fields += ["geom__x", "geom__y"]
 
         if tree_fields:
-            select['tree_present'] = "treemap_tree.id is not null"
-            plot_fields += ['tree_present']
+            select["tree_present"] = "treemap_tree.id is not null"
+            plot_fields += ["tree_present"]
 
-        get_ll = 'ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)'
-        select['geom__x'] = 'ST_X(%s)' % get_ll
-        select['geom__y'] = 'ST_Y(%s)' % get_ll
+        get_ll = "ST_Transform(treemap_mapfeature.the_geom_webmercator, 4326)"
+        select["geom__x"] = "ST_X(%s)" % get_ll
+        select["geom__y"] = "ST_Y(%s)" % get_ll
 
-        plot_fields += ['updated_by__username']
+        plot_fields += ["updated_by__username"]
 
         field_names = set(tree_fields + plot_fields + species_fields)
 
         if field_names:
             field_header_map = _csv_field_header_map(field_names)
-            field_serializer_map = _csv_field_serializer_map(instance,
-                                                             field_names)
-            limited_qs = (initial_qs
-                          .extra(select=select,
-                                 select_params=select_params)
-                          .values(*field_header_map.keys()))
+            field_serializer_map = _csv_field_serializer_map(instance, field_names)
+            limited_qs = initial_qs.extra(
+                select=select, select_params=select_params
+            ).values(*field_header_map.keys())
         else:
             limited_qs = initial_qs.none()
 
@@ -212,11 +213,14 @@ def async_csv_export(job, model, query, display_filters):
         job.status = ExportJob.MODEL_PERMISSION_ERROR
     else:
         csv_file = TemporaryFile()
-        write_csv(limited_qs, csv_file,
-                  field_order=field_header_map.keys(),
-                  field_header_map=field_header_map,
-                  field_serializer_map=field_serializer_map)
-        filename = generate_filename(limited_qs).replace('plot', 'tree')
+        write_csv(
+            limited_qs,
+            csv_file,
+            field_order=field_header_map.keys(),
+            field_header_map=field_header_map,
+            field_serializer_map=field_serializer_map,
+        )
+        filename = generate_filename(limited_qs).replace("plot", "tree")
         job.complete_with(filename, File(csv_file))
 
     job.save()
@@ -226,34 +230,36 @@ def _csv_field_header_map(field_names):
     map = OrderedDict()
     # TODO: make this conditional based on whether or not
     # we are performing a complete export or an "importable" export
-    omit = {'feature_type',
-            'hide_at_zoom',
-            'instance',
-            'mapfeature_ptr',
-            'readonly',
-            'udfs',
-            'updated_by',
-            'tree__instance',
-            'tree__plot',
-            'tree__readonly',
-            'tree__species',
-            'tree__species__fact_sheet_url',
-            'tree__species__fall_conspicuous',
-            'tree__species__flower_conspicuous',
-            'tree__species__flowering_period',
-            'tree__species__fruit_or_nut_period',
-            'tree__species__has_wildlife_value',
-            'tree__species__id',
-            'tree__species__instance',
-            'tree__species__is_native',
-            'tree__species__max_diameter',
-            'tree__species__max_height',
-            'tree__species__otm_code',
-            'tree__species__palatable_human',
-            'tree__species__plant_guide_url',
-            'tree__species__udfs',
-            'tree__species__updated_at',
-            'tree__udfs'}
+    omit = {
+        "feature_type",
+        "hide_at_zoom",
+        "instance",
+        "mapfeature_ptr",
+        "readonly",
+        "udfs",
+        "updated_by",
+        "tree__instance",
+        "tree__plot",
+        "tree__readonly",
+        "tree__species",
+        "tree__species__fact_sheet_url",
+        "tree__species__fall_conspicuous",
+        "tree__species__flower_conspicuous",
+        "tree__species__flowering_period",
+        "tree__species__fruit_or_nut_period",
+        "tree__species__has_wildlife_value",
+        "tree__species__id",
+        "tree__species__instance",
+        "tree__species__is_native",
+        "tree__species__max_diameter",
+        "tree__species__max_height",
+        "tree__species__otm_code",
+        "tree__species__palatable_human",
+        "tree__species__plant_guide_url",
+        "tree__species__udfs",
+        "tree__species__updated_at",
+        "tree__udfs",
+    }
 
     field_names = field_names - omit
 
@@ -263,13 +269,15 @@ def _csv_field_header_map(field_names):
             field_names.remove(name)
 
     for name in sorted(field_names):
-        if name.startswith('udf:'):
-            header = 'Planting Site: ' + name[4:]
-        elif name.startswith('tree__udf:'):
-            header = 'Tree: ' + name[10:]
+        if name.startswith("udf:"):
+            header = "Planting Site: " + name[4:]
+        elif name.startswith("tree__udf:"):
+            header = "Tree: " + name[10:]
         else:
-            logger.warn('Unrecognized export field name',
-                        extra={'extra_data': {'field_name': name}})
+            logger.warn(
+                "Unrecognized export field name",
+                extra={"extra_data": {"field_name": name}},
+            )
             continue
         map[name] = header
     return map
@@ -280,22 +288,21 @@ def _csv_field_serializer_map(instance, field_names):
     Create serializer functions that convert values to the proper units.
     """
     map = {}
-    convertable_fields = {'tree__diameter': ('tree', 'diameter'),
-                          'tree__height': ('tree', 'height'),
-                          'tree__canopy_height': ('tree', 'canopy_height'),
-                          'width': ('plot', 'width'),
-                          'length': ('plot', 'length')}
+    convertable_fields = {
+        "tree__diameter": ("tree", "diameter"),
+        "tree__height": ("tree", "height"),
+        "tree__canopy_height": ("tree", "canopy_height"),
+        "width": ("plot", "width"),
+        "length": ("plot", "length"),
+    }
 
     def make_serializer(factor, digits):
         return lambda x: str(round(factor * x, digits))
 
     for name, details in convertable_fields.iteritems():
         model_name, field = details
-        factor = storage_to_instance_units_factor(instance,
-                                                  model_name,
-                                                  field)
-        _, digits = get_value_display_attr(instance, model_name, field,
-                                           'digits')
+        factor = storage_to_instance_units_factor(instance, model_name, field)
+        _, digits = get_value_display_attr(instance, model_name, field, "digits")
         digits = int(digits)
         map[name] = make_serializer(factor, digits)
     return map

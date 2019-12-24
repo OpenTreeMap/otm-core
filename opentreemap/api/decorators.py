@@ -13,10 +13,13 @@ from django.contrib.auth.models import AnonymousUser
 from django_tinsel.exceptions import HttpBadRequestException
 
 from api.models import APIAccessCredential
-from api.auth import (create_401unauthorized, get_signature_for_request,
-                      parse_user_from_request)
+from api.auth import (
+    create_401unauthorized,
+    get_signature_for_request,
+    parse_user_from_request,
+)
 
-SIG_TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
+SIG_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 API_VERSIONS = {2, 3, 4}
 
 
@@ -29,32 +32,31 @@ def check_signature(view_f):
 
 
 def _check_signature(view_f, require_login):
-    _bad_request = HttpResponseBadRequest('Invalid signature')
-    _missing_request = HttpResponseBadRequest('Missing signature or timestamp')
+    _bad_request = HttpResponseBadRequest("Invalid signature")
+    _missing_request = HttpResponseBadRequest("Missing signature or timestamp")
 
     @wraps(view_f)
     def wrapperf(request, *args, **kwargs):
         # Request must have signature and access_key
         # parameters
-        sig = request.GET.get('signature')
+        sig = request.GET.get("signature")
 
         if not sig:
-            sig = request.META.get('HTTP_X_SIGNATURE')
+            sig = request.META.get("HTTP_X_SIGNATURE")
 
         if not sig:
             return _missing_request
 
         # Signature may have had "+" changed to spaces so change them
         # back
-        sig = sig.replace(' ', '+')
+        sig = sig.replace(" ", "+")
 
-        timestamp = request.GET.get('timestamp')
+        timestamp = request.GET.get("timestamp")
         if not timestamp:
             return _missing_request
 
         try:
-            timestamp = datetime.datetime.strptime(
-                timestamp, SIG_TIMESTAMP_FORMAT)
+            timestamp = datetime.datetime.strptime(timestamp, SIG_TIMESTAMP_FORMAT)
 
             expires = timestamp + datetime.timedelta(minutes=15)
 
@@ -67,7 +69,7 @@ def _check_signature(view_f, require_login):
         if not sig:
             return _missing_request
 
-        key = request.GET.get('access_key')
+        key = request.GET.get("access_key")
 
         if not key:
             return _bad_request
@@ -144,8 +146,7 @@ def set_api_version(view_f):
     def wrapper(request, version, *args, **kwargs):
         api_version = int(version)
         if api_version not in API_VERSIONS:
-            raise HttpBadRequestException("Version %s is not supported"
-                                          % version)
+            raise HttpBadRequestException("Version %s is not supported" % version)
 
         request.api_version = api_version
         return view_f(request, *args, **kwargs)

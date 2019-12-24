@@ -17,18 +17,15 @@ class MigrationEvent(models.Model):
     INCOMPLETE = -1
     SUCCESS = 0
     FAILURE = 1
-    created = models.DateTimeField(auto_now_add=True,
-                                   editable=False)
-    completed = models.DateTimeField(auto_now=True,
-                                     editable=False)
-    status = models.IntegerField(default=INCOMPLETE,
-                                 choices=((SUCCESS, 'SUCCESS'),
-                                          (FAILURE, 'FAILURE')))
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    completed = models.DateTimeField(auto_now=True, editable=False)
+    status = models.IntegerField(
+        default=INCOMPLETE, choices=((SUCCESS, "SUCCESS"), (FAILURE, "FAILURE"))
+    )
 
 
 class AbstractRelic(models.Model):
-    migration_event = models.ForeignKey(MigrationEvent,
-                                        null=True, blank=True)
+    migration_event = models.ForeignKey(MigrationEvent, null=True, blank=True)
     instance = models.ForeignKey(Instance)
     otm1_model_id = models.IntegerField()
     otm2_model_id = models.IntegerField()
@@ -37,19 +34,20 @@ class AbstractRelic(models.Model):
         """
         Get the OTM2 model instance that is bound to this relic
         """
-        app_label = kwargs.get('app_label', 'treemap')
+        app_label = kwargs.get("app_label", "treemap")
 
         try:
             model_type = ContentType.objects.get(model=self.otm2_model_name)
         except MultipleObjectsReturned:
             model_type = ContentType.objects.get(
-                model=self.otm2_model_name, app_label=app_label)
+                model=self.otm2_model_name, app_label=app_label
+            )
 
         return model_type.get_object_for_this_type(pk=self.otm2_model_id)
 
     class Meta:
         abstract = True
-        unique_together = ('otm2_model_name', 'otm1_model_id', 'instance')
+        unique_together = ("otm2_model_name", "otm1_model_id", "instance")
 
 
 class OTM1ModelRelic(AbstractRelic):
@@ -75,9 +73,7 @@ class OTM1UserRelicManager(models.Manager):
 
 
 class OTM1UserRelic(AbstractRelic):
-    otm2_model_name = models.CharField(max_length=255,
-                                       default='user',
-                                       editable=False)
+    otm2_model_name = models.CharField(max_length=255, default="user", editable=False)
     otm1_username = models.CharField(max_length=255)
     email = models.EmailField()
     objects = OTM1UserRelicManager()
@@ -87,14 +83,16 @@ class OTM1UserRelic(AbstractRelic):
 
     def save(self, *args, **kwargs):
         if not User.objects.filter(pk=self.otm2_model_id).exists():
-            raise Exception('User not found')
+            raise Exception("User not found")
         super(OTM1UserRelic, self).save(*args, **kwargs)
 
 
 class OTM1CommentRelic(AbstractRelic):
-    otm2_model_name = models.CharField(max_length=255,
-                                       # TODO: change to
-                                       # enhancedthreadedcomment
-                                       default='threadedcomment',
-                                       editable=False)
+    otm2_model_name = models.CharField(
+        max_length=255,
+        # TODO: change to
+        # enhancedthreadedcomment
+        default="threadedcomment",
+        editable=False,
+    )
     otm1_last_child_id = models.IntegerField(null=True, blank=True)

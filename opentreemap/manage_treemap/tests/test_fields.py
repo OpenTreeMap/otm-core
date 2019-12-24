@@ -17,25 +17,27 @@ class SearchConfigTest(OTMTestCase):
         self.instance = make_instance()
 
     def _set_search(self, **config):
-        json_updates = json.dumps({'search_config': config,
-                                   'mobile_search_fields': {}})
-        request = make_request(method='PUT', body=json_updates)
+        json_updates = json.dumps({"search_config": config, "mobile_search_fields": {}})
+        request = make_request(method="PUT", body=json_updates)
         set_search_config(request, self.instance)
 
     def test_setting_search_field_does_not_affect_defaults(self):
         current_default = copy.deepcopy(DEFAULT_SEARCH_FIELDS)
-        self._set_search(missing=[{'identifier': 'species.id'}])
+        self._set_search(missing=[{"identifier": "species.id"}])
         self.assertEqual(current_default, DEFAULT_SEARCH_FIELDS)
-        self.assertIn('missing', self.instance.search_config)
-        self.assertEqual(self.instance.search_config['missing'],
-                         [{'identifier': 'species.id'}])
+        self.assertIn("missing", self.instance.search_config)
+        self.assertEqual(
+            self.instance.search_config["missing"], [{"identifier": "species.id"}]
+        )
 
     def test_setting_search_field_does_not_affect_general(self):
-        self._set_search(missing=[{'identifier': 'tree.diameter'}])
-        self.assertIn('missing', self.instance.search_config)
-        self.assertEqual(self.instance.search_config['missing'],
-                         [{'identifier': 'tree.diameter'}])
+        self._set_search(missing=[{"identifier": "tree.diameter"}])
+        self.assertIn("missing", self.instance.search_config)
+        self.assertEqual(
+            self.instance.search_config["missing"], [{"identifier": "tree.diameter"}]
+        )
 
-        self.assertIn('general', self.instance.search_config)
-        self.assertEqual(self.instance.search_config['general'],
-                         DEFAULT_SEARCH_FIELDS['general'])
+        self.assertIn("general", self.instance.search_config)
+        self.assertEqual(
+            self.instance.search_config["general"], DEFAULT_SEARCH_FIELDS["general"]
+        )

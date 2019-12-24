@@ -10,8 +10,8 @@ from django.conf import settings
 from treemap.lib import get_function_by_path
 from appevents.models import AppEvent
 
-DEFAULT_HANDLER_PATH = 'appevents.handlers.default_handler'
-HANDLER_SETTING = 'APPEVENT_HANDLERS'
+DEFAULT_HANDLER_PATH = "appevents.handlers.default_handler"
+HANDLER_SETTING = "APPEVENT_HANDLERS"
 
 
 @transaction.atomic
@@ -40,8 +40,7 @@ def _get_handler_path_for_event(event):
     if handler_paths is None:
         return DEFAULT_HANDLER_PATH
     else:
-        return handler_paths.get(event.event_type,
-                                 DEFAULT_HANDLER_PATH)
+        return handler_paths.get(event.event_type, DEFAULT_HANDLER_PATH)
 
 
 @shared_task
@@ -61,15 +60,18 @@ def handle_event(event_id):
         handler = get_function_by_path(event.handled_by)
     except Exception as e:
         event.handler_succeeded = False
-        event.handler_log =\
-            'Exception loading function %s: %s' % (event.handled_by, str(e))
+        event.handler_log = "Exception loading function %s: %s" % (
+            event.handled_by,
+            str(e),
+        )
     else:
         try:
             handler(event)
         except Exception as e:
             event.handler_succeeded = False
-            event.handler_log =\
-                'Unhandled exception thrown by %s: %s'\
-                % (event.handled_by, str(e))
+            event.handler_log = "Unhandled exception thrown by %s: %s" % (
+                event.handled_by,
+                str(e),
+            )
 
     event.save()

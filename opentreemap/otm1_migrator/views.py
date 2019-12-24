@@ -38,16 +38,17 @@ def render_email_body(user, instance):
     site_name = instance.name
     addressee = user.first_name or "%s user" % site_name
     return _EMAIL_TEMPLATE % {
-        'addressee': addressee,
-        'site_name': site_name,
-        'email': user.email,
-        'otm2_username': user.username,
-        'contact_email': settings.SUPPORT_EMAIL_ADDRESS
+        "addressee": addressee,
+        "site_name": site_name,
+        "email": user.email,
+        "otm2_username": user.username,
+        "contact_email": settings.SUPPORT_EMAIL_ADDRESS,
     }
 
 
 def dupl_user_csv(request, instance):
-    duplicate_ids_query = """
+    duplicate_ids_query = (
+        """
     SELECT *
     FROM otm1_migrator_otm1userrelic
     WHERE email IN
@@ -57,23 +58,29 @@ def dupl_user_csv(request, instance):
      GROUP BY email
      HAVING count(id) > 1)
     ORDER BY "email"
-    """ % instance.pk
+    """
+        % instance.pk
+    )
 
     duplicate_relics = OTM1UserRelic.objects.raw(duplicate_ids_query)
     relics = duplicate_relics
 
-    response = get_csv_response('user_export.csv')
+    response = get_csv_response("user_export.csv")
 
-    writer = csv.DictWriter(response,
-                            ['otm1_user_id',
-                             'otm2_model_id',
-                             'otm1_username',
-                             'otm2_username',
-                             'last_login',
-                             'first_name',
-                             'last_name',
-                             'email',
-                             'body'])
+    writer = csv.DictWriter(
+        response,
+        [
+            "otm1_user_id",
+            "otm2_model_id",
+            "otm1_username",
+            "otm2_username",
+            "last_login",
+            "first_name",
+            "last_name",
+            "email",
+            "body",
+        ],
+    )
     writer.writeheader()
 
     for relic in relics:
@@ -82,17 +89,17 @@ def dupl_user_csv(request, instance):
             continue
         assert relic.email.lower() == user.email.lower()
         row = {
-            'otm1_user_id': relic.otm1_model_id,
-            'otm2_model_id': user.pk,
-            'otm1_username': relic.otm1_username,
-            'last_login': user.last_login,
-            'otm2_username': user.username,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email,
+            "otm1_user_id": relic.otm1_model_id,
+            "otm2_model_id": user.pk,
+            "otm1_username": relic.otm1_username,
+            "last_login": user.last_login,
+            "otm2_username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
         }
         body = render_email_body(user, instance)
-        row['body'] = body
+        row["body"] = body
         writer.writerow(row)
 
     return response

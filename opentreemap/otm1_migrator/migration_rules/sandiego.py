@@ -6,40 +6,53 @@ from otm1_migrator.migration_rules.standard_otm1 import MIGRATION_RULES
 
 
 UDFS = {
-    'plot': {
-        'type': {
-            'udf.name': 'Plot Type',
-            'udf.choices': ['Well/Pit', 'Median/Island', 'Tree Lawn',
-                            'Park', 'Planter', 'Other', 'Yard',
-                            'Natural Area']
+    "plot": {
+        "type": {
+            "udf.name": "Plot Type",
+            "udf.choices": [
+                "Well/Pit",
+                "Median/Island",
+                "Tree Lawn",
+                "Park",
+                "Planter",
+                "Other",
+                "Yard",
+                "Natural Area",
+            ],
         },
-        'powerline_conflict_potential': {
-            'udf.name': 'Powerlines Overhead',
-            'udf.choices': ['Yes', 'No', 'Unknown']
+        "powerline_conflict_potential": {
+            "udf.name": "Powerlines Overhead",
+            "udf.choices": ["Yes", "No", "Unknown"],
         },
-        'sidewalk_damage': {
-            'udf.name': 'Sidewalk Damage',
-            'udf.choices': ['Minor or No Damage', 'Raised More Than 3/4 Inch']
-        }
+        "sidewalk_damage": {
+            "udf.name": "Sidewalk Damage",
+            "udf.choices": ["Minor or No Damage", "Raised More Than 3/4 Inch"],
+        },
     },
-    'tree': {
-        'steward_user': {'field': 'udf:Tree Steward'},
-        'sponsor': {'field': 'udf:Sponsor'},
-        'condition': {
-            'udf.name': 'Tree Condition',
-            'udf.choices': ['Dead', 'Critical', 'Poor',
-                            'Fair', 'Good',
-                            'Very Good', 'Excellent']
-        }
-    }
+    "tree": {
+        "steward_user": {"field": "udf:Tree Steward"},
+        "sponsor": {"field": "udf:Sponsor"},
+        "condition": {
+            "udf.name": "Tree Condition",
+            "udf.choices": [
+                "Dead",
+                "Critical",
+                "Poor",
+                "Fair",
+                "Good",
+                "Very Good",
+                "Excellent",
+            ],
+        },
+    },
 }
 
 
 # sd specific fields to drop in otm2
-MIGRATION_RULES['plot']['removed_fields'] |= {'sunset_zone', 'district'}
+MIGRATION_RULES["plot"]["removed_fields"] |= {"sunset_zone", "district"}
 
 # override this transformer because it's not desired for sd
-MIGRATION_RULES['species']['value_transformers']['native_status'] = None
+MIGRATION_RULES["species"]["value_transformers"]["native_status"] = None
 
 
 def transform_geometry(geometry_wkt):
@@ -56,4 +69,5 @@ def transform_geometry(geometry_wkt):
         bad_geom = fromstr(geometry_wkt, srid=102646)
         return bad_geom.transform(SpatialReference(4326), clone=True)
 
-MIGRATION_RULES['plot']['value_transformers']['geometry'] = transform_geometry
+
+MIGRATION_RULES["plot"]["value_transformers"]["geometry"] = transform_geometry

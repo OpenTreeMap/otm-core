@@ -20,15 +20,15 @@ class PlotDetailUITestCase(TreemapUITestCase):
         self.assertEqual(Plot.objects.count(), 1)
 
     def _select_elements(self):
-        self.delete_begin = self.find_id('delete-object')
-        self.delete_confirm = self.find_id('delete-confirm')
-        self.delete_cancel = self.find_id('delete-cancel')
-        self.begin_add_tree = self.find_id('begin-add-tree')
+        self.delete_begin = self.find_id("delete-object")
+        self.delete_confirm = self.find_id("delete-confirm")
+        self.delete_cancel = self.find_id("delete-cancel")
+        self.begin_add_tree = self.find_id("begin-add-tree")
         self.diameter_input = self.find('input[data-class="diameter-input"]')
-        self.save_edit = self.find_id('save-edit-map-feature')
-        self.cancel_edit = self.find_id('cancel-edit-map-feature')
-        self.edit_plot = self.find_id('edit-map-feature')
-        self.tree_details_section = self.find_id('tree-details')
+        self.save_edit = self.find_id("save-edit-map-feature")
+        self.cancel_edit = self.find_id("cancel-edit-map-feature")
+        self.edit_plot = self.find_id("edit-map-feature")
+        self.tree_details_section = self.find_id("tree-details")
 
     def _assert_plot_and_tree_counts(self, nplots, ntrees):
         self.assertEqual(Plot.objects.count(), nplots)
@@ -36,7 +36,6 @@ class PlotDetailUITestCase(TreemapUITestCase):
 
 
 class PlotDetailDeleteUITestCase(PlotDetailUITestCase):
-
     def _assertCantClickDeleteOrCancel(self):
         with self.assertRaises(ElementNotVisibleException):
             self.delete_confirm.click()

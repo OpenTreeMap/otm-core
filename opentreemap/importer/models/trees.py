@@ -27,7 +27,7 @@ class TreeImportEvent(GenericImportEvent):
     """
 
     import_schema_version = 2  # Update if any column header name changes
-    import_type = 'tree'
+    import_type = "tree"
 
     plot_length_conversion_factor = models.FloatField(default=1.0)
     plot_width_conversion_factor = models.FloatField(default=1.0)
@@ -36,13 +36,13 @@ class TreeImportEvent(GenericImportEvent):
     canopy_height_conversion_factor = models.FloatField(default=1.0)
 
     class Meta:
-        app_label = 'importer'
+        app_label = "importer"
 
     def row_set(self):
         return self.treeimportrow_set
 
     def __unicode__(self):
-        return _('Tree Import #%s') % self.pk
+        return _("Tree Import #%s") % self.pk
 
     def get_udf_column_name(self, udf_def):
         name = self._get_udf_name(udf_def)
@@ -51,17 +51,19 @@ class TreeImportEvent(GenericImportEvent):
     def _get_udf_name(self, udf_def):
         # Prefix with model name, e.g. "Density" -> "Tree: Density"
         model_name = udf_def.model_type
-        if model_name == 'Plot':
-            model_name = 'Planting Site'
+        if model_name == "Plot":
+            model_name = "Planting Site"
         return "%s: %s" % (model_name, udf_def.name)
 
     def _get_udf_names(self):
         def udf_names(model_name):
-            return tuple(self._get_udf_name(udf_def)
-                         for udf_def in udf_defs(self.instance, model_name)
-                         if not udf_def.iscollection)
+            return tuple(
+                self._get_udf_name(udf_def)
+                for udf_def in udf_defs(self.instance, model_name)
+                if not udf_def.iscollection
+            )
 
-        return udf_names('Plot') + udf_names('Tree')
+        return udf_names("Plot") + udf_names("Tree")
 
     def ordered_legal_fields(self):
         udf_names = self._get_udf_names()
@@ -91,24 +93,24 @@ class TreeImportRow(GenericImportRow):
     WARNING = 2
 
     PLOT_MAP = {
-        'geom': fields.trees.POINT,
-        'width': fields.trees.PLOT_WIDTH,
-        'length': fields.trees.PLOT_LENGTH,
+        "geom": fields.trees.POINT,
+        "width": fields.trees.PLOT_WIDTH,
+        "length": fields.trees.PLOT_LENGTH,
         # TODO: READONLY restore when implemented
         # 'readonly': fields.trees.READ_ONLY,
-        'owner_orig_id': fields.trees.EXTERNAL_ID_NUMBER,
-        'address_street': fields.trees.STREET_ADDRESS,
-        'address_city': fields.trees.CITY_ADDRESS,
-        'address_zip': fields.trees.POSTAL_CODE
+        "owner_orig_id": fields.trees.EXTERNAL_ID_NUMBER,
+        "address_street": fields.trees.STREET_ADDRESS,
+        "address_city": fields.trees.CITY_ADDRESS,
+        "address_zip": fields.trees.POSTAL_CODE,
     }
 
     TREE_MAP = {
-        'diameter': fields.trees.DIAMETER,
-        'height': fields.trees.TREE_HEIGHT,
-        'canopy_height': fields.trees.CANOPY_HEIGHT,
-        'species': fields.trees.SPECIES_OBJECT,
-        'date_planted': fields.trees.DATE_PLANTED,
-        'date_removed': fields.trees.DATE_REMOVED,
+        "diameter": fields.trees.DIAMETER,
+        "height": fields.trees.TREE_HEIGHT,
+        "canopy_height": fields.trees.CANOPY_HEIGHT,
+        "species": fields.trees.SPECIES_OBJECT,
+        "date_planted": fields.trees.DATE_PLANTED,
+        "date_removed": fields.trees.DATE_REMOVED,
         # TODO: READONLY restore when implemented
         # 'readonly': fields.trees.READ_ONLY,
     }
@@ -120,8 +122,8 @@ class TreeImportRow(GenericImportRow):
     import_event = models.ForeignKey(TreeImportEvent)
 
     class Meta:
-        app_label = 'importer'
-        index_together = ('import_event', 'idx')
+        app_label = "importer"
+        index_together = ("import_event", "idx")
 
     @property
     def model_fields(self):
@@ -139,22 +141,16 @@ class TreeImportRow(GenericImportRow):
         # Get our data
         data = self.cleaned
 
-        self.convert_units(data, {
-            fields.trees.PLOT_WIDTH:
-            self.import_event.plot_width_conversion_factor,
-
-            fields.trees.PLOT_LENGTH:
-            self.import_event.plot_length_conversion_factor,
-
-            fields.trees.DIAMETER:
-            self.import_event.diameter_conversion_factor,
-
-            fields.trees.TREE_HEIGHT:
-            self.import_event.tree_height_conversion_factor,
-
-            fields.trees.CANOPY_HEIGHT:
-            self.import_event.canopy_height_conversion_factor
-        })
+        self.convert_units(
+            data,
+            {
+                fields.trees.PLOT_WIDTH: self.import_event.plot_width_conversion_factor,
+                fields.trees.PLOT_LENGTH: self.import_event.plot_length_conversion_factor,
+                fields.trees.DIAMETER: self.import_event.diameter_conversion_factor,
+                fields.trees.TREE_HEIGHT: self.import_event.tree_height_conversion_factor,
+                fields.trees.CANOPY_HEIGHT: self.import_event.canopy_height_conversion_factor,
+            },
+        )
 
         plot_id = data.get(self.model_fields.OPENTREEMAP_PLOT_ID, None)
         tree_id = data.get(self.model_fields.OPENTREEMAP_TREE_ID, None)
@@ -194,7 +190,7 @@ class TreeImportRow(GenericImportRow):
         self.save()
 
     def _import_value_to_udf_value(self, udf_def, value):
-        if udf_def.datatype_dict['type'] == 'multichoice':
+        if udf_def.datatype_dict["type"] == "multichoice":
             # multichoice fields are represented in the import file as
             # a string, but the `udfs` attribute on the model expects
             # an actual list.
@@ -214,14 +210,15 @@ class TreeImportRow(GenericImportRow):
                 setattr(plot, plot_attr, value)
 
         ie = self.import_event
-        plot_udf_defs = udf_defs(ie.instance, 'Plot')
+        plot_udf_defs = udf_defs(ie.instance, "Plot")
         for udf_def in plot_udf_defs:
             udf_column_name = ie.get_udf_column_name(udf_def)
             value = data.get(udf_column_name, None)
             if value:
                 plot_edited = True
                 plot.udfs[udf_def.name] = self._import_value_to_udf_value(
-                    udf_def, value)
+                    udf_def, value
+                )
 
         if plot_edited:
             plot.save_with_system_user_bypass_auth()
@@ -237,7 +234,7 @@ class TreeImportRow(GenericImportRow):
                 setattr(tree, tree_attr, value)
 
         ie = self.import_event
-        tree_udf_defs = udf_defs(ie.instance, 'Tree')
+        tree_udf_defs = udf_defs(ie.instance, "Tree")
         for udf_def in tree_udf_defs:
             udf_column_name = ie.get_udf_column_name(udf_def)
             value = data.get(udf_column_name, None)
@@ -246,8 +243,9 @@ class TreeImportRow(GenericImportRow):
                 tree_edited = True
                 if tree is None:
                     tree = Tree(instance=plot.instance)
-                tree.udfs[udf_def.name] = \
-                    self._import_value_to_udf_value(udf_def, value)
+                tree.udfs[udf_def.name] = self._import_value_to_udf_value(
+                    udf_def, value
+                )
 
         if tree_edited:
             tree.plot = plot
@@ -261,16 +259,18 @@ class TreeImportRow(GenericImportRow):
         # Note, this shouldn't really happen since main
         # file validation will fail, but butter safe than sorry
         if x is None or y is None:
-            self.append_error(errors.MISSING_FIELD,
-                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            self.append_error(
+                errors.MISSING_FIELD, (fields.trees.POINT_X, fields.trees.POINT_Y)
+            )
             return False
 
         # Simple validation
         # longitude must be between -180 and 180
         # latitude must be betwen -90 and 90
         if abs(x) > 180 or abs(y) >= 90:
-            self.append_error(errors.INVALID_GEOM,
-                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            self.append_error(
+                errors.INVALID_GEOM, (fields.trees.POINT_X, fields.trees.POINT_Y)
+            )
             return False
 
         p = Point(x, y, srid=4326)
@@ -279,8 +279,9 @@ class TreeImportRow(GenericImportRow):
         if self.import_event.instance.bounds.geom.contains(p):
             self.cleaned[fields.trees.POINT] = p
         else:
-            self.append_error(errors.GEOM_OUT_OF_BOUNDS,
-                              (fields.trees.POINT_X, fields.trees.POINT_Y))
+            self.append_error(
+                errors.GEOM_OUT_OF_BOUNDS, (fields.trees.POINT_X, fields.trees.POINT_Y)
+            )
             return False
 
         return True
@@ -291,27 +292,32 @@ class TreeImportRow(GenericImportRow):
         tree_id = self.cleaned.get(fields.trees.OPENTREEMAP_TREE_ID, None)
 
         if tree_id:
-            tree = Tree.objects.filter(pk=tree_id,
-                                       instance=self.import_event.instance)
+            tree = Tree.objects.filter(pk=tree_id, instance=self.import_event.instance)
             if not tree.exists():
-                self.append_error(errors.INVALID_TREE_ID,
-                                  fields.trees.OPENTREEMAP_TREE_ID)
+                self.append_error(
+                    errors.INVALID_TREE_ID, fields.trees.OPENTREEMAP_TREE_ID
+                )
                 result = False
             elif plot_id:
                 if tree[0].plot_id != plot_id:
-                    self.append_error(errors.PLOT_TREE_MISMATCH,
-                                      (fields.trees.OPENTREEMAP_PLOT_ID,
-                                       fields.trees.OPENTREEMAP_TREE_ID))
+                    self.append_error(
+                        errors.PLOT_TREE_MISMATCH,
+                        (
+                            fields.trees.OPENTREEMAP_PLOT_ID,
+                            fields.trees.OPENTREEMAP_TREE_ID,
+                        ),
+                    )
                     result = False
 
         if plot_id:
-            has_plot = Plot.objects \
-                .filter(pk=plot_id, instance=self.import_event.instance) \
-                .exists()
+            has_plot = Plot.objects.filter(
+                pk=plot_id, instance=self.import_event.instance
+            ).exists()
 
             if not has_plot:
-                self.append_error(errors.INVALID_PLOT_ID,
-                                  fields.trees.OPENTREEMAP_PLOT_ID)
+                self.append_error(
+                    errors.INVALID_PLOT_ID, fields.trees.OPENTREEMAP_PLOT_ID
+                )
                 result = False
 
         return result
@@ -328,36 +334,42 @@ class TreeImportRow(GenericImportRow):
             return True
 
         offset = 3.048  # 10ft in meters
-        nearby_bbox = Polygon(((point.x - offset, point.y - offset),
-                               (point.x - offset, point.y + offset),
-                               (point.x + offset, point.y + offset),
-                               (point.x + offset, point.y - offset),
-                               (point.x - offset, point.y - offset)))
+        nearby_bbox = Polygon(
+            (
+                (point.x - offset, point.y - offset),
+                (point.x - offset, point.y + offset),
+                (point.x + offset, point.y + offset),
+                (point.x + offset, point.y - offset),
+                (point.x - offset, point.y - offset),
+            )
+        )
 
         # This gets called while committing each row.
         # Assume that the creator of the csv knows best,
         # and avoid proximity checks against other plots in the same csv.
-        already_committed = self.import_event.rows()\
-            .filter(plot_id__isnull=False)\
-            .values_list('plot_id')
+        already_committed = (
+            self.import_event.rows()
+            .filter(plot_id__isnull=False)
+            .values_list("plot_id")
+        )
 
         # Using MapFeature directly avoids a join between the
         # treemap_plot and treemap_mapfeature tables.
-        nearby = MapFeature.objects\
-                           .filter(instance=self.import_event.instance)\
-                           .filter(feature_type='Plot')\
-                           .exclude(pk__in=already_committed)\
-                           .filter(geom__intersects=nearby_bbox)
+        nearby = (
+            MapFeature.objects.filter(instance=self.import_event.instance)
+            .filter(feature_type="Plot")
+            .exclude(pk__in=already_committed)
+            .filter(geom__intersects=nearby_bbox)
+        )
 
-        nearby = nearby.distance(point).order_by('distance')[:5]
+        nearby = nearby.distance(point).order_by("distance")[:5]
 
         if len(nearby) > 0:
             flds = (fields.trees.POINT_X, fields.trees.POINT_Y)
             if nearby[0].distance.m < 0.001:
                 self.append_error(errors.DUPLICATE_TREE, flds)
             else:
-                self.append_error(errors.NEARBY_TREES, flds,
-                                  [p.pk for p in nearby])
+                self.append_error(errors.NEARBY_TREES, flds, [p.pk for p in nearby])
             return False
         else:
             return True
@@ -368,7 +380,8 @@ class TreeImportRow(GenericImportRow):
             # inputval is in instance units but max_val is in storage units.
             # Convert max_val to instance units before comparing.
             factor = storage_to_instance_units_factor(
-                self.import_event.instance, 'tree', value_name)
+                self.import_event.instance, "tree", value_name
+            )
             max_val *= factor
             if inputval > max_val:
                 self.append_error(err, field, max_val)
@@ -378,38 +391,44 @@ class TreeImportRow(GenericImportRow):
 
     def validate_species_dbh_max(self, species):
         return self.validate_species_max(
-            fields.trees.DIAMETER, 'diameter',
-            species.max_diameter, errors.SPECIES_DBH_TOO_HIGH)
+            fields.trees.DIAMETER,
+            "diameter",
+            species.max_diameter,
+            errors.SPECIES_DBH_TOO_HIGH,
+        )
 
     def validate_species_height_max(self, species):
         return self.validate_species_max(
-            fields.trees.TREE_HEIGHT, 'height',
-            species.max_height, errors.SPECIES_HEIGHT_TOO_HIGH)
+            fields.trees.TREE_HEIGHT,
+            "height",
+            species.max_height,
+            errors.SPECIES_HEIGHT_TOO_HIGH,
+        )
 
     def validate_species(self):
         fs = fields.trees
-        genus = self.datadict.get(fs.GENUS, '')
-        species = self.datadict.get(fs.SPECIES, '')
-        cultivar = self.datadict.get(fs.CULTIVAR, '')
-        other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, '')
-        common_name = self.datadict.get(fs.COMMON_NAME, '')
+        genus = self.datadict.get(fs.GENUS, "")
+        species = self.datadict.get(fs.SPECIES, "")
+        cultivar = self.datadict.get(fs.CULTIVAR, "")
+        other_part = self.datadict.get(fs.OTHER_PART_OF_NAME, "")
+        common_name = self.datadict.get(fs.COMMON_NAME, "")
 
         def append_species_error(error):
             error_fields = [genus, species, cultivar, other_part]
-            error_txt = ' '.join(error_fields).strip()
+            error_txt = " ".join(error_fields).strip()
             self.append_error(error, fs.SPECIES_FIELDS, error_txt)
 
-        if genus != '' or species != '' or cultivar != '' or other_part != '':
+        if genus != "" or species != "" or cultivar != "" or other_part != "":
             kwargs = {
-                'instance_id': self.import_event.instance_id,
-                'genus__iexact': genus,
-                'species__iexact': species,
-                'cultivar__iexact': cultivar,
-                'other_part_of_name__iexact': other_part,
+                "instance_id": self.import_event.instance_id,
+                "genus__iexact": genus,
+                "species__iexact": species,
+                "cultivar__iexact": cultivar,
+                "other_part_of_name__iexact": other_part,
             }
 
-            if common_name != '':
-                kwargs['common_name__iexact'] = common_name
+            if common_name != "":
+                kwargs["common_name__iexact"] = common_name
         else:
             return
 
@@ -433,10 +452,10 @@ class TreeImportRow(GenericImportRow):
                 except ValidationError as ve:
                     message = str(ve)
                     if isinstance(ve.message_dict, dict):
-                        message = '\n'.join(
-                            [unicode(m) for m in ve.message_dict.values()])
-                    self.append_error(
-                        errors.INVALID_UDF_VALUE, column_name, message)
+                        message = "\n".join(
+                            [unicode(m) for m in ve.message_dict.values()]
+                        )
+                    self.append_error(errors.INVALID_UDF_VALUE, column_name, message)
 
     def validate_row(self):
         """
@@ -450,7 +469,7 @@ class TreeImportRow(GenericImportRow):
           get validated
         """
         # Clear errrors
-        self.errors = ''
+        self.errors = ""
 
         # Convert all fields to correct datatypes
         self.validate_and_convert_datatypes()

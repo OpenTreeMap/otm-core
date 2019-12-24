@@ -10,13 +10,15 @@ import treemap.json_field
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0045_add_modeling_permission'),
+        ("treemap", "0045_add_modeling_permission"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='instance',
-            name='config',
-            field=treemap.json_field.JSONField(blank=True, default=treemap.DotDict.DotDict),
+            model_name="instance",
+            name="config",
+            field=treemap.json_field.JSONField(
+                blank=True, default=treemap.DotDict.DotDict
+            ),
         ),
     ]

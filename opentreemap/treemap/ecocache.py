@@ -25,12 +25,12 @@ _TIMEOUT = 60 * 60 * 24 * 30
 
 
 def get_cached_benefits(class_name, filter, compute_value):
-    prefix = 'eco/%s' % class_name
+    prefix = "eco/%s" % class_name
     return _get_or_compute(prefix, filter, compute_value)
 
 
 def get_cached_plot_count(filter):
-    prefix = 'count/Plot'
+    prefix = "count/Plot"
     compute_value = lambda: filter.get_object_count(Plot)
 
     return _get_or_compute(prefix, filter, compute_value)
@@ -59,23 +59,20 @@ def _get_key(prefix, filter):
         # universal_rev however, so using that in the cache key solves the
         # problem.
         version = filter.instance.universal_rev
-    elif prefix == 'eco/Plot':
+    elif prefix == "eco/Plot":
         version = filter.instance.eco_rev
-    elif prefix == 'count/Plot':
+    elif prefix == "count/Plot":
         version = filter.instance.geo_rev
     else:
         # We are computing benefits for features other than trees
         version = filter.instance.universal_rev
 
-    filter_key = '%s/%s' % (filter.filterstr, filter.displaystr)
+    filter_key = "%s/%s" % (filter.filterstr, filter.displaystr)
     # Explicitly calling `encode()` ensures that the presence of a
     # unicode symbol in the filter string will not raise a
     # UnicodeEncodeError exception when calling `md5()`
-    filter_hash = hashlib.md5(filter_key.encode('utf-8')).hexdigest()
-    key = "%s/%s/%s/%s" % (prefix,
-                           filter.instance.url_name,
-                           version,
-                           filter_hash)
+    filter_hash = hashlib.md5(filter_key.encode("utf-8")).hexdigest()
+    key = "%s/%s/%s/%s" % (prefix, filter.instance.url_name, version, filter_hash)
     return key
 
 
@@ -84,7 +81,7 @@ def _get_key(prefix, filter):
 # Store a cache buster in Redis, and keep a local copy.
 # If the local copy is stale, invalidate the cache of the local ecoservice.
 
-_ITREE_CODE_OVERRIDE_REV_KEY = 'itree_code_override_rev'
+_ITREE_CODE_OVERRIDE_REV_KEY = "itree_code_override_rev"
 my_itree_code_override_rev = None
 
 
@@ -95,14 +92,15 @@ def _increment_itree_code_override_rev(*args, **kwargs):
 
 def invalidate_ecoservice_cache_if_stale():
     from treemap import ecobackend
+
     global my_itree_code_override_rev
 
     cached_rev = _init_if_needed()
 
     if my_itree_code_override_rev != cached_rev:
-        __, err = ecobackend.json_benefits_call('invalidate_cache', {})
+        __, err = ecobackend.json_benefits_call("invalidate_cache", {})
         if err:
-            raise Exception('Failed to invalidate ecoservice cache')
+            raise Exception("Failed to invalidate ecoservice cache")
         my_itree_code_override_rev = cached_rev
 
 
@@ -122,5 +120,4 @@ def _init_if_needed():
 
 
 post_save.connect(_increment_itree_code_override_rev, sender=ITreeCodeOverride)
-post_delete.connect(_increment_itree_code_override_rev,
-                    sender=ITreeCodeOverride)
+post_delete.connect(_increment_itree_code_override_rev, sender=ITreeCodeOverride)

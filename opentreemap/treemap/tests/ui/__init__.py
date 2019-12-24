@@ -13,8 +13,10 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from registration.models import RegistrationProfile
 
-from selenium.common.exceptions import (WebDriverException,
-                                        StaleElementReferenceException)
+from selenium.common.exceptions import (
+    WebDriverException,
+    StaleElementReferenceException,
+)
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support.wait import WebDriverWait
@@ -34,9 +36,8 @@ DISPLAY_HEIGHT = 1024
 class UITestCase(StaticLiveServerTestCase):
     def use_xvfb(self):
         from pyvirtualdisplay import Display
-        self.display = Display('xvfb',
-                               visible=1,
-                               size=(DISPLAY_WIDTH, DISPLAY_HEIGHT))
+
+        self.display = Display("xvfb", visible=1, size=(DISPLAY_WIDTH, DISPLAY_HEIGHT))
         self.display.start()
         self.driver = WebDriver()
 
@@ -61,7 +62,7 @@ class UITestCase(StaticLiveServerTestCase):
 
     def tearDown(self):
         self.driver.quit()
-        if hasattr(self, 'display'):
+        if hasattr(self, "display"):
             self.display.stop()
 
         ContentType.objects.clear_cache()
@@ -91,21 +92,19 @@ class UITestCase(StaticLiveServerTestCase):
 
     def process_login_form(self, username, password):
         username_elmt = self.wait_until_present('[name="username"]')
-        password_elmt = self.find_name('password')
+        password_elmt = self.find_name("password")
 
         username_elmt.send_keys(username)
         password_elmt.send_keys(password)
 
-        self.click('form * button')
+        self.click("form * button")
 
     def browse_to_url(self, url):
         self.driver.get(self.live_server_url + url)
 
     def browse_to_instance_url(self, url, instance=None):
         instance = instance if instance is not None else self.instance
-        self.driver.get('%s/%s/%s' % (self.live_server_url,
-                                      instance.url_name,
-                                      url))
+        self.driver.get("%s/%s/%s" % (self.live_server_url, instance.url_name, url))
 
     def find_anchor_by_url(self, url):
         return self.find("[href='%s']" % url)
@@ -130,7 +129,8 @@ class UITestCase(StaticLiveServerTestCase):
         Useful for detecting that an operation loads the page you're expecting.
         """
         WebDriverWait(self.driver, timeout).until(
-            lambda driver: text in driver.page_source)
+            lambda driver: text in driver.page_source
+        )
 
     def wait_until_enabled(self, element_or_selector, timeout=10):
         """
@@ -138,7 +138,8 @@ class UITestCase(StaticLiveServerTestCase):
         """
         element = self._get_element(element_or_selector)
         WebDriverWait(self.driver, timeout).until(
-            lambda driver: element.get_attribute("disabled") is None)
+            lambda driver: element.get_attribute("disabled") is None
+        )
         return element
 
     def wait_until_visible(self, element_or_selector, timeout=10):
@@ -147,8 +148,7 @@ class UITestCase(StaticLiveServerTestCase):
         is displayed.
         """
         element = self._get_element(element_or_selector)
-        WebDriverWait(self.driver, timeout).until(
-            lambda driver: element.is_displayed())
+        WebDriverWait(self.driver, timeout).until(lambda driver: element.is_displayed())
         return element
 
     def wait_until_invisible(self, element_or_selector, timeout=10):
@@ -175,7 +175,9 @@ class UITestCase(StaticLiveServerTestCase):
         WebDriverWait(self.driver, timeout).until(
             # It seems wrong, but selenium fetches the value of an input
             # element using get_attribute('value')
-            lambda driver: element.get_attribute('value') == value)
+            lambda driver: element.get_attribute("value")
+            == value
+        )
         return element
 
     def _get_element(self, element_or_selector):
@@ -190,8 +192,7 @@ class TreemapUITestCase(UITestCase):
     def assertElementVisibility(self, element, visible):
         if isinstance(element, basestring):
             element = self.find_id(element)
-        wait = (self.wait_until_visible if visible
-                else self.wait_until_invisible)
+        wait = self.wait_until_visible if visible else self.wait_until_invisible
         wait(element)
         self.assertEqual(visible, element.is_displayed())
 
@@ -204,37 +205,37 @@ class TreemapUITestCase(UITestCase):
 
         super(TreemapUITestCase, self).setUp()
 
-        instance_name = 'autotest_instance'
+        instance_name = "autotest_instance"
 
         Instance.objects.filter(name=instance_name).delete()
 
         self.instance = create_instance(
             name=instance_name,
             is_public=False,
-            url_name='autotest-instance',
-            edge_length=20000)
+            url_name="autotest-instance",
+            edge_length=20000,
+        )
         create_stewardship_udfs(self.instance)
 
-        self.user = make_commander_user(instance=self.instance,
-                                        username='username')
+        self.user = make_commander_user(instance=self.instance, username="username")
 
         self.profile = RegistrationProfile.objects.create_profile(self.user)
 
     def login_workflow(self, user=None):
         if user is None:
             user = self.user
-        self.browse_to_url('/accounts/logout/')
-        self.browse_to_url('/accounts/login/')
-        self.process_login_form(user.username, 'password')
+        self.browse_to_url("/accounts/logout/")
+        self.browse_to_url("/accounts/login/")
+        self.process_login_form(user.username, "password")
 
         def url_is_user_page(driver):
-            return driver.current_url.endswith('/users/%s/' % user.username)
+            return driver.current_url.endswith("/users/%s/" % user.username)
 
         WebDriverWait(self.driver, 10).until(url_is_user_page)
 
     def drag_marker_on_map(self, endx, endy):
         actions = ActionChains(self.driver)
-        marker = self.find('.leaflet-marker-pane img')
+        marker = self.find(".leaflet-marker-pane img")
 
         actions.drag_and_drop_by_offset(marker, endx, endy)
         actions.perform()
@@ -243,7 +244,7 @@ class TreemapUITestCase(UITestCase):
 
     def click_point_on_map(self, x, y):
         # We're in add tree mode, now we need to click somewhere on the map
-        map_div = self.find_id('map')
+        map_div = self.find_id("map")
 
         actions = ActionChains(self.driver)
         # move to the center of the map
@@ -261,7 +262,8 @@ class TreemapUITestCase(UITestCase):
 
     def _click_add_tree_next_step(self, n):
         button = self.driver.find_elements_by_css_selector(
-            '#sidebar-add-tree .add-step-footer li.next a')[n]
+            "#sidebar-add-tree .add-step-footer li.next a"
+        )[n]
         self.wait_until_enabled(button)
         button.click()
         sleep(1)  # wait for animation to show the next step
@@ -287,39 +289,38 @@ class TreemapUITestCase(UITestCase):
         self.browse_to_instance_url("map/")
 
     def go_to_feature_detail(self, feature_id, edit=False):
-        self.browse_to_instance_url("features/%s/%s"
-                                    % (feature_id,
-                                       "edit" if edit else ""))
+        self.browse_to_instance_url(
+            "features/%s/%s" % (feature_id, "edit" if edit else "")
+        )
 
     def go_to_tree_detail(self, plot_id, tree_id):
-        self.browse_to_instance_url("features/%s/trees/%s/"
-                                    % (plot_id, tree_id))
+        self.browse_to_instance_url("features/%s/trees/%s/" % (plot_id, tree_id))
 
-    def add_tree_done(self, whenDone='close'):
+    def add_tree_done(self, whenDone="close"):
         # Move to "Finalize" step
         self._click_add_tree_next_step(1)
 
-        if whenDone == 'copy':
-            self.click('#addtree-addsame')
-        elif whenDone == 'new':
-            self.click('#addtree-addnew')
-        elif whenDone == 'edit':
-            self.click('#addtree-viewdetails')
-        elif whenDone == 'close':
-            self.click('#addtree-done')
+        if whenDone == "copy":
+            self.click("#addtree-addsame")
+        elif whenDone == "new":
+            self.click("#addtree-addnew")
+        elif whenDone == "edit":
+            self.click("#addtree-viewdetails")
+        elif whenDone == "close":
+            self.click("#addtree-done")
 
         # Click "Done"
         self._click_add_tree_next_step(2)
 
-        if whenDone == 'close':
+        if whenDone == "close":
             # Wait for "browse trees" mode
-            self.wait_until_visible('#sidebar-browse-trees')
-        elif whenDone == 'edit':
+            self.wait_until_visible("#sidebar-browse-trees")
+        elif whenDone == "edit":
             # Wait for "save" button on "plot detail" page
-            self.wait_until_visible('#save-edit-map-feature', 30)
+            self.wait_until_visible("#save-edit-map-feature", 30)
         else:
             # Wait for "Add Tree" step 1
-            self.wait_until_visible('#sidebar-add-tree .form-search')
+            self.wait_until_visible("#sidebar-add-tree .form-search")
 
     def login_and_go_to_map_page(self):
         self.login_workflow()
@@ -333,16 +334,15 @@ def parse_function_string(module_and_function_string):
 
     Return the function 'f' from module 'a.b.c'
     """
-    parts = module_and_function_string.split('.')
-    mod = '.'.join(parts[0:-1])
+    parts = module_and_function_string.split(".")
+    mod = ".".join(parts[0:-1])
     fn = parts[-1]
 
     return getattr(importlib.import_module(mod), fn)
 
 
 def _get_create_instance():
-    return parse_function_string(
-        settings.UITEST_CREATE_INSTANCE_FUNCTION)
+    return parse_function_string(settings.UITEST_CREATE_INSTANCE_FUNCTION)
 
 
 create_instance = _get_create_instance()

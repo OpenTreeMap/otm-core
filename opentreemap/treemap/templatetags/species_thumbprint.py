@@ -13,9 +13,9 @@ _thread_local = threading.local()
 
 @register.filter
 def species_thumbprint(request):
-    last_request, last_thumbprint = getattr(_thread_local,
-                                            'last_request_and_thumbprint',
-                                            (None, None))
+    last_request, last_thumbprint = getattr(
+        _thread_local, "last_request_and_thumbprint", (None, None)
+    )
     if request == last_request:
         thumbprint = last_thumbprint
     else:

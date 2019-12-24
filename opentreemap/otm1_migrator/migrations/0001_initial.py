@@ -6,56 +6,94 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='MigrationEvent',
+            name="MigrationEvent",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('completed', models.DateTimeField(auto_now=True)),
-                ('status', models.IntegerField(default=-1, choices=[(0, 'SUCCESS'), (1, 'FAILURE')])),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("completed", models.DateTimeField(auto_now=True)),
+                (
+                    "status",
+                    models.IntegerField(
+                        default=-1, choices=[(0, "SUCCESS"), (1, "FAILURE")]
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OTM1CommentRelic',
+            name="OTM1CommentRelic",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('otm1_model_id', models.IntegerField()),
-                ('otm2_model_id', models.IntegerField()),
-                ('otm2_model_name', models.CharField(default='threadedcomment', max_length=255, editable=False)),
-                ('otm1_last_child_id', models.IntegerField(null=True, blank=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("otm1_model_id", models.IntegerField()),
+                ("otm2_model_id", models.IntegerField()),
+                (
+                    "otm2_model_name",
+                    models.CharField(
+                        default="threadedcomment", max_length=255, editable=False
+                    ),
+                ),
+                ("otm1_last_child_id", models.IntegerField(null=True, blank=True)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
         migrations.CreateModel(
-            name='OTM1ModelRelic',
+            name="OTM1ModelRelic",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('otm1_model_id', models.IntegerField()),
-                ('otm2_model_id', models.IntegerField()),
-                ('otm2_model_name', models.CharField(max_length=255)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("otm1_model_id", models.IntegerField()),
+                ("otm2_model_id", models.IntegerField()),
+                ("otm2_model_name", models.CharField(max_length=255)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
         migrations.CreateModel(
-            name='OTM1UserRelic',
+            name="OTM1UserRelic",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('otm1_model_id', models.IntegerField()),
-                ('otm2_model_id', models.IntegerField()),
-                ('otm2_model_name', models.CharField(default='user', max_length=255, editable=False)),
-                ('otm1_username', models.CharField(max_length=255)),
-                ('email', models.EmailField(max_length=254)),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("otm1_model_id", models.IntegerField()),
+                ("otm2_model_id", models.IntegerField()),
+                (
+                    "otm2_model_name",
+                    models.CharField(default="user", max_length=255, editable=False),
+                ),
+                ("otm1_username", models.CharField(max_length=255)),
+                ("email", models.EmailField(max_length=254)),
             ],
-            options={
-                'abstract': False,
-            },
+            options={"abstract": False,},
         ),
     ]

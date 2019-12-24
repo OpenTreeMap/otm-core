@@ -9,8 +9,12 @@ import django.shortcuts
 
 from treemap.models import Species, Boundary, Tree, Plot
 from treemap.instance import create_stewardship_udfs
-from treemap.tests import (make_instance, make_commander_user,
-                           make_apprentice_user, make_user_with_default_role)
+from treemap.tests import (
+    make_instance,
+    make_commander_user,
+    make_apprentice_user,
+    make_user_with_default_role,
+)
 
 
 def mkPlot(instance, user, geom=None):
@@ -47,7 +51,7 @@ def setupTreemapEnv():
 
         hr = HttpResponse(loader.render_to_string(*args, **kwargs))
 
-        if hasattr(args[1], 'dicts'):
+        if hasattr(args[1], "dicts"):
             hr.request_context = args[1].dicts
 
         return hr
@@ -57,28 +61,43 @@ def setupTreemapEnv():
     instance = make_instance(is_public=True)
     create_stewardship_udfs(instance)
 
-    make_user_with_default_role(instance, 'jim')
-    commander = make_commander_user(instance, 'commander')
-    make_apprentice_user(instance, 'apprentice')
+    make_user_with_default_role(instance, "jim")
+    commander = make_commander_user(instance, "commander")
+    make_apprentice_user(instance, "apprentice")
 
-    n1geom = MultiPolygon(Polygon(
-        ((0, 0), (100, 0), (100, 100), (0, 100), (0, 0))))
+    n1geom = MultiPolygon(Polygon(((0, 0), (100, 0), (100, 100), (0, 100), (0, 0))))
 
     n2geom = MultiPolygon(
-        Polygon(((0, 101), (101, 101), (101, 200), (0, 200), (0, 101))))
+        Polygon(((0, 101), (101, 101), (101, 200), (0, 200), (0, 101)))
+    )
 
-    n1 = Boundary(name="n1", category='blah', sort_order=4, geom=n1geom)
-    n2 = Boundary(name="n2", category='blah', sort_order=4, geom=n2geom)
+    n1 = Boundary(name="n1", category="blah", sort_order=4, geom=n1geom)
+    n2 = Boundary(name="n2", category="blah", sort_order=4, geom=n2geom)
 
     n1.save()
     n2.save()
 
-    s1 = Species(otm_code="s1", genus="testus1", species="specieius1",
-                 cultivar='', instance=instance)
-    s2 = Species(otm_code="s2", genus="testus2", species="specieius2",
-                 cultivar='', instance=instance)
-    s3 = Species(otm_code="s3", genus="testus2", species="specieius3",
-                 cultivar='', instance=instance)
+    s1 = Species(
+        otm_code="s1",
+        genus="testus1",
+        species="specieius1",
+        cultivar="",
+        instance=instance,
+    )
+    s2 = Species(
+        otm_code="s2",
+        genus="testus2",
+        species="specieius2",
+        cultivar="",
+        instance=instance,
+    )
+    s3 = Species(
+        otm_code="s3",
+        genus="testus2",
+        species="specieius3",
+        cultivar="",
+        instance=instance,
+    )
 
     s1.is_native = True
     s1.fall_conspicuous = True

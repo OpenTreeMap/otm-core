@@ -11,5 +11,6 @@ from treemap.decorators import instance_request
 from stormwater import views
 
 
-polygon_for_point = route(GET=do(
-    instance_request, json_api_call, views.polygon_for_point))
+polygon_for_point = route(
+    GET=do(instance_request, json_api_call, views.polygon_for_point)
+)

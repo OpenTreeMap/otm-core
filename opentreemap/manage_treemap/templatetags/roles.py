@@ -10,7 +10,7 @@ register = template.Library()
 
 @register.filter
 def photo_permission_level(role):
-    photo_perms = role_field_permissions(role, None, 'TreePhoto')
+    photo_perms = role_field_permissions(role, None, "TreePhoto")
 
     if photo_perms:
         perm = min([p.permission_level for p in photo_perms])

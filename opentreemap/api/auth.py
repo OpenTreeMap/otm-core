@@ -22,7 +22,7 @@ def get_signature_for_request(request, secret_key):
     DeveloperGuide/HMACAuth.html
     """
     httpverb = request.method
-    hostheader = request.META.get('HTTP_HOST', '').lower()
+    hostheader = request.META.get("HTTP_HOST", "").lower()
 
     request_uri = request.path
 
@@ -31,11 +31,15 @@ def get_signature_for_request(request, secret_key):
     # string, even for non-GET requests
     params = sorted(request.GET.iteritems(), key=lambda a: a[0])
 
-    paramstr = '&'.join(['%s=%s' % (k, urllib.quote_plus(str(v)))
-                         for (k, v) in params
-                         if k.lower() != "signature"])
+    paramstr = "&".join(
+        [
+            "%s=%s" % (k, urllib.quote_plus(str(v)))
+            for (k, v) in params
+            if k.lower() != "signature"
+        ]
+    )
 
-    sign_string = '\n'.join([httpverb, hostheader, request_uri, paramstr])
+    sign_string = "\n".join([httpverb, hostheader, request_uri, paramstr])
 
     # Sometimes reeading from body fails, so try reading as a file-like
     try:
@@ -46,8 +50,7 @@ def get_signature_for_request(request, secret_key):
     if body_encoded:
         sign_string += body_encoded
 
-    sig = base64.b64encode(
-        hmac.new(secret_key, sign_string, hashlib.sha256).digest())
+    sig = base64.b64encode(hmac.new(secret_key, sign_string, hashlib.sha256).digest())
 
     return sig
 
@@ -55,7 +58,7 @@ def get_signature_for_request(request, secret_key):
 def create_401unauthorized(body="Unauthorized"):
     res = HttpResponse(body)
     res.status_code = 401
-    res['WWW-Authenticate'] = 'Basic realm="Secure Area"'
+    res["WWW-Authenticate"] = 'Basic realm="Secure Area"'
     return res
 
 
@@ -71,7 +74,7 @@ def decodebasicauth(strg):
     if strg is None:
         return None
     else:
-        m = re.match(r'([^:]*)\:(.*)', base64.decodestring(strg))
+        m = re.match(r"([^:]*)\:(.*)", base64.decodestring(strg))
         if m is not None:
             return (m.group(1), m.group(2))
         else:
@@ -79,7 +82,7 @@ def decodebasicauth(strg):
 
 
 def parse_basicauth(authstr):
-    auth = decodebasicauth(firstmatch('Basic (.*)', authstr))
+    auth = decodebasicauth(firstmatch("Basic (.*)", authstr))
     if auth is None:
         return None
     else:
@@ -88,8 +91,8 @@ def parse_basicauth(authstr):
 
 def parse_user_from_request(request):
     user = None
-    if 'HTTP_AUTHORIZATION' in request.META:
-        auth = request.META['HTTP_AUTHORIZATION']
+    if "HTTP_AUTHORIZATION" in request.META:
+        auth = request.META["HTTP_AUTHORIZATION"]
         user = parse_basicauth(auth)
 
     return user

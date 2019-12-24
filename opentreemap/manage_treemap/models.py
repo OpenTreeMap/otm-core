@@ -25,8 +25,8 @@ class InstanceInvitation(models.Model):
     * a@b.com registers and they are added to all maps where they have
     * an invite
     """
-    email = models.CharField(max_length=255,
-                             validators=[validate_email])
+
+    email = models.CharField(max_length=255, validators=[validate_email])
 
     instance = models.ForeignKey(Instance)
     role = models.ForeignKey(Role)
@@ -47,7 +47,7 @@ class InstanceInvitation(models.Model):
     def generate_key():
         # from http://stackoverflow.com/a/23728630/233437
         chars = string.ascii_lowercase + string.digits
-        return ''.join(random.SystemRandom().choice(chars) for __ in range(40))
+        return "".join(random.SystemRandom().choice(chars) for __ in range(40))
 
     def save(self, *args, **kwargs):
         if not self.activation_key:
@@ -56,7 +56,8 @@ class InstanceInvitation(models.Model):
                 # If our randomly generated key matches an existing key,
                 # we need to try again
                 matching_keys = InstanceInvitation.objects.filter(
-                    activation_key=self.activation_key)
+                    activation_key=self.activation_key
+                )
                 if not matching_keys.exists():
                     break
 

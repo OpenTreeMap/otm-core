@@ -6,16 +6,18 @@ from __future__ import division
 import json
 
 from django.db import transaction
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseNotFound)
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 
 from opentreemap.util import json_from_request
 
-from treemap.udf import (UserDefinedFieldDefinition, safe_get_udf_model_class,
-                         UserDefinedCollectionValue)
+from treemap.udf import (
+    UserDefinedFieldDefinition,
+    safe_get_udf_model_class,
+    UserDefinedCollectionValue,
+)
 from treemap.util import to_model_name
 from treemap.exceptions import JSONResponseForbidden
 from treemap.lib.object_caches import udf_defs
@@ -31,12 +33,12 @@ def udf_update_choice(request, instance, udf_id):
 
     _udf_update_choice(udf, instance, params)
 
-    return HttpResponse(_('Updated Custom Field'))
+    return HttpResponse(_("Updated Custom Field"))
 
 
 @transaction.atomic
 def udf_bulk_update(request, instance):
-    '''
+    """
     udf_bulk_update(request, instance)
 
     'instance': a treemap instance
@@ -58,15 +60,13 @@ def udf_bulk_update(request, instance):
     and the list should be ordered as deletes, then renames, then adds.
     See the docstring for `_udf_update_choice` for the structure of each
     choice change parameter.
-    '''
+    """
     params = json.loads(request.body)
-    choice_changes = params.get('choice_changes', None)
+    choice_changes = params.get("choice_changes", None)
 
     if choice_changes:
-        choice_map = {int(param['id']): param['changes']
-                      for param in choice_changes}
-        udfds = [udf for udf in udf_defs(instance)
-                 if udf.pk in choice_map.keys()]
+        choice_map = {int(param["id"]): param["changes"] for param in choice_changes}
+        udfds = [udf for udf in udf_defs(instance) if udf.pk in choice_map.keys()]
 
         # Update one at a time rather than doing bulk_update.
         # There won't be that many of them, and we need to go through
@@ -79,11 +79,11 @@ def udf_bulk_update(request, instance):
             for params in choice_map[udf.pk]:
                 _udf_update_choice(udf, instance, params)
 
-    return HttpResponse(_('Updated Custom Fields'))
+    return HttpResponse(_("Updated Custom Fields"))
 
 
 def _udf_update_choice(udf, instance, params):
-    '''
+    """
     _udf_update_choice(udf, instance, params)
 
     `udf`: a choice-type UserDefinedFieldDefinition
@@ -98,69 +98,73 @@ def _udf_update_choice(udf, instance, params):
         'new_value':      the name of the choice on exit from this function,
                           empty string if 'action is 'delete'.
     }
-    '''
-    editable_udf_model_names = {clz.__name__ for clz in
-                                instance.editable_udf_models()['all']}
+    """
+    editable_udf_model_names = {
+        clz.__name__ for clz in instance.editable_udf_models()["all"]
+    }
 
     if udf.model_type not in editable_udf_model_names:
         return JSONResponseForbidden()
 
-    action = params['action']
+    action = params["action"]
 
-    subfield = params.get('subfield', None) or None
+    subfield = params.get("subfield", None) or None
 
-    if action == 'delete':
-        udf.delete_choice(
-            params['original_value'], name=subfield)
-    elif action == 'rename':
-        udf.update_choice(
-            params['original_value'],
-            params['new_value'],
-            name=subfield)
-    elif action == 'add':
-        udf.add_choice(
-            params['new_value'],
-            name=subfield)
+    if action == "delete":
+        udf.delete_choice(params["original_value"], name=subfield)
+    elif action == "rename":
+        udf.update_choice(params["original_value"], params["new_value"], name=subfield)
+    elif action == "add":
+        udf.add_choice(params["new_value"], name=subfield)
     else:
-        raise ValidationError(
-            {'action': ['Invalid action']})
+        raise ValidationError({"action": ["Invalid action"]})
 
 
 def udf_list(request, instance):
     editable_udf_models = instance.editable_udf_models()
-    udf_models = \
-        sorted([{'name': clz.__name__,
-                 'display_name': clz.display_name(instance)}
-                for clz in editable_udf_models['core']],
-               key=lambda model: model['name'],
-               reverse=True) + \
-        sorted([{'name': clz.__name__,
-                 'display_name': clz.display_name(instance)}
-                for clz in editable_udf_models['gsi']],
-               key=lambda model: model['name'])
+    udf_models = sorted(
+        [
+            {"name": clz.__name__, "display_name": clz.display_name(instance)}
+            for clz in editable_udf_models["core"]
+        ],
+        key=lambda model: model["name"],
+        reverse=True,
+    ) + sorted(
+        [
+            {"name": clz.__name__, "display_name": clz.display_name(instance)}
+            for clz in editable_udf_models["gsi"]
+        ],
+        key=lambda model: model["name"],
+    )
 
-    editable_gsi_models = [clz.__name__ for clz in editable_udf_models['gsi']]
+    editable_gsi_models = [clz.__name__ for clz in editable_udf_models["gsi"]]
 
-    udf_model_names = sorted([model['name'] for model in udf_models])
+    udf_model_names = sorted([model["name"] for model in udf_models])
 
-    udfs = sorted([udf for udf in udf_defs(instance)
-                   if udf.model_type in udf_model_names],
-                  key=lambda udf: (udf.model_type, udf.iscollection,
-                                   udf.name))
+    udfs = sorted(
+        [udf for udf in udf_defs(instance) if udf.model_type in udf_model_names],
+        key=lambda udf: (udf.model_type, udf.iscollection, udf.name),
+    )
 
     def dict_update(d1, d2):
         d1.update(d2)
         return d1
 
-    udf_models = [dict_update(model, {
-        'specs': [{'udf': udf, 'datatype': _get_type_display(udf)}
-                  for udf in udfs if udf.model_type == model['name']]
-        }) for model in udf_models]
+    udf_models = [
+        dict_update(
+            model,
+            {
+                "specs": [
+                    {"udf": udf, "datatype": _get_type_display(udf)}
+                    for udf in udfs
+                    if udf.model_type == model["name"]
+                ]
+            },
+        )
+        for model in udf_models
+    ]
 
-    return {
-        "udf_models": udf_models,
-        "editable_gsi_models": editable_gsi_models
-    }
+    return {"udf_models": udf_models, "editable_gsi_models": editable_gsi_models}
 
 
 @transaction.atomic
@@ -172,34 +176,36 @@ def udf_create(request, instance):
 
 
 def udf_delete_popup(request, instance, udf_id):
-    udf_def = get_object_or_404(UserDefinedFieldDefinition, pk=udf_id,
-                                instance=instance)
+    udf_def = get_object_or_404(
+        UserDefinedFieldDefinition, pk=udf_id, instance=instance
+    )
     return udf_context(instance, udf_def)
 
 
 def udf_context(instance, udf_def):
     if udf_def.iscollection:
-        udf_uses = UserDefinedCollectionValue.objects\
-            .filter(field_definition=udf_def)\
-            .count()
+        udf_uses = UserDefinedCollectionValue.objects.filter(
+            field_definition=udf_def
+        ).count()
     else:
         Model = safe_get_udf_model_class(udf_def.model_type)
-        udf_uses = Model.objects.filter(instance=instance)\
-                                .filter(udfs__has_key=udf_def.name)\
-                                .count()
+        udf_uses = (
+            Model.objects.filter(instance=instance)
+            .filter(udfs__has_key=udf_def.name)
+            .count()
+        )
 
     return {
-        'udf': udf_def,
-        'udf_uses': udf_uses,
-        'datatype': _get_type_display(udf_def),
+        "udf": udf_def,
+        "udf_uses": udf_uses,
+        "datatype": _get_type_display(udf_def),
     }
 
 
 @transaction.atomic
 def udf_delete(request, instance, udf_id):
     try:
-        udf_def = UserDefinedFieldDefinition.objects.get(pk=udf_id,
-                                                         instance=instance)
+        udf_def = UserDefinedFieldDefinition.objects.get(pk=udf_id, instance=instance)
     except UserDefinedFieldDefinition.DoesNotExist:
         return HttpResponseNotFound(_("Field does not exist"))
 
@@ -214,10 +220,11 @@ def udf_delete(request, instance, udf_id):
 
 
 def remove_udf_notifications(request, instance):
-    instance.config['udf_notifications'] = []
+    instance.config["udf_notifications"] = []
     instance.save()
 
-    return {'success': True}
+    return {"success": True}
+
 
 TYPE_MAP = {
     "float": _("Decimal Number"),
@@ -236,6 +243,6 @@ def _get_type_display(udf):
         # In theory there could be more datatype dicts
         # but in practice, there is only ever one,
         # and it represents a Stewardship Action.
-        return TYPE_MAP['Action']
-    data_type = datatype_dict.get('type', 'Action')
+        return TYPE_MAP["Action"]
+    data_type = datatype_dict.get("type", "Action")
     return TYPE_MAP[data_type]

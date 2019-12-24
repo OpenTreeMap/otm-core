@@ -19,7 +19,7 @@ from treemap.units import storage_to_instance_units_factor
 from treemap.util import to_object_name
 
 
-class ParseException (Exception):
+class ParseException(Exception):
     def __init__(self, message):
         super(Exception, self).__init__(message)
         self.message = message
@@ -29,19 +29,21 @@ class ModelParseException(ParseException):
     pass
 
 
-DEFAULT_MAPPING = {'plot': '',
-                   'bioswale': '',
-                   'rainGarden': '',
-                   'rainBarrel': '',
-                   'tree': 'tree__',
-                   'species': 'tree__species__',
-                   'treePhoto': 'tree__treephoto__',
-                   'mapFeaturePhoto': 'mapfeaturephoto__',
-                   'mapFeature': ''}
+DEFAULT_MAPPING = {
+    "plot": "",
+    "bioswale": "",
+    "rainGarden": "",
+    "rainBarrel": "",
+    "tree": "tree__",
+    "species": "tree__species__",
+    "treePhoto": "tree__treephoto__",
+    "mapFeaturePhoto": "mapfeaturephoto__",
+    "mapFeature": "",
+}
 
 PLOT_RELATED_MODELS = {Plot, Tree, Species, TreePhoto}
 
-MAP_FEATURE_RELATED_NAMES = {'mapFeature', 'mapFeaturePhoto'}
+MAP_FEATURE_RELATED_NAMES = {"mapFeature", "mapFeaturePhoto"}
 
 
 class Filter(object):
@@ -62,14 +64,14 @@ class Filter(object):
             return ModelClass.objects.none()
 
         q = create_filter(self.instance, self.filterstr, DEFAULT_MAPPING)
-        if model_name == 'Plot':
-            q = _apply_tree_display_filter(q, self.display_filter,
-                                           DEFAULT_MAPPING)
+        if model_name == "Plot":
+            q = _apply_tree_display_filter(q, self.display_filter, DEFAULT_MAPPING)
 
         models = q.basekeys
 
-        if _is_valid_models_list_for_model(models, model_name, ModelClass,
-                                           self.instance):
+        if _is_valid_models_list_for_model(
+            models, model_name, ModelClass, self.instance
+        ):
             queryset = ModelClass.objects.filter(q)
         else:
             queryset = ModelClass.objects.none()
@@ -82,10 +84,11 @@ class Filter(object):
 
 def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
     """Validates everything in models are valid filters for model_name"""
+
     def collection_udf_set_for_model(Model):
         if not issubclass(ModelClass, UDFModel):
             return {}
-        if hasattr(Model, 'instance'):
+        if hasattr(Model, "instance"):
             fake_model = Model(instance=instance)
         else:
             fake_model = Model()
@@ -97,7 +100,7 @@ def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
     object_name = to_object_name(model_name)
     models = models - {object_name}
 
-    if model_name == 'Plot':
+    if model_name == "Plot":
         related_models = PLOT_RELATED_MODELS
     else:
         related_models = {ModelClass}
@@ -112,10 +115,10 @@ def _is_valid_models_list_for_model(models, model_name, ModelClass, instance):
 
 class FilterContext(Q):
     def __init__(self, *args, **kwargs):
-        if 'basekey' in kwargs:
-            self.basekeys = {kwargs['basekey']}
+        if "basekey" in kwargs:
+            self.basekeys = {kwargs["basekey"]}
 
-            del kwargs['basekey']
+            del kwargs["basekey"]
         else:
             self.basekeys = set()
 
@@ -134,25 +137,28 @@ def convert_filter_units(instance, filter_dict):
     units. Mutates the `filter_dict` argument and returns it.
     """
     for field_name, value in filter_dict.iteritems():
-        if field_name not in ['tree.diameter', 'tree.height',
-                              'tree.canopy_height', 'plot.width',
-                              'plot.length', 'bioswale.drainage_area',
-                              'rainBarrel.capacity',
-                              'rainGarden.drainage_area']:
+        if field_name not in [
+            "tree.diameter",
+            "tree.height",
+            "tree.canopy_height",
+            "plot.width",
+            "plot.length",
+            "bioswale.drainage_area",
+            "rainBarrel.capacity",
+            "rainGarden.drainage_area",
+        ]:
             continue
 
         model_name, field = dotted_split(field_name, 2, maxsplit=1)
 
         if isinstance(value, dict):
-            factor = 1 / storage_to_instance_units_factor(instance,
-                                                          model_name,
-                                                          field)
-            for k in ['MIN', 'MAX', 'IS']:
+            factor = 1 / storage_to_instance_units_factor(instance, model_name, field)
+            for k in ["MIN", "MAX", "IS"]:
                 if k in value:
                     try:
                         if isinstance(value[k], dict):
-                            float_val = float(value[k]['VALUE'])
-                            value[k]['VALUE'] = factor * float_val
+                            float_val = float(value[k]["VALUE"])
+                            value[k]["VALUE"] = factor * float_val
                         else:
                             float_val = float(value[k])
                             value[k] = factor * float_val
@@ -188,7 +194,7 @@ def create_filter(instance, filterstr, mapping):
 
     Returns a Q object that can be applied to a model of your choice
     """
-    if filterstr is not None and filterstr != '':
+    if filterstr is not None and filterstr != "":
         query = loads(filterstr)
         convert_filter_units(instance, query)
         q = _parse_filter(query, mapping)
@@ -223,12 +229,14 @@ def _parse_query_dict(query_dict, mapping):
     # one UserDefinedCollectionValue that matches the action,
     # and another that matches the date, neither of which matches both.
     by_type = _parse_by_is_collection_udf(query_dict, mapping)
-    scalars = _unparse_scalars(by_type.pop('*', []))
-    scalar_predicates = _parse_scalar_predicate(scalars, mapping) \
-        if scalars else FilterContext()
-    collection_predicates = _parse_collections(by_type, mapping) \
-        if by_type else FilterContext()
-    return _apply_combinator('AND', [scalar_predicates, collection_predicates])
+    scalars = _unparse_scalars(by_type.pop("*", []))
+    scalar_predicates = (
+        _parse_scalar_predicate(scalars, mapping) if scalars else FilterContext()
+    )
+    collection_predicates = (
+        _parse_collections(by_type, mapping) if by_type else FilterContext()
+    )
+    return _apply_combinator("AND", [scalar_predicates, collection_predicates])
 
 
 def _parse_scalar_predicate(query, mapping):
@@ -249,23 +257,22 @@ def _parse_scalar_predicate(query, mapping):
 
                 lookup_tail, rhs = _parse_prop(props, value, pred, value[pred])
 
-                cast = rhs if props['udf_cast'] else None
+                cast = rhs if props["udf_cast"] else None
 
                 lookup_key = _lookup_key(
-                    prefix, search_key,
-                    lookup_name=lookup_tail, cast=cast)
+                    prefix, search_key, lookup_name=lookup_tail, cast=cast
+                )
 
                 query[lookup_key] = rhs
 
         return FilterContext(basekey=model, **query)
 
-    qs = [parse_scalar_predicate_pair(*kv, mapping=mapping)
-          for kv in query.iteritems()]
-    return _apply_combinator('AND', qs)
+    qs = [parse_scalar_predicate_pair(*kv, mapping=mapping) for kv in query.iteritems()]
+    return _apply_combinator("AND", qs)
 
 
 def _parse_by_is_collection_udf(query_dict, mapping):
-    '''
+    """
     given a `dict` query_dict mapping keys to individual predicates,
     and a mapping similar to DEFAULT_MAPPING,
 
@@ -282,36 +289,37 @@ def _parse_by_is_collection_udf(query_dict, mapping):
         'key': the original identifier,
         'value': a predicate `dict`
     }
-    '''
-    query_dict_list = [dict(value=v, **_parse_by_key_type(k, mapping=mapping))
-                       for k, v in query_dict.items()]
-    grouped = groupby(sorted(query_dict_list, key=lambda qd: qd['type']),
-                      lambda qd: qd['type'])
+    """
+    query_dict_list = [
+        dict(value=v, **_parse_by_key_type(k, mapping=mapping))
+        for k, v in query_dict.items()
+    ]
+    grouped = groupby(
+        sorted(query_dict_list, key=lambda qd: qd["type"]), lambda qd: qd["type"]
+    )
     return {k: list(v) for k, v in grouped}
 
 
 def _parse_by_key_type(key, mapping):
-    '''
+    """
     given a string key, and a mapping similar to DEFAULT_MAPPING,
     return dict with keys 'type', 'model', 'field', 'key'.
 
     Collection UDF keys are returned as the dict 'type' value.
 
     Scalar keys, UDF or regular, return '*' as the dict 'type' value.
-    '''
+    """
     model, prefix, field = _parse_predicate_key(key, mapping)
-    typ = model if _is_udf(model) else '*'
-    return {'type': typ, 'prefix': prefix, 'model': model,
-            'field': field, 'key': key}
+    typ = model if _is_udf(model) else "*"
+    return {"type": typ, "prefix": prefix, "model": model, "field": field, "key": key}
 
 
 def _unparse_scalars(scalars):
-    return dict(zip([qd['key'] for qd in scalars],
-                    [qd['value'] for qd in scalars]))
+    return dict(zip([qd["key"] for qd in scalars], [qd["value"] for qd in scalars]))
 
 
 def _parse_collections(by_type, mapping):
-    '''
+    """
     given a `dict` keyed by collection identifiers,
     and a mapping similar to DEFAULT_MAPPING,
 
@@ -321,73 +329,89 @@ def _parse_collections(by_type, mapping):
     Each inner `FilterContext` represents a subquery on
     `UserDefinedCollectionValue`s for the `UserDefinedFieldDefinition`
     id in the collection identifier.
-    '''
+    """
+
     def parse_collection_subquery(identifier, field_parts, mapping):
         # identifier looks like 'udf:<model type>:<udfd id>'
-        __, model, udfd_id = identifier.split(':', 2)
+        __, model, udfd_id = identifier.split(":", 2)
 
         return FilterContext(
-            basekey=model, **{
-                mapping[model] + 'id__in': UserDefinedCollectionValue.objects
-                .filter(_parse_udf_collection(udfd_id, field_parts))
-                .values_list('model_id', flat=True)})
+            basekey=model,
+            **{
+                mapping[model]
+                + "id__in": UserDefinedCollectionValue.objects.filter(
+                    _parse_udf_collection(udfd_id, field_parts)
+                ).values_list("model_id", flat=True)
+            }
+        )
 
     return _apply_combinator(
-        'AND', [parse_collection_subquery(identifier, field_parts, mapping)
-                for identifier, field_parts in by_type.items()])
+        "AND",
+        [
+            parse_collection_subquery(identifier, field_parts, mapping)
+            for identifier, field_parts in by_type.items()
+        ],
+    )
 
 
 def _parse_udf_collection(udfd_id, query_parts):
-    '''
+    """
     given a `UserDefinedFieldDefinition` id, and a list of `query_parts`,
 
     return a `FilterContext` that ANDs together `Q` queries intended
     to query the `UserDefinedCollectionValue` fields corresponding to
     the `UserDefinedFieldDefinition`.
-    '''
+    """
 
-    parse_udf_dict_value = partial(_parse_dict_value_for_mapping,
-                                   COLLECTION_HSTORE_PREDICATE_TYPES)
+    parse_udf_dict_value = partial(
+        _parse_dict_value_for_mapping, COLLECTION_HSTORE_PREDICATE_TYPES
+    )
 
     def parse_collection_udf_dict(key, value):
         __, field = _split_key(key)
         if isinstance(value, dict):
             preds = parse_udf_dict_value(value)
-            query = {_lookup_key('data__', field, k):
-                     v for (k, v) in preds.iteritems()}
+            query = {_lookup_key("data__", field, k): v for (k, v) in preds.iteritems()}
         else:
-            query = {_lookup_key('data__', field): value}
+            query = {_lookup_key("data__", field): value}
         return query
 
     return _apply_combinator(
-        'AND', list(chain([Q(field_definition_id=udfd_id)],
-                          [Q(**parse_collection_udf_dict(
-                              part['key'], part['value']))
-                           for part in query_parts])))
+        "AND",
+        list(
+            chain(
+                [Q(field_definition_id=udfd_id)],
+                [
+                    Q(**parse_collection_udf_dict(part["key"], part["value"]))
+                    for part in query_parts
+                ],
+            )
+        ),
+    )
 
 
-def _lookup_key(prefix, field, lookup_name='', cast=None):
-    '''
+def _lookup_key(prefix, field, lookup_name="", cast=None):
+    """
     given a string prefix such as 'tree__' or 'data__',
     a custom field name such as 'Action', 'Date', or 'udf:Root Depth',
     an optional lookup_name such as '__lt' or '__contains',
     and an optional cast such as '__float',
 
     return a string lookup key.
-    '''
+    """
     if _is_udf(field):
-        field = _lookup_key('udfs__', field[4:])
+        field = _lookup_key("udfs__", field[4:])
         if isinstance(cast, float):
-            cast = '__float'
+            cast = "__float"
         else:
-            cast = ''
+            cast = ""
     else:
-        cast = ''
-    return '{}{}{}{}'.format(prefix, field, cast, lookup_name)
+        cast = ""
+    return "{}{}{}{}".format(prefix, field, cast, lookup_name)
 
 
 def _parse_predicate_key(key, mapping):
-    '''
+    """
     given a key and a mapping,
     where key is a string, and mapping is similar to DEFAULT_MAPPING,
     return tuple(model_name, prefix, field_name)
@@ -404,18 +428,19 @@ def _parse_predicate_key(key, mapping):
     Raises `ParseException` if the key does not contain exactly one dot.
     Raises `ModelParseException` if the model part of the key is not found
     in the mapping argument.
-    '''
+    """
     model, field = _split_key(key)
 
     if _is_udf(model):
-        __, mapping_model, __ = model.split(':')
+        __, mapping_model, __ = model.split(":")
     else:
         mapping_model = model
 
     if mapping_model not in mapping:
         raise ModelParseException(
-            'Valid models are: %s or a collection UDF, not "%s"' %
-            (mapping.keys(), model))
+            'Valid models are: %s or a collection UDF, not "%s"'
+            % (mapping.keys(), model)
+        )
 
     return model, mapping[mapping_model], field
 
@@ -423,8 +448,7 @@ def _parse_predicate_key(key, mapping):
 def _split_key(key):
     format_string = 'Keys must be in the form of "model.field", not "%s"'
 
-    return dotted_split(key, 2, failure_format_string=format_string,
-                        cls=ParseException)
+    return dotted_split(key, 2, failure_format_string=format_string, cls=ParseException)
 
 
 def _parse_value(value):
@@ -468,8 +492,8 @@ def _parse_min_max_value_fn(operator, is_hstore=True):
         # a value or a dictionary that provides
         # a VALUE and EXCLUSIVE flag.
         if type(predicate_value) == dict:
-            raw_value = predicate_value.get('VALUE')
-            exclusive = predicate_value.get('EXCLUSIVE')
+            raw_value = predicate_value.get("VALUE")
+            exclusive = predicate_value.get("EXCLUSIVE")
         else:
             raw_value = predicate_value
             exclusive = False
@@ -479,7 +503,7 @@ def _parse_min_max_value_fn(operator, is_hstore=True):
         else:
             # django use lt/lte and gt/gte
             # to handle inclusive/exclusive
-            key = operator + 'e'
+            key = operator + "e"
 
         value = _parse_value(raw_value)
 
@@ -489,7 +513,8 @@ def _parse_min_max_value_fn(operator, is_hstore=True):
             elif not isinstance(value, float):
                 raise ParseException(
                     "Cannot perform min/max comparisons on "
-                    "non-date/numeric hstore fields at this time.")
+                    "non-date/numeric hstore fields at this time."
+                )
 
         return {key: value}
 
@@ -498,74 +523,75 @@ def _parse_min_max_value_fn(operator, is_hstore=True):
 
 def _parse_in_boundary(boundary_id):
     boundary = Boundary.all_objects.get(pk=boundary_id)
-    return {'__within': boundary.geom}
+    return {"__within": boundary.geom}
 
 
 def _simple_pred(key):
-    return (lambda value: {key: value})
+    return lambda value: {key: value}
 
 
 def _hstore_exact_predicate(val):
-    return {'__exact': val}
+    return {"__exact": val}
+
 
 # a predicate_builder takes a value for the
 # corresponding predicate type and returns
 # a singleton dictionary with a mapping of
 # predicate kwargs to pass to a Q object
 PREDICATE_TYPES = {
-    'MIN': {
-        'combines_with': {'MAX'},
-        'udf_cast': True,
-        'predicate_builder': _parse_min_max_value_fn('__gt'),
+    "MIN": {
+        "combines_with": {"MAX"},
+        "udf_cast": True,
+        "predicate_builder": _parse_min_max_value_fn("__gt"),
     },
-    'MAX': {
-        'combines_with': {'MIN'},
-        'udf_cast': True,
-        'predicate_builder': _parse_min_max_value_fn('__lt'),
+    "MAX": {
+        "combines_with": {"MIN"},
+        "udf_cast": True,
+        "predicate_builder": _parse_min_max_value_fn("__lt"),
     },
-    'IN': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _simple_pred('__in'),
+    "IN": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _simple_pred("__in"),
     },
-    'IS': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _simple_pred('')
+    "IS": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _simple_pred(""),
     },
-    'LIKE': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _simple_pred('__icontains')
+    "LIKE": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _simple_pred("__icontains"),
     },
-    'ISNULL': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _simple_pred('__isnull')
+    "ISNULL": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _simple_pred("__isnull"),
     },
-    'IN_BOUNDARY': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _parse_in_boundary
-    }
+    "IN_BOUNDARY": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _parse_in_boundary,
+    },
 }
 
 
 COLLECTION_HSTORE_PREDICATE_TYPES = {
-    'MIN': {
-        'combines_with': {'MAX'},
-        'udf_cast': False,
-        'predicate_builder': _parse_min_max_value_fn('__gt', is_hstore=True),
+    "MIN": {
+        "combines_with": {"MAX"},
+        "udf_cast": False,
+        "predicate_builder": _parse_min_max_value_fn("__gt", is_hstore=True),
     },
-    'MAX': {
-        'combines_with': {'MIN'},
-        'udf_cast': False,
-        'predicate_builder': _parse_min_max_value_fn('__lt', is_hstore=True),
+    "MAX": {
+        "combines_with": {"MIN"},
+        "udf_cast": False,
+        "predicate_builder": _parse_min_max_value_fn("__lt", is_hstore=True),
     },
-    'IS': {
-        'combines_with': set(),
-        'udf_cast': False,
-        'predicate_builder': _hstore_exact_predicate,
+    "IS": {
+        "combines_with": set(),
+        "udf_cast": False,
+        "predicate_builder": _hstore_exact_predicate,
     },
 }
 
@@ -602,16 +628,17 @@ def _parse_props(props, valuesdict):
 
 
 def _parse_prop(predicate_props, valuesdict, key, val):
-        valid_values = predicate_props['combines_with'].union({key})
-        if not valid_values.issuperset(set(valuesdict.keys())):
-            raise ParseException(
-                'Cannot use these keys together: %s vs %s' %
-                (valuesdict.keys(), valid_values))
+    valid_values = predicate_props["combines_with"].union({key})
+    if not valid_values.issuperset(set(valuesdict.keys())):
+        raise ParseException(
+            "Cannot use these keys together: %s vs %s"
+            % (valuesdict.keys(), valid_values)
+        )
 
-        predicate_builder = predicate_props['predicate_builder']
-        param_pair = predicate_builder(val)
-        # Return a 2-tuple rather than a single-key dict
-        return param_pair.items()[0]
+    predicate_builder = predicate_props["predicate_builder"]
+    param_pair = predicate_builder(val)
+    # Return a 2-tuple rather than a single-key dict
+    return param_pair.items()[0]
 
 
 def _parse_dict_props_for_mapping(mapping, valuesdict):
@@ -620,8 +647,7 @@ def _parse_dict_props_for_mapping(mapping, valuesdict):
 
     for value_key in valuesdict:
         if value_key not in mapping:
-            raise ParseException(
-                'Invalid key: %s in %s' % (value_key, valuesdict))
+            raise ParseException("Invalid key: %s in %s" % (value_key, valuesdict))
         else:
             props[value_key] = mapping[value_key]
 
@@ -635,29 +661,28 @@ def _apply_combinator(combinator, predicates):
     Supported combinators are currently 'AND' and 'OR'
     """
     if len(predicates) == 0:
-        raise ParseException(
-            'Empty predicate list is not allowed')
+        raise ParseException("Empty predicate list is not allowed")
 
     q = predicates[0]
-    if combinator == 'AND':
+    if combinator == "AND":
         for p in predicates[1:]:
             q = q & p
 
-    elif combinator == 'OR':
+    elif combinator == "OR":
         for p in predicates[1:]:
             q = q | p
     else:
         raise ParseException(
-            'Only AND and OR combinators supported, not "%s"' %
-            combinator)
+            'Only AND and OR combinators supported, not "%s"' % combinator
+        )
 
     return q
 
 
 def _model_in_display_filters(model_name, display_filters):
     if display_filters is not None:
-        if model_name == 'Plot':
-            plot_models = {'Plot', 'EmptyPlot', 'Tree'}
+        if model_name == "Plot":
+            plot_models = {"Plot", "EmptyPlot", "Tree"}
             return bool(plot_models.intersection(display_filters))
         else:
             return model_name in display_filters
@@ -667,16 +692,16 @@ def _model_in_display_filters(model_name, display_filters):
 
 def _apply_tree_display_filter(q, display_filter, mapping):
     if display_filter is not None:
-        if 'Plot' in display_filter:
+        if "Plot" in display_filter:
             return q
 
-        is_empty_plot = 'EmptyPlot' in display_filter
-        search_key = mapping['tree'] + 'pk__isnull'
+        is_empty_plot = "EmptyPlot" in display_filter
+        search_key = mapping["tree"] + "pk__isnull"
 
-        q = q & FilterContext(basekey='plot', **{search_key: is_empty_plot})
+        q = q & FilterContext(basekey="plot", **{search_key: is_empty_plot})
 
     return q
 
 
 def _is_udf(name):
-    return name.startswith('udf:')
+    return name.startswith("udf:")

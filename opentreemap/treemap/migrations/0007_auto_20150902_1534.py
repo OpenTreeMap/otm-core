@@ -7,12 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0006_stop_tracking_polygonal_mapfeature_ptr'),
+        ("treemap", "0006_stop_tracking_polygonal_mapfeature_ptr"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='userdefinedfielddefinition',
-            unique_together=set([('instance', 'model_type', 'name')]),
+            name="userdefinedfielddefinition",
+            unique_together=set([("instance", "model_type", "name")]),
         ),
     ]

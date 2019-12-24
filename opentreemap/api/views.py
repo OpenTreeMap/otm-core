@@ -25,26 +25,40 @@ from treemap.lib.tree import add_tree_photo_helper
 from treemap.lib.photo import context_dict_for_photo
 from treemap.lib.dates import DATETIME_FORMAT
 
-from treemap.decorators import (return_400_if_validation_errors,
-                                require_http_method)
+from treemap.decorators import return_400_if_validation_errors, require_http_method
 from treemap.decorators import api_instance_request as instance_request
-from treemap.decorators import api_admin_instance_request as \
-    admin_instance_request
+from treemap.decorators import api_admin_instance_request as admin_instance_request
 from treemap.decorators import creates_instance_user
 from django_tinsel.exceptions import HttpBadRequestException
-from treemap.audit import (Audit, approve_or_reject_audit_and_apply,
-                           AuthorizeException)
+from treemap.audit import Audit, approve_or_reject_audit_and_apply, AuthorizeException
 
 from api.auth import create_401unauthorized
-from api.decorators import (check_signature, check_signature_and_require_login,
-                            login_required, set_api_version)
-from api.instance import (instance_info, instances_closest_to_point,
-                          public_instances, transform_instance_info_response)
-from api.plots import (plots_closest_to_point, get_plot, update_or_create_plot,
-                       transform_plot_update_dict)
-from api.user import (user_info, create_user, update_user,
-                      update_profile_photo, transform_user_request,
-                      transform_user_response)
+from api.decorators import (
+    check_signature,
+    check_signature_and_require_login,
+    login_required,
+    set_api_version,
+)
+from api.instance import (
+    instance_info,
+    instances_closest_to_point,
+    public_instances,
+    transform_instance_info_response,
+)
+from api.plots import (
+    plots_closest_to_point,
+    get_plot,
+    update_or_create_plot,
+    transform_plot_update_dict,
+)
+from api.user import (
+    user_info,
+    create_user,
+    update_user,
+    update_profile_photo,
+    transform_user_request,
+    transform_user_response,
+)
 from exporter.views import users_json, users_csv
 
 
@@ -56,15 +70,13 @@ def datetime_to_iso_string(d):
 
 
 def status(request):
-    return [{'api_version': 'v2',
-             'status': 'online',
-             'message': ''}]
+    return [{"api_version": "v2", "status": "online", "message": ""}]
 
 
 def extract_plot_from_audit(audit):
-    if audit.model == 'Plot':
+    if audit.model == "Plot":
         return Plot.objects.get(pk=audit.model_id)
-    elif audit.model == 'Tree':
+    elif audit.model == "Tree":
         return Tree.objects.get(id=audit.model_id).plot
 
 
@@ -73,7 +85,7 @@ def extract_plot_from_audit(audit):
 @instance_request
 @login_required
 def edits(request, instance, user_id):
-    if (int(user_id) != request.user.pk):
+    if int(user_id) != request.user.pk:
         return create_401unauthorized()
 
     user = request.user
@@ -81,12 +93,14 @@ def edits(request, instance, user_id):
     result_offset = int(request.GET.get("offset", 0))
     num_results = min(int(request.GET.get("length", 15)), 15)
 
-    audits = Audit.objects.filter(instance=instance)\
-                          .filter(user=user)\
-                          .filter(model_in=['Tree', 'Plot'])\
-                          .order_by('-created', 'id')
+    audits = (
+        Audit.objects.filter(instance=instance)
+        .filter(user=user)
+        .filter(model_in=["Tree", "Plot"])
+        .order_by("-created", "id")
+    )
 
-    audits = audits[result_offset:(result_offset+num_results)]
+    audits = audits[result_offset : (result_offset + num_results)]
 
     keys = []
     for audit in audits:
@@ -117,13 +131,14 @@ def reset_password(request):
         return {"status": "failure", "message": "Email address not found."}
 
     resetform = PasswordResetForm({"email": email})
-    if (resetform.is_valid()):
+    if resetform.is_valid():
         opts = {
-            'use_https': request.is_secure(),
-            'token_generator': default_token_generator,
-            'from_email': None,
-            'email_template_name': 'registration/password_reset_email.html',
-            'request': request}
+            "use_https": request.is_secure(),
+            "token_generator": default_token_generator,
+            "from_email": None,
+            "email_template_name": "registration/password_reset_email.html",
+            "request": request,
+        }
 
         resetform.save(**opts)
         return {"status": "success"}
@@ -147,8 +162,7 @@ def version(request):
       }
 
     """
-    return {"otm_version": settings.OTM_VERSION,
-            "api_version": settings.API_VERSION}
+    return {"otm_version": settings.OTM_VERSION, "api_version": settings.API_VERSION}
 
 
 @require_http_methods(["GET"])
@@ -186,8 +200,7 @@ def get_plot_list(request, instance):
     end = size + start
 
     # order_by prevents testing weirdness
-    plots = Plot.objects.filter(instance=instance)\
-                        .order_by('id')[start:end]
+    plots = Plot.objects.filter(instance=instance).order_by("id")[start:end]
 
     def ctxt_for_plot(plot):
         return context_dict_for_plot(request, plot)
@@ -195,8 +208,7 @@ def get_plot_list(request, instance):
     return [ctxt_for_plot(plot) for plot in plots]
 
 
-def _approve_or_reject_pending_edit(
-        request, instance, user, pending_edit_id, approve):
+def _approve_or_reject_pending_edit(request, instance, user, pending_edit_id, approve):
     audit = Audit.objects.get(pk=pending_edit_id, instance=instance)
     approve_or_reject_audit_and_apply(audit, user, approve)
 
@@ -206,8 +218,9 @@ def _approve_or_reject_pending_edit(
     # we approved this audit
     # TODO: Should this logic be moved to app_or_rej_audit_and_ap?
     if approve:
-        for pending_audit in updated_plot.get_active_pending_audits()\
-                                         .filter(field=audit.field):
+        for pending_audit in updated_plot.get_active_pending_audits().filter(
+            field=audit.field
+        ):
             approve_or_reject_audit_and_apply(pending_audit, user, False)
 
     return context_dict_for_plot(request, updated_plot)
@@ -220,7 +233,8 @@ def _approve_or_reject_pending_edit(
 @login_required
 def approve_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
-        request, instance, request.user, pending_edit_id, True)
+        request, instance, request.user, pending_edit_id, True
+    )
 
 
 @require_http_methods(["POST"])
@@ -230,7 +244,8 @@ def approve_pending_edit(request, instance, pending_edit_id):
 @login_required
 def reject_pending_edit(request, instance, pending_edit_id):
     return _approve_or_reject_pending_edit(
-        request, instance, request.user, pending_edit_id, False)
+        request, instance, request.user, pending_edit_id, False
+    )
 
 
 @require_http_methods(["DELETE"])
@@ -265,12 +280,11 @@ def remove_current_tree_from_plot(request, instance, plot_id):
             return context_dict_for_plot(request, updated_plot)
         except:
             raise PermissionDenied(
-                '%s does not have permission to the '
-                'current tree from plot %s' %
-                (request.user.username, plot_id))
+                "%s does not have permission to the "
+                "current tree from plot %s" % (request.user.username, plot_id)
+            )
     else:
-        raise HttpResponseBadRequest(
-            "Plot %s does not have a current tree" % plot_id)
+        raise HttpResponseBadRequest("Plot %s does not have a current tree" % plot_id)
 
 
 def add_photo(request, instance, plot_id):
@@ -283,61 +297,69 @@ def add_photo(request, instance, plot_id):
 # authentication "login_optional" before they can access they
 # instance data
 
-instance_api_do = partial(do, csrf_exempt, check_signature, set_api_version,
-                          instance_request, json_api_call)
+instance_api_do = partial(
+    do, csrf_exempt, check_signature, set_api_version, instance_request, json_api_call
+)
 
-api_do = partial(do, csrf_exempt, check_signature, set_api_version,
-                 json_api_call)
+api_do = partial(do, csrf_exempt, check_signature, set_api_version, json_api_call)
 
-logged_in_api_do = partial(do, csrf_exempt, set_api_version,
-                           check_signature_and_require_login, json_api_call)
+logged_in_api_do = partial(
+    do, csrf_exempt, set_api_version, check_signature_and_require_login, json_api_call
+)
 
 plots_closest_to_point_endpoint = instance_api_do(plots_closest_to_point)
 
-instances_closest_to_point_endpoint = api_do(
-    instances_closest_to_point)
+instances_closest_to_point_endpoint = api_do(instances_closest_to_point)
 
 public_instances_endpoint = api_do(public_instances)
 
 instance_info_endpoint = instance_api_do(
-    transform_instance_info_response,
-    instance_info)
+    transform_instance_info_response, instance_info
+)
 
 plots_endpoint = instance_api_do(
-    route(GET=get_plot_list,
-          POST=do(
-              login_required,
-              creates_instance_user,
-              transform_plot_update_dict,
-              return_400_if_validation_errors,
-              update_or_create_plot)))
+    route(
+        GET=get_plot_list,
+        POST=do(
+            login_required,
+            creates_instance_user,
+            transform_plot_update_dict,
+            return_400_if_validation_errors,
+            update_or_create_plot,
+        ),
+    )
+)
 
 
 plot_endpoint = instance_api_do(
-    route(GET=get_plot,
-          ELSE=do(login_required,
-                  creates_instance_user,
-                  route(
-                      PUT=do(return_400_if_validation_errors,
-                             update_or_create_plot),
-                      DELETE=remove_plot))))
+    route(
+        GET=get_plot,
+        ELSE=do(
+            login_required,
+            creates_instance_user,
+            route(
+                PUT=do(return_400_if_validation_errors, update_or_create_plot),
+                DELETE=remove_plot,
+            ),
+        ),
+    )
+)
 
-species_list_endpoint = instance_api_do(
-    route(GET=species_list))
+species_list_endpoint = instance_api_do(route(GET=species_list))
 
 user_endpoint = api_do(
     route(
         GET=do(login_required, transform_user_response, user_info),
-        POST=do(
-            transform_user_request,
-            return_400_if_validation_errors,
-            create_user)))
+        POST=do(transform_user_request, return_400_if_validation_errors, create_user),
+    )
+)
 
 update_user_endpoint = logged_in_api_do(
     transform_user_request,
     return_400_if_validation_errors,
     transform_user_response,
-    route(PUT=update_user))
+    route(PUT=update_user),
+)
 
 add_photo_endpoint = logged_in_api_do(
     route(
@@ -345,29 +367,33 @@ add_photo_endpoint = logged_in_api_do(
             instance_request,
             creates_instance_user,
             return_400_if_validation_errors,
-            add_photo)))
+            add_photo,
+        )
+    )
+)
 
 status_view = api_do(route(GET=status))
 
 version_view = api_do(route(GET=version))
 
 update_profile_photo_endpoint = logged_in_api_do(
-    require_http_method('POST'),
-    return_400_if_validation_errors,
-    update_profile_photo)
+    require_http_method("POST"), return_400_if_validation_errors, update_profile_photo
+)
 
 export_users_csv_endpoint = do(
     csrf_exempt,
     check_signature_and_require_login,
     set_api_version,
     admin_instance_request,
-    route(GET=users_csv))
+    route(GET=users_csv),
+)
 
 export_users_json_endpoint = do(
     csrf_exempt,
     check_signature_and_require_login,
     set_api_version,
     admin_instance_request,
-    route(GET=users_json))
+    route(GET=users_json),
+)
 
 reset_password_endpoint = api_do(route(POST=reset_password))

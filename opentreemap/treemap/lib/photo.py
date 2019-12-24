@@ -10,8 +10,9 @@ from django.core.urlresolvers import reverse
 
 def _drop_querystring(url):
     parts = urlparse(url)
-    return urlunparse((parts.scheme, parts.netloc, parts.path,
-                       parts.params, None, parts.fragment))
+    return urlunparse(
+        (parts.scheme, parts.netloc, parts.path, parts.params, None, parts.fragment)
+    )
 
 
 def context_dict_for_photo(request, photo):
@@ -30,19 +31,22 @@ def context_dict_for_photo(request, photo):
     thumbnail_url = _drop_querystring(photo.thumbnail.url)
 
     # TODO: cleanup this api. 'image' sounds like 'rich object'
-    photo_dict['image'] = image_url
-    photo_dict['thumbnail'] = thumbnail_url
-    photo_dict['raw'] = photo
+    photo_dict["image"] = image_url
+    photo_dict["thumbnail"] = thumbnail_url
+    photo_dict["raw"] = photo
 
     url = reverse(
-        'map_feature_photo_detail',
-        kwargs={'instance_url_name': photo.map_feature.instance.url_name,
-                'feature_id': photo.map_feature_id,
-                'photo_id': photo.id})
+        "map_feature_photo_detail",
+        kwargs={
+            "instance_url_name": photo.map_feature.instance.url_name,
+            "feature_id": photo.map_feature_id,
+            "photo_id": photo.id,
+        },
+    )
 
     # TODO: use this on the client to link from the carousel/lightbox
-    photo_dict['detail_url'] = url
-    photo_dict['absolute_detail_url'] = request.build_absolute_uri(url)
-    photo_dict['absolute_image'] = request.build_absolute_uri(image_url)
+    photo_dict["detail_url"] = url
+    photo_dict["absolute_detail_url"] = request.build_absolute_uri(url)
+    photo_dict["absolute_image"] = request.build_absolute_uri(image_url)
 
     return photo_dict

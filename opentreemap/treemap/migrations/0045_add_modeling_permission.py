@@ -8,9 +8,9 @@ from django.db.utils import IntegrityError
 # Note: to reuse this data migration when adding a new permission
 # in the future, copy the code and update these three lines:
 
-_new_permission_codename = 'modeling'
-_new_permission_name = 'Can access modeling page'
-_default_role_names = ['administrator']
+_new_permission_codename = "modeling"
+_new_permission_name = "Can access modeling page"
+_default_role_names = ["administrator"]
 
 
 def add_permission(apps, schema_editor):
@@ -21,7 +21,7 @@ def add_permission(apps, schema_editor):
         perm = Permission.objects.create(
             codename=_new_permission_codename,
             name=_new_permission_codename,
-            content_type=instance_content_type
+            content_type=instance_content_type,
         )
     except IntegrityError:
         # The logic in the migration was previously part of a migration in a
@@ -39,8 +39,9 @@ def add_permission(apps, schema_editor):
 def remove_permission(apps, schema_editor):
     Permission, Instance, instance_content_type, Role = _get_models(apps)
 
-    perm = Permission.objects.get(codename=_new_permission_codename,
-                                  content_type=instance_content_type)
+    perm = Permission.objects.get(
+        codename=_new_permission_codename, content_type=instance_content_type
+    )
 
     # Remove permission from all roles
     ThroughModel = Role.instance_permissions.through
@@ -51,20 +52,18 @@ def remove_permission(apps, schema_editor):
 
 
 def _get_models(apps):
-    Instance = apps.get_model('treemap', 'Instance')
-    ContentType = apps.get_model('contenttypes', 'ContentType')
+    Instance = apps.get_model("treemap", "Instance")
+    ContentType = apps.get_model("contenttypes", "ContentType")
     instance_content_type = ContentType.objects.get_for_model(Instance)
-    Role = apps.get_model('treemap', 'Role')
-    Permission = apps.get_model('auth', 'Permission')
+    Role = apps.get_model("treemap", "Role")
+    Permission = apps.get_model("auth", "Permission")
     return Permission, Instance, instance_content_type, Role
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0044_hstorefield'),
+        ("treemap", "0044_hstorefield"),
     ]
 
-    operations = [
-         migrations.RunPython(add_permission, remove_permission)
-    ]
+    operations = [migrations.RunPython(add_permission, remove_permission)]

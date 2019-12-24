@@ -7,14 +7,13 @@ from celery.signals import task_failure
 
 
 # set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE',
-                      'opentreemap.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "opentreemap.settings")
 
-app = Celery('opentreemap')
+app = Celery("opentreemap")
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 rollbar_setup = False
@@ -26,12 +25,13 @@ def handle_task_failure(**kw):
     # when starting :(
     from django.conf import settings
     import rollbar
+
     global rollbar_setup
 
-    rollbar_settings = getattr(settings, 'ROLLBAR', {})
-    access_token = rollbar_settings.get('access_token')
+    rollbar_settings = getattr(settings, "ROLLBAR", {})
+    access_token = rollbar_settings.get("access_token")
     if access_token and not rollbar_setup:
-        rollbar.init(access_token, rollbar_settings['environment'])
+        rollbar.init(access_token, rollbar_settings["environment"])
         rollbar_setup = True
 
     if access_token:

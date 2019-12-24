@@ -8,13 +8,18 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0041_search_by_user'),
+        ("treemap", "0041_search_by_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='mapfeature',
-            name='updated_by',
-            field=models.ForeignKey(verbose_name='Last Updated By', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            model_name="mapfeature",
+            name="updated_by",
+            field=models.ForeignKey(
+                verbose_name="Last Updated By",
+                blank=True,
+                to=settings.AUTH_USER_MODEL,
+                null=True,
+            ),
         ),
     ]

@@ -9,14 +9,16 @@ from django.db import migrations
 
 
 def use_new_boundaries(apps, schema_editor):
-    fixture_path = os.path.join(settings.PROJECT_ROOT, 'assets', 'fixtures',
-                                'itree_regions_expanded.json')
+    fixture_path = os.path.join(
+        settings.PROJECT_ROOT, "assets", "fixtures", "itree_regions_expanded.json"
+    )
     load_fixture(fixture_path, apps)
 
 
 def use_old_boundaries(apps, schema_editor):
-    fixture_path = os.path.join(settings.BASE_DIR, 'treemap', 'fixtures',
-                                'itree_regions.json')
+    fixture_path = os.path.join(
+        settings.BASE_DIR, "treemap", "fixtures", "itree_regions.json"
+    )
     load_fixture(fixture_path, apps)
 
 
@@ -26,8 +28,7 @@ def load_fixture(fixture_path, apps):
     apps_save = serializers.python.apps
     serializers.python.apps = apps
     with open(fixture_path) as fixture:
-        objects = serializers.deserialize('json', fixture,
-                                          ignorenonexistent=True)
+        objects = serializers.deserialize("json", fixture, ignorenonexistent=True)
         for obj in objects:
             obj.save()
     serializers.python.apps = apps_save
@@ -36,7 +37,7 @@ def load_fixture(fixture_path, apps):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0039_merge'),
+        ("treemap", "0039_merge"),
     ]
 
     operations = [

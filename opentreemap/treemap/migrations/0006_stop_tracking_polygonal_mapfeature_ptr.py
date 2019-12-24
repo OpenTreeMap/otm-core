@@ -9,21 +9,21 @@ def delete_polygonal_map_feature_references(apps, schema_editor):
     # parent table.  Unlike MapFeature, we forgot to exclude this field from
     # the audit and field permission system.  We now no longer track it, and
     # this migration removes any references that already exist
-    FieldPermission = apps.get_model('treemap', 'FieldPermission')
-    Audit = apps.get_model('treemap', 'Audit')
+    FieldPermission = apps.get_model("treemap", "FieldPermission")
+    Audit = apps.get_model("treemap", "Audit")
 
-    FieldPermission.objects \
-        .filter(field_name='polygonalmapfeature_ptr').delete()
-    Audit.objects.filter(field='polygonalmapfeature_ptr').delete()
+    FieldPermission.objects.filter(field_name="polygonalmapfeature_ptr").delete()
+    Audit.objects.filter(field="polygonalmapfeature_ptr").delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0005_auto_20150729_1046'),
+        ("treemap", "0005_auto_20150729_1046"),
     ]
 
     operations = [
-        migrations.RunPython(delete_polygonal_map_feature_references,
-                             migrations.RunPython.noop)
+        migrations.RunPython(
+            delete_polygonal_map_feature_references, migrations.RunPython.noop
+        )
     ]

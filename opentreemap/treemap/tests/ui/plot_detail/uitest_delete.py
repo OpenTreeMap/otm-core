@@ -17,9 +17,9 @@ class PlotEditDeleteTest(PlotDetailDeleteUITestCase):
         self._select_elements()
         self.begin_add_tree.click()
         self.diameter_input.clear()
-        self.diameter_input.send_keys('11')
+        self.diameter_input.send_keys("11")
         self.save_edit.click()
-        self.wait_until_present('#edit-map-feature')
+        self.wait_until_present("#edit-map-feature")
 
         self.assertEqual(Tree.objects.count(), 1)
 
@@ -65,8 +65,9 @@ class PlotDeleteTest(PlotDetailDeleteUITestCase):
         self.wait_until_invisible(self.delete_confirm)
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/%s/features/%s/' % (self.instance.url_name,
-                                      self.plot.pk)))
+                "/%s/features/%s/" % (self.instance.url_name, self.plot.pk)
+            )
+        )
 
         # make another tree to reestablish test case
         tree2 = Tree(instance=self.instance, plot=self.plot)
@@ -75,10 +76,12 @@ class PlotDeleteTest(PlotDetailDeleteUITestCase):
         self._execute_delete_workflow((1, 1), (1, 0))
         self.assertTrue(
             self.driver.current_url.endswith(
-                '/%s/features/%s/' % (self.instance.url_name, self.plot.pk)))
+                "/%s/features/%s/" % (self.instance.url_name, self.plot.pk)
+            )
+        )
 
         # finally, delete the plot too
         self._execute_delete_workflow((1, 0), (0, 0))
         self.assertTrue(
-            self.driver.current_url.endswith('/%s/map/'
-                                             % self.instance.url_name))
+            self.driver.current_url.endswith("/%s/map/" % self.instance.url_name)
+        )

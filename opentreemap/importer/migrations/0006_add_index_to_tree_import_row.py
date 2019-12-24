@@ -8,12 +8,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('importer', '0005_add_import_event_schema_version'),
+        ("importer", "0005_add_import_event_schema_version"),
     ]
 
     operations = [
         migrations.AlterIndexTogether(
-            name='treeimportrow',
-            index_together=set([('import_event', 'idx')]),
+            name="treeimportrow", index_together=set([("import_event", "idx")]),
         ),
     ]

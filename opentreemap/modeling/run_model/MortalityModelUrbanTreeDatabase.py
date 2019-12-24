@@ -6,8 +6,7 @@ from __future__ import division
 from copy import deepcopy
 from random import random
 
-from modeling.run_model.schema_helpers import (make_schema, obj,
-                                               obj_list, string, number)
+from modeling.run_model.schema_helpers import make_schema, obj, obj_list, string, number
 
 INCH_TO_CM = 2.54
 
@@ -21,47 +20,50 @@ DIAMETER_BREAKS = [
 ]
 
 diameter_tuple_schema = {
-    'type': 'array',
-    'items': number,
-    'minItems': DIAMETER_BREAKS_COUNT,
-    'maxItems': DIAMETER_BREAKS_COUNT,
+    "type": "array",
+    "items": number,
+    "minItems": DIAMETER_BREAKS_COUNT,
+    "maxItems": DIAMETER_BREAKS_COUNT,
 }
 
 
 class MortalityModelUrbanTreeDatabase(object):
-    schema = make_schema(obj({
-        'default': number,
-        'diameterBreaksCount': number,
-        'mode': {
-            'enum': ['default', 'speciesAndDiameters'],
-        },
-        'speciesAndDiameters': obj_list({
-            'otmCode': string,
-            'mortalityRates': diameter_tuple_schema,
-        }),
-    }))
+    schema = make_schema(
+        obj(
+            {
+                "default": number,
+                "diameterBreaksCount": number,
+                "mode": {"enum": ["default", "speciesAndDiameters"],},
+                "speciesAndDiameters": obj_list(
+                    {"otmCode": string, "mortalityRates": diameter_tuple_schema,}
+                ),
+            }
+        )
+    )
 
     @classmethod
     def get_default_params(cls, instance):
-        return deepcopy({
-            'model_name': 'UrbanTreeDatabase',
-            'version': 1,
-            'params': {
-                'default': DEFAULT_MORTALITY,
-                'diameterBreaksCount': DIAMETER_BREAKS_COUNT,
-                'mode': 'default',
-                'speciesAndDiameters': [],
+        return deepcopy(
+            {
+                "model_name": "UrbanTreeDatabase",
+                "version": 1,
+                "params": {
+                    "default": DEFAULT_MORTALITY,
+                    "diameterBreaksCount": DIAMETER_BREAKS_COUNT,
+                    "mode": "default",
+                    "speciesAndDiameters": [],
+                },
             }
-        })
+        )
 
     def __init__(self, params, instance):
-        self.mode = params['mode']
-        self.default_mortality = params['default']
+        self.mode = params["mode"]
+        self.default_mortality = params["default"]
         self.mortality_bins_by_species = {}
-        for row in params['speciesAndDiameters']:
-            otm_code = row['otmCode']
-            mortality_rates = row['mortalityRates']
-            if otm_code == 'default':
+        for row in params["speciesAndDiameters"]:
+            otm_code = row["otmCode"]
+            mortality_rates = row["mortalityRates"]
+            if otm_code == "default":
                 self.mortality_bins_default = mortality_rates
             else:
                 self.mortality_bins_by_species[otm_code] = mortality_rates
@@ -124,13 +126,12 @@ class MortalityModelUrbanTreeDatabase(object):
         return i
 
     def _get_mortality(self, otm_code, index):
-        if self.mode == 'default':
+        if self.mode == "default":
             return self.default_mortality
-        elif self.mode == 'speciesAndDiameters':
+        elif self.mode == "speciesAndDiameters":
             if otm_code in self.mortality_bins_by_species:
                 return self.mortality_bins_by_species[otm_code][index]
             else:
                 return self.mortality_bins_default[index]
 
-        raise Exception('Mortality rate mode not supported "{}"'
-                        .format(self.mode))
+        raise Exception('Mortality rate mode not supported "{}"'.format(self.mode))

@@ -11,17 +11,23 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 
 from treemap.lib import execute_sql
-from treemap.lib.map_feature import (set_map_feature_updated_at,
-                                     set_map_feature_updated_by)
+from treemap.lib.map_feature import (
+    set_map_feature_updated_at,
+    set_map_feature_updated_by,
+)
 from treemap.models import Tree, Plot, Audit
-from treemap.tests import (LocalMediaTestCase, make_instance,
-                           make_commander_user, make_user_with_default_role)
+from treemap.tests import (
+    LocalMediaTestCase,
+    make_instance,
+    make_commander_user,
+    make_user_with_default_role,
+)
 
 
 class UpdateTestCase(LocalMediaTestCase):
     def setUp(self):
         super(UpdateTestCase, self).setUp()
-        self.image = self.load_resource('tree1.gif')
+        self.image = self.load_resource("tree1.gif")
         self.test_start = timezone.now()
         self.point = Point(-8515941.0, 4953519.0)
         self.instance = make_instance(point=self.point)
@@ -32,16 +38,14 @@ class UpdateTestCase(LocalMediaTestCase):
     def max_audit_for_model_type(self, models):
         if isinstance(models, basestring):
             models = [models]
-        audits = Audit.objects.filter(model__in=models)\
-                              .order_by('-created')
+        audits = Audit.objects.filter(model__in=models).order_by("-created")
 
         if audits:
             return audits[0]
 
     def clear_updated_at(self):
         # to_timestamp(0) is the unix epoch 1970-1-1 00:00
-        execute_sql(
-            "UPDATE treemap_mapfeature SET updated_at = to_timestamp(0);")
+        execute_sql("UPDATE treemap_mapfeature SET updated_at = to_timestamp(0);")
 
     def clear_and_set_and_reload(self):
         self.clear_updated_at()
@@ -50,12 +54,10 @@ class UpdateTestCase(LocalMediaTestCase):
 
 
 class UpdatedAtTest(UpdateTestCase):
-
     def test_helpers(self):
         self.clear_updated_at()
         self.plot.refresh_from_db()
-        self.assertEqual(self.plot.updated_at,
-                         datetime(1970, 1, 1, tzinfo=pytz.UTC))
+        self.assertEqual(self.plot.updated_at, datetime(1970, 1, 1, tzinfo=pytz.UTC))
 
     def test_map_feature_is_updated(self):
         self.clear_and_set_and_reload()
@@ -65,8 +67,8 @@ class UpdatedAtTest(UpdateTestCase):
         tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
         tree.save_with_user(self.user)
 
-        tree_audit = self.max_audit_for_model_type('Tree')
-        plot_audit = self.max_audit_for_model_type('Plot')
+        tree_audit = self.max_audit_for_model_type("Tree")
+        plot_audit = self.max_audit_for_model_type("Plot")
         # Backdate the plot audit so it is definitely older than the tree audit
         plot_audit.created = tree_audit.created - timedelta(days=1)
         plot_audit.save()
@@ -79,10 +81,11 @@ class UpdatedAtTest(UpdateTestCase):
         tree.save_with_user(self.user)
         tree.add_photo(self.image, self.user)
 
-        tree_audit = self.max_audit_for_model_type('Tree')
-        treephoto_audit = self.max_audit_for_model_type(['MapFeaturePhoto',
-                                                         'TreePhoto'])
-        plot_audit = self.max_audit_for_model_type('Plot')
+        tree_audit = self.max_audit_for_model_type("Tree")
+        treephoto_audit = self.max_audit_for_model_type(
+            ["MapFeaturePhoto", "TreePhoto"]
+        )
+        plot_audit = self.max_audit_for_model_type("Plot")
         # Backdate the audits so photo it is definitely the newsest
         plot_audit.created = treephoto_audit.created - timedelta(days=2)
         plot_audit.save()
@@ -94,13 +97,12 @@ class UpdatedAtTest(UpdateTestCase):
 
 
 class UpdatedByTest(UpdateTestCase):
-
     def setUp(self):
         super(UpdatedByTest, self).setUp()
-        self.other = make_commander_user(instance=self.instance,
-                                         username='other')
+        self.other = make_commander_user(instance=self.instance, username="other")
         self.default_user = make_user_with_default_role(
-            instance=self.instance, username='default')
+            instance=self.instance, username="default"
+        )
 
         self.other.save()
         self.default_user.save()
@@ -110,7 +112,9 @@ class UpdatedByTest(UpdateTestCase):
     def clear_updated_by(self):
         execute_sql(
             "UPDATE treemap_mapfeature SET updated_by_id = {};".format(
-                self.default_user.pk))
+                self.default_user.pk
+            )
+        )
 
     def clear_and_set_and_reload(self):
         self.clear_updated_by()

@@ -18,7 +18,4 @@ def last_instance(request):
     return HttpResponse(template.render(RequestContext(request, {})))
 
 
-urlpatterns = [
-    url(r'^test-last-instance$', last_instance),
-    url(r'', include(urls))
-]
+urlpatterns = [url(r"^test-last-instance$", last_instance), url(r"", include(urls))]

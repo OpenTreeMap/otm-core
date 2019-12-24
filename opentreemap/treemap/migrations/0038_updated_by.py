@@ -14,14 +14,13 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('treemap', '0037_fix_plot_add_delete_permission_labels'),
+        ("treemap", "0037_fix_plot_add_delete_permission_labels"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='mapfeature',
-            name='updated_by',
-            field=models.ForeignKey(blank=True, null=True,
-                                    to=settings.AUTH_USER_MODEL),
+            model_name="mapfeature",
+            name="updated_by",
+            field=models.ForeignKey(blank=True, null=True, to=settings.AUTH_USER_MODEL),
         ),
     ]

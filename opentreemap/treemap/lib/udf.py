@@ -3,7 +3,7 @@ import json
 from django.db import transaction
 
 from treemap.audit import Role, FieldPermission
-from treemap.udf import (UserDefinedFieldDefinition)
+from treemap.udf import UserDefinedFieldDefinition
 from treemap.util import to_object_name
 
 
@@ -24,9 +24,8 @@ def udf_exists(params, instance):
 
     # TODO: should use caching (udf_defs)
     udfs = UserDefinedFieldDefinition.objects.filter(
-        instance=instance,
-        model_type=data['model_type'],
-        name=data['name'])
+        instance=instance, model_type=data["model_type"], name=data["name"]
+    )
 
     return udfs.exists()
 
@@ -34,15 +33,15 @@ def udf_exists(params, instance):
 @transaction.atomic
 def udf_create(params, instance):
     data = _parse_params(params)
-    name, model_type, datatype = (data['name'], data['model_type'],
-                                  data['datatype'])
+    name, model_type, datatype = (data["name"], data["model_type"], data["datatype"])
 
     udf = UserDefinedFieldDefinition(
         name=name,
         model_type=model_type,
         iscollection=False,
         instance=instance,
-        datatype=datatype)
+        datatype=datatype,
+    )
     udf.save()
 
     field_name = udf.canonical_name
@@ -54,7 +53,8 @@ def udf_create(params, instance):
             field_name=field_name,
             permission_level=role.default_permission_level,
             role=role,
-            instance=role.instance)
+            instance=role.instance,
+        )
 
     _add_scalar_udf_to_field_configs(udf, instance)
 
@@ -62,32 +62,30 @@ def udf_create(params, instance):
 
 
 def _parse_params(params):
-    name = params.get('udf.name', None)
-    model_type = params.get('udf.model', None)
-    udf_type = params.get('udf.type', None)
+    name = params.get("udf.name", None)
+    model_type = params.get("udf.model", None)
+    udf_type = params.get("udf.type", None)
 
-    datatype = {'type': udf_type}
+    datatype = {"type": udf_type}
 
-    if udf_type in ('choice', 'multichoice'):
-        datatype['choices'] = params.get('udf.choices', None)
+    if udf_type in ("choice", "multichoice"):
+        datatype["choices"] = params.get("udf.choices", None)
 
     datatype = json.dumps(datatype)
 
-    return {'name': name, 'model_type': model_type,
-            'datatype': datatype}
+    return {"name": name, "model_type": model_type, "datatype": datatype}
 
 
 def _add_scalar_udf_to_field_configs(udf, instance):
     save_instance = False
 
-    for prop in ('mobile_api_fields', 'web_detail_fields'):
+    for prop in ("mobile_api_fields", "web_detail_fields"):
         attr = getattr(instance, prop)
         for group in attr:
-            if (('model' in group and
-                 group['model'] == to_object_name(udf.model_type))):
-                field_keys = group.get('field_keys')
+            if "model" in group and group["model"] == to_object_name(udf.model_type):
+                field_keys = group.get("field_keys")
 
-                if 'field_keys' in group and udf.full_name not in field_keys:
+                if "field_keys" in group and udf.full_name not in field_keys:
                     field_keys.append(udf.full_name)
                     save_instance = True
                     # The first time a udf is configured,

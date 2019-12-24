@@ -8,28 +8,46 @@ import treemap.audit
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('threadedcomments', '0001_initial'),
+        ("threadedcomments", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EnhancedThreadedComment',
+            name="EnhancedThreadedComment",
             fields=[
-                ('threadedcomment_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='threadedcomments.ThreadedComment')),
-                ('is_archived', models.BooleanField(default=False)),
+                (
+                    "threadedcomment_ptr",
+                    models.OneToOneField(
+                        parent_link=True,
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="threadedcomments.ThreadedComment",
+                    ),
+                ),
+                ("is_archived", models.BooleanField(default=False)),
             ],
-            options={
-                'abstract': False,
-            },
-            bases=('threadedcomments.threadedcomment',),
+            options={"abstract": False,},
+            bases=("threadedcomments.threadedcomment",),
         ),
         migrations.CreateModel(
-            name='EnhancedThreadedCommentFlag',
+            name="EnhancedThreadedCommentFlag",
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('flagged_at', models.DateTimeField(auto_now_add=True)),
-                ('hidden', models.BooleanField(default=False)),
-                ('comment', models.ForeignKey(to='otm_comments.EnhancedThreadedComment')),
+                (
+                    "id",
+                    models.AutoField(
+                        verbose_name="ID",
+                        serialize=False,
+                        auto_created=True,
+                        primary_key=True,
+                    ),
+                ),
+                ("flagged_at", models.DateTimeField(auto_now_add=True)),
+                ("hidden", models.BooleanField(default=False)),
+                (
+                    "comment",
+                    models.ForeignKey(to="otm_comments.EnhancedThreadedComment"),
+                ),
             ],
             bases=(models.Model, treemap.audit.Auditable),
         ),

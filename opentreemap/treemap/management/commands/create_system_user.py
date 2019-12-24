@@ -18,24 +18,26 @@ class Command(BaseCommand):
         try:
             model_id = settings.SYSTEM_USER_ID
         except AttributeError:
-            print('The `SYSTEM_USER_ID` settings is missing from '
-                  'the settings file. Set this to a specific ID '
-                  'before running this command.')
+            print(
+                "The `SYSTEM_USER_ID` settings is missing from "
+                "the settings file. Set this to a specific ID "
+                "before running this command."
+            )
             return
 
-        system_user_name = 'System User'
+        system_user_name = "System User"
 
         existing_users = User.objects.filter(pk=model_id)
         users_with_name = User.objects.filter(username=system_user_name)
 
         if len(existing_users) == 1 and len(users_with_name) == 1:
-            print('System user already exists')
+            print("System user already exists")
         elif len(users_with_name) > 0:
-            print('A user with username "%s" already exists but is not '
-                  'a super user' % system_user_name)
+            print(
+                'A user with username "%s" already exists but is not '
+                "a super user" % system_user_name
+            )
         else:
-            user = User(is_active=False,
-                        username=system_user_name,
-                        pk=model_id)
+            user = User(is_active=False, username=system_user_name, pk=model_id)
             user.save_base()
-            print('Created system user')
+            print("Created system user")

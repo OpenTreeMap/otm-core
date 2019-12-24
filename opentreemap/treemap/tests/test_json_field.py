@@ -30,10 +30,10 @@ class JsonFieldTests(OTMTestCase):
         self._assert_get(self.instance, "config.d.e.no", None)
 
     def test_get_fails_on_non_dict(self):
-        self.assertRaises(ValueError, get_attr_from_json_field,
-                          self.instance, "no.no")
-        self.assertRaises(KeyError, get_attr_from_json_field,
-                          self.instance, "config.a.no")
+        self.assertRaises(ValueError, get_attr_from_json_field, self.instance, "no.no")
+        self.assertRaises(
+            KeyError, get_attr_from_json_field, self.instance, "config.a.no"
+        )
 
     def _assert_set(self, model, field_name, value):
         set_attr_on_json_field(model, field_name, value)
@@ -47,19 +47,22 @@ class JsonFieldTests(OTMTestCase):
         self._assert_set(self.instance, "config.x.y.z", "5")
 
     def test_set_fails_on_non_dict(self):
-        self.assertRaises(ValueError, set_attr_on_json_field,
-                          self.instance, "no.no", "1")
-        self.assertRaises(KeyError, set_attr_on_json_field,
-                          self.instance, "config.a.no", "1")
-        self.assertRaises(KeyError, set_attr_on_json_field,
-                          self.instance, "config.b.c.no", "1")
+        self.assertRaises(
+            ValueError, set_attr_on_json_field, self.instance, "no.no", "1"
+        )
+        self.assertRaises(
+            KeyError, set_attr_on_json_field, self.instance, "config.a.no", "1"
+        )
+        self.assertRaises(
+            KeyError, set_attr_on_json_field, self.instance, "config.b.c.no", "1"
+        )
 
     def test_contains_lookup(self):
-        self.instance.config = ['a', 'b', 'c']
+        self.instance.config = ["a", "b", "c"]
         self.instance.save()
 
-        self.assertEquals(set(Instance.objects.filter(config__contains='a')),
-                          {self.instance})
+        self.assertEquals(
+            set(Instance.objects.filter(config__contains="a")), {self.instance}
+        )
 
-        self.assertEquals(set(Instance.objects.filter(config__contains='x')),
-                          set())
+        self.assertEquals(set(Instance.objects.filter(config__contains="x")), set())

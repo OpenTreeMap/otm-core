@@ -19,7 +19,7 @@ class JSONField(models.TextField):
 
     def get_lookup(self, lookup_name):
         # Contains lookups will generally work when looking for values
-        if lookup_name in ('contains', 'icontains'):
+        if lookup_name in ("contains", "icontains"):
             return super(JSONField, self).get_lookup(lookup_name)
         raise TypeError("JSONField doesn't support lookups")
 
@@ -32,16 +32,16 @@ class JSONField(models.TextField):
 
 
 def is_json_field_reference(field_path):
-    return '.' in field_path
+    return "." in field_path
 
 
 def _get_json_as_dotdict(model, field_path):
     field, json_path = dotted_split(field_path, 2, maxsplit=1)
     if not hasattr(model, field):
-        raise ValueError('Field %s not found' % field_path)
+        raise ValueError("Field %s not found" % field_path)
     dotdict = getattr(model, field)
     if type(dotdict) is not DotDict:
-        raise ValueError('Field %s does not contain JSON' % field_path)
+        raise ValueError("Field %s does not contain JSON" % field_path)
     return dotdict, json_path
 
 

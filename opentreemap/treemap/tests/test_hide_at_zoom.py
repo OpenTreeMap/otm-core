@@ -7,9 +7,11 @@ from django.contrib.gis.geos import Point
 from django.db.models import Count
 
 from treemap.models import Plot
-from treemap.lib.hide_at_zoom import (recompute_hide_at_zoom,
-                                      update_hide_at_zoom_after_delete,
-                                      update_hide_at_zoom_after_move)
+from treemap.lib.hide_at_zoom import (
+    recompute_hide_at_zoom,
+    update_hide_at_zoom_after_delete,
+    update_hide_at_zoom_after_move,
+)
 from treemap.tests import make_instance, make_commander_user
 from treemap.tests.base import OTMTestCase
 
@@ -18,9 +20,7 @@ class HideAtZoomTests(OTMTestCase):
     def setUp(self):
         self.instance = make_instance(edge_length=1000)
         self.user = make_commander_user(self.instance)
-        self.make_plots([
-            (0, 100), (0, 101), (0, 200), (0, 201)
-        ])
+        self.make_plots([(0, 100), (0, 101), (0, 200), (0, 201)])
         recompute_hide_at_zoom(self.instance)
         # Two plots have hide_at_zoom == 14
         # One plot has hide_at_zoom == 10
@@ -34,14 +34,18 @@ class HideAtZoomTests(OTMTestCase):
 
     def assert_counts(self, expected_count_dict):
         # Count occurrences of each hide_at_zoom value
-        counts = Plot.objects.values('hide_at_zoom') \
-            .annotate(count=Count('hide_at_zoom'))
+        counts = Plot.objects.values("hide_at_zoom").annotate(
+            count=Count("hide_at_zoom")
+        )
         # Put counts into a dict.
         # Skip "None" values because they aren't counted correctly.
         # (The assert is still strong because an unexpected number of "None"
         # values would be matched by an unexpected number of some other value.)
-        count_dict = {c['hide_at_zoom']: c['count'] for c in counts
-                      if c['hide_at_zoom'] is not None}
+        count_dict = {
+            c["hide_at_zoom"]: c["count"]
+            for c in counts
+            if c["hide_at_zoom"] is not None
+        }
         self.assertEqual(count_dict, expected_count_dict)
 
     def delete_and_assert_counts(self, plot, expected_count_dict):

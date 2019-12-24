@@ -14,6 +14,7 @@ class DotDict(dict):
         config = DotDict({})
         config.fruit.apple.type = 'macoun'
     """
+
     def __init__(self, value=None):
 
         if value is None:
@@ -22,16 +23,17 @@ class DotDict(dict):
             for key in value:
                 self.__setitem__(key, value[key])
         else:
-            raise TypeError('Expected dict')
+            raise TypeError("Expected dict")
 
     def _ensure_dot_dict(self, target, restOfKey, myKey):
         if not isinstance(target, DotDict):
-            raise KeyError('Cannot set "%s" in "%s" (%s)' %
-                           (restOfKey, myKey, repr(target)))
+            raise KeyError(
+                'Cannot set "%s" in "%s" (%s)' % (restOfKey, myKey, repr(target))
+            )
 
     def __setitem__(self, key, value):
-        if '.' in key:
-            myKey, restOfKey = key.split('.', 1)
+        if "." in key:
+            myKey, restOfKey = key.split(".", 1)
             target = self.setdefault(myKey, DotDict())
             self._ensure_dot_dict(target, restOfKey, myKey)
             target[restOfKey] = value
@@ -41,17 +43,17 @@ class DotDict(dict):
             dict.__setitem__(self, key, value)
 
     def __getitem__(self, key):
-        if '.' not in key:
+        if "." not in key:
             return dict.__getitem__(self, key)
-        myKey, restOfKey = key.split('.', 1)
+        myKey, restOfKey = key.split(".", 1)
         target = dict.__getitem__(self, myKey)
         self._ensure_dot_dict(target, restOfKey, myKey)
         return target[restOfKey]
 
     def get(self, key, default=None):
-        if '.' not in key:
+        if "." not in key:
             return dict.get(self, key, default)
-        myKey, restOfKey = key.split('.', 1)
+        myKey, restOfKey = key.split(".", 1)
         if myKey not in self:
             return default
         target = dict.__getitem__(self, myKey)
@@ -59,9 +61,9 @@ class DotDict(dict):
         return target.get(restOfKey, default)
 
     def __contains__(self, key):
-        if '.' not in key:
+        if "." not in key:
             return dict.__contains__(self, key)
-        myKey, restOfKey = key.split('.', 1)
+        myKey, restOfKey = key.split(".", 1)
         target = dict.get(self, myKey)
         if not isinstance(target, DotDict):
             return False

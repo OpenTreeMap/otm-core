@@ -8,22 +8,27 @@ from StringIO import StringIO
 from django.core.management import call_command
 
 from treemap.models import Instance, Plot, Tree, Species
-from treemap.tests import (make_instance, make_user, make_commander_user)
+from treemap.tests import make_instance, make_user, make_commander_user
 from treemap.tests.base import OTMTestCase
 
 
 class CreateInstanceManagementTest(OTMTestCase):
     def setUp(self):
-        self.user = make_user(username='WALL-E', password='EVE')
+        self.user = make_user(username="WALL-E", password="EVE")
 
     def test_can_create_instance(self):
         user = self.user.username
-        name = 'my_instance'
+        name = "my_instance"
 
         # Allow test --keepdb to work
         count = Instance.objects.count()
-        call_command('create_instance', name, '--center=0,0',
-                     '--user=%s' % user, '--url_name=my-instance')
+        call_command(
+            "create_instance",
+            name,
+            "--center=0,0",
+            "--user=%s" % user,
+            "--url_name=my-instance",
+        )
         self.assertEqual(Instance.objects.count(), count + 1)
 
 
@@ -31,18 +36,17 @@ class RandomTreesManagementTest(OTMTestCase):
     def setUp(self):
         self.instance = make_instance(edge_length=100000)
         user = make_commander_user(instance=self.instance)
-        species = Species(instance=self.instance, otm_code='',
-                          common_name='', genus='')
+        species = Species(instance=self.instance, otm_code="", common_name="", genus="")
         species.save_with_user(user)
 
     def run_command(self, **override_options):
         options = {
-            'instance': self.instance.pk,
-            'n': 1,
+            "instance": self.instance.pk,
+            "n": 1,
         }
         options.update(override_options)
         f = StringIO()
-        call_command('random_trees', stdout=f, **options)
+        call_command("random_trees", stdout=f, **options)
 
     def test_num_trees(self):
         self.run_command(n=1)

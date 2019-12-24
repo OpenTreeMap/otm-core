@@ -5,8 +5,8 @@ from treemap.models import User
 from treemap.util import to_model_name
 from treemap.lib import udf as udf_lib
 
-PROCESS_WITHOUT_SAVE = 'PROCESS_WITHOUT_SAVE'
-DO_NOT_PROCESS = 'DO_NOT_PROCESS'
+PROCESS_WITHOUT_SAVE = "PROCESS_WITHOUT_SAVE"
+DO_NOT_PROCESS = "DO_NOT_PROCESS"
 
 
 class MigrationException(Exception):
@@ -18,26 +18,29 @@ def validate_model_dict(config, model_name, data_dict):
     Makes sure the fields specified in the config global
     account for all of the provided data
     """
-    common_fields = config[model_name].get('common_fields', set())
-    renamed_fields = set(config[model_name].get('renamed_fields', {}).keys())
-    removed_fields = config[model_name].get('removed_fields', set())
-    dependency_fields = set(config[model_name]
-                            .get('dependencies', {}).values())
-    expected_fields = (common_fields |
-                       renamed_fields |
-                       removed_fields |
-                       dependency_fields)
+    common_fields = config[model_name].get("common_fields", set())
+    renamed_fields = set(config[model_name].get("renamed_fields", {}).keys())
+    removed_fields = config[model_name].get("removed_fields", set())
+    dependency_fields = set(config[model_name].get("dependencies", {}).values())
+    expected_fields = (
+        common_fields | renamed_fields | removed_fields | dependency_fields
+    )
 
-    provided_fields = set(data_dict['fields'].keys())
+    provided_fields = set(data_dict["fields"].keys())
 
     if expected_fields != provided_fields:
         raise Exception(
             'model validation failure: "%s".\n\n'
-            'Expected: %s \n\n'
-            'Got: %s\n\n'
-            'Symmetric Difference: %s'
-            % (model_name, expected_fields, provided_fields,
-               expected_fields.symmetric_difference(provided_fields)))
+            "Expected: %s \n\n"
+            "Got: %s\n\n"
+            "Symmetric Difference: %s"
+            % (
+                model_name,
+                expected_fields,
+                provided_fields,
+                expected_fields.symmetric_difference(provided_fields),
+            )
+        )
 
 
 def dict_to_model(config, model_name, data_dict, instance):
@@ -48,49 +51,48 @@ def dict_to_model(config, model_name, data_dict, instance):
     """
     validate_model_dict(config, model_name, data_dict)
 
-    common_fields = config[model_name].get('common_fields', set())
-    renamed_fields = config[model_name].get('renamed_fields', {})
-    dependency_fields = config[model_name].get('dependencies', {})
+    common_fields = config[model_name].get("common_fields", set())
+    renamed_fields = config[model_name].get("renamed_fields", {})
+    dependency_fields = config[model_name].get("dependencies", {})
     instance_field = None
 
-    ModelClass = config[model_name].get('model_class')
+    ModelClass = config[model_name].get("model_class")
 
     if ModelClass is None:
         return PROCESS_WITHOUT_SAVE
     else:
         try:
-            instance_field = ModelClass._meta.get_field('instance')
+            instance_field = ModelClass._meta.get_field("instance")
         except:
             pass
         # instance *must* be set during initialization
-        model = ModelClass() \
-            if instance_field is None or \
-            instance_field.many_to_many or \
-            instance_field.one_to_many \
+        model = (
+            ModelClass()
+            if instance_field is None
+            or instance_field.many_to_many
+            or instance_field.one_to_many
             else ModelClass(instance=instance)
+        )
 
-    for field in (common_fields
-                  .union(renamed_fields)
-                  .union(dependency_fields.values())):
-        transform_fn = (config[model_name]
-                        .get('value_transformers', {})
-                        .get(field, None))
+    for field in common_fields.union(renamed_fields).union(dependency_fields.values()):
+        transform_fn = config[model_name].get("value_transformers", {}).get(field, None)
 
-        transformed_value = (transform_fn(data_dict['fields'][field])
-                             if transform_fn else data_dict['fields'][field])
+        transformed_value = (
+            transform_fn(data_dict["fields"][field])
+            if transform_fn
+            else data_dict["fields"][field]
+        )
         transformed_field = renamed_fields.get(field, field)
 
-        if transformed_field.startswith('udf:'):
+        if transformed_field.startswith("udf:"):
             if transformed_value is not None:
                 model.udfs[transformed_field[4:]] = transformed_value
         else:
-            suffix = ('_id'
-                      if transformed_field in dependency_fields.values()
-                      else '')
+            suffix = "_id" if transformed_field in dependency_fields.values() else ""
             setattr(model, transformed_field + suffix, transformed_value)
 
     result = model
-    for mutator in config[model_name].get('presave_actions', []):
+    for mutator in config[model_name].get("presave_actions", []):
         if result != DO_NOT_PROCESS and result is not None:
             result = mutator(result, data_dict)
 
@@ -105,7 +107,7 @@ def dict_to_model(config, model_name, data_dict, instance):
 
 
 def uniquify_username(username):
-    username_template = '%s_%%d' % username
+    username_template = "%s_%%d" % username
     i = 0
     while User.objects.filter(username=username).exists():
         username = username_template % i
@@ -117,29 +119,27 @@ def uniquify_username(username):
 def sanitize_username(username):
     # yes, there was actually a user with newlines
     # in their username
-    return (username
-            .replace(' ', '_')
-            .replace('\n', ''))
+    return username.replace(" ", "_").replace("\n", "")
 
 
 def add_udfs_to_migration_rules(migration_rules, udfs, instance):
 
     for model in udfs:
         model_rules = migration_rules[model]
-        model_rules['removed_fields'] -= set(udfs[model].keys())
+        model_rules["removed_fields"] -= set(udfs[model].keys())
 
         for field, field_rules in udfs[model].items():
-            prefixed = 'udf:' + field_rules['udf.name']
-            model_rules['renamed_fields'][field] = prefixed
+            prefixed = "udf:" + field_rules["udf.name"]
+            model_rules["renamed_fields"][field] = prefixed
 
-            conversions = {str(i+1): v for i, v in
-                           enumerate(field_rules.get('udf.choices', []))}
+            conversions = {
+                str(i + 1): v for i, v in enumerate(field_rules.get("udf.choices", []))
+            }
 
             if conversions:
-                value_transformers = model_rules.get(
-                    'value_transformers', {})
+                value_transformers = model_rules.get("value_transformers", {})
                 value_transformers[field] = conversions.get
-                model_rules['value_transformers'] = value_transformers
+                model_rules["value_transformers"] = value_transformers
 
 
 def create_udfs(udfs, instance):
@@ -148,17 +148,18 @@ def create_udfs(udfs, instance):
             # convert the migrator udf schema
             # to the udf-lib friendly schema
 
-            name = field_rules['udf.name']
+            name = field_rules["udf.name"]
             model_type = to_model_name(model)
-            choices = field_rules.get('udf.choices')
+            choices = field_rules.get("udf.choices")
             datatype_type = field_rules.get(
-                'udf.type', 'choice' if choices else 'string')
+                "udf.type", "choice" if choices else "string"
+            )
 
             udf_params = {
-                'udf.name': name,
-                'udf.model': model_type,
-                'udf.type': datatype_type,
-                'udf.choices': choices
+                "udf.name": name,
+                "udf.model": model_type,
+                "udf.type": datatype_type,
+                "udf.choices": choices,
             }
 
             if not udf_lib.udf_exists(udf_params, instance):
@@ -175,18 +176,18 @@ def coerce_null_boolean(value):
 
 def coerce_null_string(value):
     if value is None:
-        return ''
+        return ""
     else:
         return value
 
 
 def correct_none_string(value):
-    if value == 'None':
+    if value == "None":
         return None
     else:
         return value
 
 
 def inflate_date(date_str):
-    assert date_str != '' and not date_str is None
+    assert date_str != "" and not date_str is None
     return dateutil.parser.parse(date_str)

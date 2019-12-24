@@ -8,20 +8,21 @@ from copy import copy
 
 from jsonschema import validate
 
-from modeling.run_model.GrowthModelUrbanTreeDatabase import \
-    GrowthModelUrbanTreeDatabase
-from modeling.run_model.MortalityModelUrbanTreeDatabase import \
-    MortalityModelUrbanTreeDatabase
+from modeling.run_model.GrowthModelUrbanTreeDatabase import GrowthModelUrbanTreeDatabase
+from modeling.run_model.MortalityModelUrbanTreeDatabase import (
+    MortalityModelUrbanTreeDatabase,
+)
 from modeling.run_model.Tree import Tree
 
 
 class GrowthAndMortalityModel(object):
-
     @classmethod
     def get_default_params(cls, instance):
         return {
-            'growth': GrowthModelUrbanTreeDatabase.get_default_params(instance),  # NOQA
-            'mortality': MortalityModelUrbanTreeDatabase.get_default_params(instance),  # NOQA
+            "growth": GrowthModelUrbanTreeDatabase.get_default_params(instance),  # NOQA
+            "mortality": MortalityModelUrbanTreeDatabase.get_default_params(
+                instance
+            ),  # NOQA
         }
 
     @classmethod
@@ -29,16 +30,14 @@ class GrowthAndMortalityModel(object):
         return GrowthModelUrbanTreeDatabase.get_species_for_planting(instance)
 
     def __init__(self, params, instance):
-        self.growth_model = self._init_growth_model(params['growth'], instance)
-        self.mortality_model = self._init_mortality_model(params['mortality'],
-                                                          instance)
+        self.growth_model = self._init_growth_model(params["growth"], instance)
+        self.mortality_model = self._init_mortality_model(params["mortality"], instance)
 
     def _init_growth_model(self, params, instance):
-        growth_params = params['params']
-        model_name = params['model_name']
-        if model_name == 'UrbanTreeDatabase':
-            growth_model = GrowthModelUrbanTreeDatabase(growth_params,
-                                                        instance)
+        growth_params = params["params"]
+        model_name = params["model_name"]
+        if model_name == "UrbanTreeDatabase":
+            growth_model = GrowthModelUrbanTreeDatabase(growth_params, instance)
         else:
             raise Exception('Invalid growth model name "%s"' % model_name)
 
@@ -48,11 +47,12 @@ class GrowthAndMortalityModel(object):
         return growth_model
 
     def _init_mortality_model(self, params, instance):
-        mortality_params = params['params']
-        model_name = params['model_name']
-        if model_name == 'UrbanTreeDatabase':
-            mortality_model = MortalityModelUrbanTreeDatabase(mortality_params,
-                                                              instance)
+        mortality_params = params["params"]
+        model_name = params["model_name"]
+        if model_name == "UrbanTreeDatabase":
+            mortality_model = MortalityModelUrbanTreeDatabase(
+                mortality_params, instance
+            )
         else:
             raise Exception('Invalid mortality model name "%s"' % model_name)
 
@@ -83,31 +83,32 @@ class GrowthAndMortalityModel(object):
             planted_trees - Tree object for each planted tree (if a tree dies
                             and is replanted, both will be in this list)
         """
-        tree_specs = scenario['trees']
-        group_specs = scenario['groups']
-        n_years = int(scenario['years'])
-        n_replant_years = int(scenario['replant_years'])
+        tree_specs = scenario["trees"]
+        group_specs = scenario["groups"]
+        n_years = int(scenario["years"])
+        n_replant_years = int(scenario["replant_years"])
 
         # Use a fixed seed so results will be repeatable
         random.seed(42)
 
         # Build list of live trees
-        live_trees = [Tree(self.growth_model, self.mortality_model, spec=spec)
-                      for spec in tree_specs]
+        live_trees = [
+            Tree(self.growth_model, self.mortality_model, spec=spec)
+            for spec in tree_specs
+        ]
         for group in group_specs:
             live_trees += self._make_trees_for_group(group)
 
         for i, tree in enumerate(live_trees):
             tree.id = i
 
-        return self._growth_kill_cycle(
-            n_years, n_replant_years, live_trees)
+        return self._growth_kill_cycle(n_years, n_replant_years, live_trees)
 
     # ------------------------------------------------------------------------
     # Create trees
 
     def _make_trees_for_group(self, spec):
-        n_trees = int(spec['count'])
+        n_trees = int(spec["count"])
         trees = [
             Tree(self.growth_model, self.mortality_model, spec=spec)
             for i in range(n_trees)
@@ -117,16 +118,16 @@ class GrowthAndMortalityModel(object):
     # ------------------------------------------------------------------------
     # Run model
 
-    def _growth_kill_cycle(self, n_years, n_replant_years,
-                           live_trees):
+    def _growth_kill_cycle(self, n_years, n_replant_years, live_trees):
         planted_trees = copy(live_trees)
         yearly_counts = [len(live_trees)]
         remainders = {}
 
         for year in range(1, n_years + 1):
             # Select and kill trees
-            live_trees, dead_trees, remainders = self.mortality_model \
-                .kill_trees(live_trees, remainders)
+            live_trees, dead_trees, remainders = self.mortality_model.kill_trees(
+                live_trees, remainders
+            )
 
             # Add growth to living trees
             for tree in live_trees:
@@ -143,7 +144,8 @@ class GrowthAndMortalityModel(object):
         return yearly_counts, planted_trees
 
     def _replant(self, dead_trees, year):
-        new_trees = [Tree(self.growth_model, self.mortality_model, tree=tree,
-                          year_planted=year)
-                     for tree in dead_trees]
+        new_trees = [
+            Tree(self.growth_model, self.mortality_model, tree=tree, year_planted=year)
+            for tree in dead_trees
+        ]
         return new_trees

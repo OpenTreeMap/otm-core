@@ -14,8 +14,7 @@ from treemap.instance import Instance
 from treemap.search import Filter
 from treemap.lib import format_benefits
 from treemap.ecobenefits import get_benefits_for_filter, BenefitCategory
-from treemap.tests import (make_instance, make_commander_user,
-                           LocalMediaTestCase)
+from treemap.tests import make_instance, make_commander_user, LocalMediaTestCase
 from treemap.tests.base import OTMTestCase
 from treemap.tests.test_ecobenefits import EcoTestCase
 from treemap.views.map_feature import update_map_feature
@@ -57,34 +56,37 @@ class GeoAndEcoRevIncr(OTMTestCase):
     def test_create_plot(self):
         with self._assert_updates_geo_and_eco_rev():
             plot = Plot(instance=self.instance)
-            request_dict = {'plot.geom': {'x': 0, 'y': 0}}
+            request_dict = {"plot.geom": {"x": 0, "y": 0}}
             update_map_feature(request_dict, self.user, plot)
 
     def test_create_bioswale(self):
-        self.instance.add_map_feature_types(['Bioswale'])
+        self.instance.add_map_feature_types(["Bioswale"])
         with self._assert_updates_geo_and_eco_rev():
             bioswale = Bioswale(instance=self.instance)
             request_dict = {
-                'plot.geom': {'x': 0, 'y': 0},
-                'bioswale.polygon': {'polygon': [
-                    [0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]}
+                "plot.geom": {"x": 0, "y": 0},
+                "bioswale.polygon": {
+                    "polygon": [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+                },
             }
             update_map_feature(request_dict, self.user, bioswale)
 
         with self._assert_updates_geo_and_eco_rev():
             request_dict = {
-                'bioswale.polygon': {'polygon': [
-                    [0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]}}
+                "bioswale.polygon": {
+                    "polygon": [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]]
+                }
+            }
             update_map_feature(request_dict, self.user, bioswale)
 
     def test_move(self):
         with self._assert_updates_geo_and_eco_rev():
-            request_dict = {'plot.geom': {'x': 5, 'y': 5}}
+            request_dict = {"plot.geom": {"x": 5, "y": 5}}
             update_map_feature(request_dict, self.user, self.plot)
 
     def test_update_without_move(self):
         with self._assert_updates_geo_and_eco_rev(False):
-            request_dict = {'plot.address_zip': '19119'}
+            request_dict = {"plot.address_zip": "19119"}
             update_map_feature(request_dict, self.user, self.plot)
 
     def test_delete(self):
@@ -119,16 +121,16 @@ class EcoRevIncr(OTMTestCase):
         with self._assert_updates_eco_rev(True):
             tree = Tree(instance=self.instance, plot=self.plot, diameter=3)
             tree.save_with_user(self.user)
-            request_dict = {'tree.diameter': '5'}
+            request_dict = {"tree.diameter": "5"}
             update_map_feature(request_dict, self.user, self.plot)
 
     def test_update_species(self):
         with self._assert_updates_eco_rev(True):
             tree = Tree(instance=self.instance, plot=self.plot)
             tree.save_with_user(self.user)
-            species = Species(common_name='foo', instance=self.instance)
+            species = Species(common_name="foo", instance=self.instance)
             species.save_with_user(self.user)
-            request_dict = {'tree.species': species.pk}
+            request_dict = {"tree.species": species.pk}
             update_map_feature(request_dict, self.user, self.plot)
 
 
@@ -138,6 +140,7 @@ class PlotHashTestCase(OTMTestCase):
     between instances of the generic MapFeature model
     and the concrete Plot model
     """
+
     def setUp(self):
         point = Point(-8515941.0, 4953519.0)
         instance = make_instance(point=point)
@@ -169,12 +172,10 @@ class PlotHashTestCase(OTMTestCase):
     def test_hash_changes(self):
         self._test_hash_setup()
         add_tree_msg = "Adding a tree should always change the hash"
-        self.assertNotEqual(self.initial_plot_hash,
-                            self.final_plot_hash,
-                            add_tree_msg)
-        self.assertNotEqual(self.initial_map_feature_hash,
-                            self.final_map_feature_hash,
-                            add_tree_msg)
+        self.assertNotEqual(self.initial_plot_hash, self.final_plot_hash, add_tree_msg)
+        self.assertNotEqual(
+            self.initial_map_feature_hash, self.final_map_feature_hash, add_tree_msg
+        )
 
     @skip("This feature is probably too hard to support")
     def test_hash_same_for_plot_and_map_feature(self):
@@ -185,14 +186,16 @@ class PlotHashTestCase(OTMTestCase):
         # but could have unexpected consequences in the audit system.
         # unfortunately, it's probably not worth the effort.
         self._test_hash_setup()
-        same_hash_msg = ("The plot has should be the same whether you "
-                         "get it from a Plot or MapFeature")
-        self.assertEqual(self.initial_plot_hash,
-                         self.initial_map_feature_hash,
-                         same_hash_msg)
-        self.assertEqual(self.final_plot_hash,
-                         self.final_map_feature_hash,
-                         same_hash_msg)
+        same_hash_msg = (
+            "The plot has should be the same whether you "
+            "get it from a Plot or MapFeature"
+        )
+        self.assertEqual(
+            self.initial_plot_hash, self.initial_map_feature_hash, same_hash_msg
+        )
+        self.assertEqual(
+            self.final_plot_hash, self.final_map_feature_hash, same_hash_msg
+        )
 
 
 # this decorator is necessary in order to `add_map_feature_types(['Bioswale'])`
@@ -202,11 +205,10 @@ class ResourceEcoBenefitsTest(EcoTestCase):
     def setUp(self):
         # sets up self.instance, self.user, self.species
         super(ResourceEcoBenefitsTest, self).setUp()
-        self.instance.add_map_feature_types(['Bioswale'])
-        diversion_rate = .85
-        Bioswale.set_config_property(self.instance, 'diversion_rate',
-                                     diversion_rate)
-        Bioswale.set_config_property(self.instance, 'should_show_eco', True)
+        self.instance.add_map_feature_types(["Bioswale"])
+        diversion_rate = 0.85
+        Bioswale.set_config_property(self.instance, "diversion_rate", diversion_rate)
+        Bioswale.set_config_property(self.instance, "should_show_eco", True)
         self.instance.annual_rainfall_inches = 8.0
 
     def _center_as_3857(self):
@@ -221,88 +223,99 @@ class ResourceEcoBenefitsTest(EcoTestCase):
         y_min = pt.y - half_edge
         x_max = pt.x + half_edge
         y_max = pt.y + half_edge
-        poly = Polygon(((x_min, y_min),
-                        (x_min, y_max),
-                        (x_max, y_max),
-                        (x_max, y_min),
-                        (x_min, y_min)))
-        return MultiPolygon((poly, ))
+        poly = Polygon(
+            (
+                (x_min, y_min),
+                (x_min, y_max),
+                (x_max, y_max),
+                (x_max, y_min),
+                (x_min, y_min),
+            )
+        )
+        return MultiPolygon((poly,))
 
     def test_resource_ecobenefits(self):
         p = self._center_as_3857()
         box = self._box_around_point(p)
-        bioswale = Bioswale(instance=self.instance,
-                            geom=p,
-                            polygon=box,
-                            feature_type='Bioswale',
-                            drainage_area=100.0)
+        bioswale = Bioswale(
+            instance=self.instance,
+            geom=p,
+            polygon=box,
+            feature_type="Bioswale",
+            drainage_area=100.0,
+        )
         bioswale.save_with_user(self.user)
-        filter = Filter('', '', self.instance)
+        filter = Filter("", "", self.instance)
         benefits, __ = get_benefits_for_filter(filter)
 
-        self.assertIn('resource', benefits)
-        resource_benefits = benefits['resource']
+        self.assertIn("resource", benefits)
+        resource_benefits = benefits["resource"]
         self.assertIn(BenefitCategory.STORMWATER, resource_benefits)
         stormwater = resource_benefits[BenefitCategory.STORMWATER]
-        self.assertTrue(isinstance(stormwater['value'], float))
-        self.assertGreater(stormwater['value'], 0.0)
-        self.assertTrue(isinstance(stormwater['currency'], float))
-        self.assertEqual(stormwater['value'], stormwater['currency'])
+        self.assertTrue(isinstance(stormwater["value"], float))
+        self.assertGreater(stormwater["value"], 0.0)
+        self.assertTrue(isinstance(stormwater["currency"], float))
+        self.assertEqual(stormwater["value"], stormwater["currency"])
 
     def test_all_ecobenefits(self):
         p = self._center_as_3857()
         plot = Plot(geom=p, instance=self.instance)
         plot.save_with_user(self.user)
 
-        tree = Tree(plot=plot,
-                    instance=self.instance,
-                    readonly=False,
-                    species=self.species,
-                    diameter=1630)
+        tree = Tree(
+            plot=plot,
+            instance=self.instance,
+            readonly=False,
+            species=self.species,
+            diameter=1630,
+        )
 
         tree.save_with_user(self.user)
 
         p.x += 1.1
         p.y += 1.1
         box = self._box_around_point(p)
-        bioswale = Bioswale(instance=self.instance,
-                            geom=p,
-                            polygon=box,
-                            feature_type='Bioswale',
-                            drainage_area=100.0)
+        bioswale = Bioswale(
+            instance=self.instance,
+            geom=p,
+            polygon=box,
+            feature_type="Bioswale",
+            drainage_area=100.0,
+        )
         bioswale.save_with_user(self.user)
-        filter = Filter('', '', self.instance)
+        filter = Filter("", "", self.instance)
         benefits, basis = get_benefits_for_filter(filter)
 
-        self.assertIn('plot', benefits)
-        plot_benefits = benefits['plot']
+        self.assertIn("plot", benefits)
+        plot_benefits = benefits["plot"]
         plot_categories = set(plot_benefits.keys())
         self.assertSetEqual(plot_categories, set(BenefitCategory.GROUPS))
 
         plot_currencies = {
-            cat: benefit.get('currency', None)
-            for cat, benefit in plot_benefits.items()}
+            cat: benefit.get("currency", None) for cat, benefit in plot_benefits.items()
+        }
         self.assertIsNotNone(min(plot_currencies.values()))
 
-        expected_total_currency = sum(
-            [benefit['currency'] for benefit in plot_benefits.values()]) - \
-            plot_benefits[BenefitCategory.CO2STORAGE]['currency'] + \
-            benefits['resource'][BenefitCategory.STORMWATER]['currency']
+        expected_total_currency = (
+            sum([benefit["currency"] for benefit in plot_benefits.values()])
+            - plot_benefits[BenefitCategory.CO2STORAGE]["currency"]
+            + benefits["resource"][BenefitCategory.STORMWATER]["currency"]
+        )
 
         formatted = format_benefits(self.instance, benefits, basis, digits=0)
-        self.assertAlmostEqual(formatted['benefits_total_currency'],
-                               expected_total_currency, 3)
+        self.assertAlmostEqual(
+            formatted["benefits_total_currency"], expected_total_currency, 3
+        )
 
 
 class UpdatedFieldsTest(LocalMediaTestCase):
-
     def setUp(self):
         super(UpdatedFieldsTest, self).setUp()
 
         self.point = Point(-8515941.0, 4953519.0)
         self.instance = make_instance(point=self.point)
         self.user = make_commander_user(self.instance)
-        self.fellow = make_commander_user(self.instance, 'other-commander')
+        self.fellow = make_commander_user(self.instance, "other-commander")
         self.plot = Plot(geom=self.point, instance=self.instance)
         self.plot.save_with_user(self.user)
         self.plot.refresh_from_db()
@@ -350,9 +363,8 @@ class UpdatedFieldsTest(LocalMediaTestCase):
     def test_add_photo_sets_updated(self):
         tree = Tree(diameter=10, plot=self.plot, instance=self.instance)
         tree.save_with_user(self.user)
-        photo = TreePhoto(instance=self.instance,
-                          map_feature=self.plot, tree=tree)
-        photo.set_image(self.load_resource('tree1.gif'))
+        photo = TreePhoto(instance=self.instance, map_feature=self.plot, tree=tree)
+        photo.set_image(self.load_resource("tree1.gif"))
         photo.save_with_user(self.fellow)
         self.plot.refresh_from_db()
         self.assertGreater(self.plot.updated_at, self.initial_updated)

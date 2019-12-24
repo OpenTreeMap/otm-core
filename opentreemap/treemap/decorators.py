@@ -8,8 +8,7 @@ from functools import wraps
 
 from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied
-from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseRedirect)
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
@@ -20,9 +19,12 @@ from django_tinsel.decorators import json_api_call
 
 from opentreemap.util import request_is_embedded
 
-from treemap.util import (add_visited_instance,
-                          get_instance_or_404, login_redirect,
-                          can_read_as_super_admin)
+from treemap.util import (
+    add_visited_instance,
+    get_instance_or_404,
+    login_redirect,
+    can_read_as_super_admin,
+)
 
 
 def instance_request(view_fn, redirect=True):
@@ -48,14 +50,14 @@ def instance_request(view_fn, redirect=True):
             if redirect:
                 if request_is_embedded(request):
                     return HttpResponseRedirect(
-                        reverse('instance_not_available') + '?embed=1')
+                        reverse("instance_not_available") + "?embed=1"
+                    )
                 elif request.user.is_authenticated():
-                    return HttpResponseRedirect(
-                        reverse('instance_not_available'))
+                    return HttpResponseRedirect(reverse("instance_not_available"))
                 else:
                     return login_redirect(request)
             else:
-                return HttpResponse('Unauthorized', status=401)
+                return HttpResponse("Unauthorized", status=401)
 
     return wrapper
 
@@ -78,8 +80,7 @@ def user_must_be_admin(view_fn):
 
 
 def admin_instance_request(view_fn, redirect=True):
-    return login_required(instance_request(
-        user_must_be_admin(view_fn), redirect))
+    return login_required(instance_request(user_must_be_admin(view_fn), redirect))
 
 
 def api_admin_instance_request(view_fn):
@@ -104,6 +105,7 @@ def strip_request(view_fn):
     url r'treemap/(?P<foo>)/(?P<bar>)/' can map to the view function
     returned by strip_request(fn)
     """
+
     @wraps(view_fn)
     def wrapper(request, *args, **kwargs):
         return view_fn(*args, **kwargs)
@@ -134,10 +136,12 @@ def requires_permission(codename):
     Wraps view function, testing whether the current user has the
     specified permission.
     """
+
     def wrapper_function(view_fn):
         @wraps(view_fn)
         def wrapped(request, instance, *args, **kwargs):
             from treemap.audit import Role
+
             role = Role.objects.get_role(instance, request.user)
             if role.has_permission(codename):
                 return view_fn(request, instance, *args, **kwargs)
@@ -153,11 +157,7 @@ def json_api_edit(req_function):
     """
     Wraps view function for an AJAX call which modifies data.
     """
-    return do(
-        login_or_401,
-        json_api_call,
-        creates_instance_user,
-        req_function)
+    return do(login_or_401, json_api_call, creates_instance_user, req_function)
 
 
 def return_400_if_validation_errors(req):
@@ -167,18 +167,17 @@ def return_400_if_validation_errors(req):
         try:
             return req(*args, **kwargs)
         except ValidationError as e:
-            if hasattr(e, 'message_dict'):
-                message_dict['globalErrors'] = [_(
-                    'One or more of the specified values are invalid.')]
-                if 'globalErrors' in e.message_dict:
-                    message_dict['globalErrors'] += \
-                        e.message_dict.pop('globalErrors')
-                message_dict['fieldErrors'] = e.message_dict
+            if hasattr(e, "message_dict"):
+                message_dict["globalErrors"] = [
+                    _("One or more of the specified values are invalid.")
+                ]
+                if "globalErrors" in e.message_dict:
+                    message_dict["globalErrors"] += e.message_dict.pop("globalErrors")
+                message_dict["fieldErrors"] = e.message_dict
             else:
-                message_dict['globalErrors'] = e.messages
+                message_dict["globalErrors"] = e.messages
 
-            return HttpResponseBadRequest(
-                json.dumps(message_dict, cls=LazyEncoder))
+            return HttpResponseBadRequest(json.dumps(message_dict, cls=LazyEncoder))
 
     return run_and_catch_validations
 
@@ -190,12 +189,13 @@ def login_or_401(view_fn):
     status code.
     Intended for AJAX endpoints where it would not make sense to redirect
     """
+
     @wraps(view_fn)
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated():
             return view_fn(request, *args, **kwargs)
         else:
-            return HttpResponse('Unauthorized', status=401)
+            return HttpResponse("Unauthorized", status=401)
 
     return wrapper
 
@@ -207,11 +207,9 @@ def creates_instance_user(view_fn):
         from treemap.models import InstanceUser
 
         if request.user.get_instance_user(instance) is None:
-            if instance.feature_enabled('auto_add_instance_user'):
+            if instance.feature_enabled("auto_add_instance_user"):
                 InstanceUser(
-                    instance=instance,
-                    user=request.user,
-                    role=instance.default_role
+                    instance=instance, user=request.user, role=instance.default_role
                 ).save_with_user(request.user)
             else:
                 raise PermissionDenied

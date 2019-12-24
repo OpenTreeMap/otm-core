@@ -46,22 +46,22 @@ add_rollbar_handler(logger, level=logging.INFO)
 # replace these patterns with simple destructuring.
 #
 
-INVALID_ECO_PAIR = 'invalid_eco_pair'
-INCOMPLETE_ECO_DATA = 'incomplete_eco_data'
-UNKNOWN_ECO_FAILURE = 'unknown_eco_failure'
+INVALID_ECO_PAIR = "invalid_eco_pair"
+INCOMPLETE_ECO_DATA = "incomplete_eco_data"
+UNKNOWN_ECO_FAILURE = "unknown_eco_failure"
 ECOBENEFIT_FAILURE_CODES_AND_PATTERNS = {
     INVALID_ECO_PAIR: [
-        (r'iTree code not found for otmcode '
-         r'([A-Z]+) in region ([A-Za-z]+)\n')],
+        (r"iTree code not found for otmcode " r"([A-Z]+) in region ([A-Za-z]+)\n")
+    ],
     INCOMPLETE_ECO_DATA: [
-        'Species data not found for the .* region',
-        ('There are overrides defined for instance .* in '
-         'the .* region but not for species ID .*'),
-        ('There are overrides defined for the instance, '
-         'but not for the .* region')],
-    UNKNOWN_ECO_FAILURE: [
-        'Missing or invalid .* parameter'
-    ]
+        "Species data not found for the .* region",
+        (
+            "There are overrides defined for instance .* in "
+            "the .* region but not for species ID .*"
+        ),
+        ("There are overrides defined for the instance, " "but not for the .* region"),
+    ],
+    UNKNOWN_ECO_FAILURE: ["Missing or invalid .* parameter"],
 }
 LOG_FUNCTION_FOR_FAILURE_CODE = {
     INVALID_ECO_PAIR: logger.info,
@@ -73,7 +73,7 @@ LOG_FUNCTION_FOR_FAILURE_CODE = {
 def json_benefits_call(endpoint, params, post=False, convert_params=True):
     url = "%s/%s" % (settings.ECO_SERVICE_URL, endpoint)
 
-    if endpoint not in ['invalidate_cache', 'itree_codes.json']:
+    if endpoint not in ["invalidate_cache", "itree_codes.json"]:
         invalidate_ecoservice_cache_if_stale()
 
     if post:
@@ -89,7 +89,7 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                 # the associated ST_XXX call
                 if isinstance(v, PostGISAdapter):
                     bytestring = v.ewkb
-                    hexstring = ''.join('%02X' % ord(x) for x in bytestring)
+                    hexstring = "".join("%02X" % ord(x) for x in bytestring)
 
                     v = "ST_GeomFromEWKT('%s')" % GEOSGeometry(hexstring).ewkt
                 elif not isinstance(v, unicode):
@@ -106,16 +106,17 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
             data = json.dumps(paramdata)
         else:
             data = json.dumps(params)
-        req = urllib2.Request(url,
-                              data,
-                              {'Content-Type': 'application/json'})
+        req = urllib2.Request(url, data, {"Content-Type": "application/json"})
     else:
-        paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
-                                           urllib.quote_plus(str(val)))
-                                for (name, val) in params])
+        paramString = "&".join(
+            [
+                "%s=%s" % (urllib.quote_plus(str(name)), urllib.quote_plus(str(val)))
+                for (name, val) in params
+            ]
+        )
 
         # A get request is assumed by urllib2
-        req = url + '?' + paramString
+        req = url + "?" + paramString
 
     # the caller decides if it wants to raise the error
     # as an exception, or return it as a status code on
@@ -141,10 +142,10 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                     # attribute named `extra_data` on the log message.
                     # https://github.com/rollbar/pyrollbar/blob/cbfc2529a2d8847e18f7134aa874eb7c68426e2f/rollbar/logger.py#L97 # NOQA
                     extra = {
-                        'extra_data': {
-                            'ecobenefit_message': error_body,
-                            'ecobenefit_matched_message_pattern': pattern,
-                            'ecobenefit_failure_code': code
+                        "extra_data": {
+                            "ecobenefit_message": error_body,
+                            "ecobenefit_matched_message_pattern": pattern,
+                            "ecobenefit_failure_code": code,
                         }
                     }
                     # We set the text of the log message to the code
@@ -152,15 +153,16 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                     # fully detailed message so that Rollbar can group
                     # and count similar failures.
                     LOG_FUNCTION_FOR_FAILURE_CODE[code](
-                        "ECOBENEFIT FAILURE: %s %s " % (code, pattern),
-                        extra=extra)
+                        "ECOBENEFIT FAILURE: %s %s " % (code, pattern), extra=extra
+                    )
                     return (None, code)
         else:
             # If we did not break out of the loop by returning early
             # that means we received an unknown response from the
             # ecoservice.
             LOG_FUNCTION_FOR_FAILURE_CODE[UNKNOWN_ECO_FAILURE](
-                "ECOBENEFIT FAILURE: " + error_body)
+                "ECOBENEFIT FAILURE: " + error_body
+            )
             return general_unhandled_struct
     except urllib2.URLError:
         logger.error("Error connecting to ecoservice", exc_info=sys.exc_info())

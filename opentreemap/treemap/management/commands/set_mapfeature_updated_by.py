@@ -16,7 +16,10 @@ class Command(BaseCommand):
     Run this command after migration `0038_updated_by`, before the
     subsequent migration that removes nullable.
     """
+
     def handle(self, *args, **options):
-        print('If you have a large database, the queries run by this command '
-              'may take a while to complete')
+        print(
+            "If you have a large database, the queries run by this command "
+            "may take a while to complete"
+        )
         set_map_feature_updated_by()

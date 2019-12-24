@@ -25,14 +25,16 @@ def transform_plot_update_dict(plot_update_fn):
 
     v5 - universalRev added
     """
+
     @wraps(plot_update_fn)
     def wrapper(request, *args, **kwargs):
         plot_dict = plot_update_fn(request, *args, **kwargs)
 
-        if request.api_version < 5 and 'universalRevHash' in plot_dict:
-            plot_dict['geoRevHash'] = plot_dict['universalRevHash']
-            del plot_dict['universalRevHash']
+        if request.api_version < 5 and "universalRevHash" in plot_dict:
+            plot_dict["geoRevHash"] = plot_dict["universalRevHash"]
+            del plot_dict["universalRevHash"]
         return plot_dict
+
     return wrapper
 
 
@@ -40,25 +42,26 @@ def plots_closest_to_point(request, instance, lat, lng):
     point = Point(float(lng), float(lat), srid=4326)
 
     try:
-        max_plots = int(request.GET.get('max_plots', '1'))
+        max_plots = int(request.GET.get("max_plots", "1"))
 
         if max_plots not in xrange(1, 501):
             raise ValueError()
     except ValueError:
         raise HttpBadRequestException(
-            'The max_plots parameter must be a number between 1 and 500')
+            "The max_plots parameter must be a number between 1 and 500"
+        )
 
     try:
-        distance = float(request.GET.get(
-            'distance', settings.MAP_CLICK_RADIUS))
+        distance = float(request.GET.get("distance", settings.MAP_CLICK_RADIUS))
     except ValueError:
-        raise HttpBadRequestException(
-            'The distance parameter must be a number')
+        raise HttpBadRequestException("The distance parameter must be a number")
 
-    plots = Plot.objects.distance(point)\
-                        .filter(instance=instance)\
-                        .filter(geom__distance_lte=(point, D(m=distance)))\
-                        .order_by('distance')[0:max_plots]
+    plots = (
+        Plot.objects.distance(point)
+        .filter(instance=instance)
+        .filter(geom__distance_lte=(point, D(m=distance)))
+        .order_by("distance")[0:max_plots]
+    )
 
     def ctxt_for_plot(plot):
         return context_dict_for_plot(request, plot)
@@ -86,13 +89,15 @@ def update_or_create_plot(request, instance, plot_id=None):
     # We explicitly disallow setting a plot's tree id.
     # We ignore plot's updated at and by because
     # auditing sets them automatically.
-    keys = ["tree.plot",
-            "tree.udfs",
-            "tree.instance",
-            "plot.updated_at",
-            "plot.updated_by",
-            "plot.instance",
-            "plot.udfs"]
+    keys = [
+        "tree.plot",
+        "tree.udfs",
+        "tree.instance",
+        "plot.updated_at",
+        "plot.updated_by",
+        "plot.instance",
+        "plot.udfs",
+    ]
 
     for key in keys:
         if key in data:
@@ -101,7 +106,7 @@ def update_or_create_plot(request, instance, plot_id=None):
     if "tree.species" in data:
         sp = data["tree.species"]
         if sp and "id" in sp:
-            data["tree.species"] = sp['id']
+            data["tree.species"] = sp["id"]
         else:
             data["tree.species"] = None
 

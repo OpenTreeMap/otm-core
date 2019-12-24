@@ -8,13 +8,13 @@ import treemap.json_field
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('modeling', '0002_remove_plan_currentscenarioid'),
+        ("modeling", "0002_remove_plan_currentscenarioid"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='plan',
-            name='zoom_lat_lng',
+            model_name="plan",
+            name="zoom_lat_lng",
             field=treemap.json_field.JSONField(null=True, blank=True),
         ),
     ]

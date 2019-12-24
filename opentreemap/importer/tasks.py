@@ -15,8 +15,7 @@ from importer.models.base import GenericImportEvent, GenericImportRow
 from importer.models.species import SpeciesImportEvent, SpeciesImportRow
 from importer.models.trees import TreeImportEvent, TreeImportRow
 from importer import errors
-from importer.util import (clean_row_data, clean_field_name,
-                           utf8_file_to_csv_dictreader)
+from importer.util import clean_row_data, clean_field_name, utf8_file_to_csv_dictreader
 
 
 def _create_rows_for_event(ie, csv_file):
@@ -24,8 +23,11 @@ def _create_rows_for_event(ie, csv_file):
     # so we can show progress. Caller does manual cleanup if necessary.
     reader = utf8_file_to_csv_dictreader(csv_file)
 
-    field_names = [f.strip().decode('utf-8') for f in reader.fieldnames
-                   if f.strip().lower() not in ie.ignored_fields()]
+    field_names = [
+        f.strip().decode("utf-8")
+        for f in reader.fieldnames
+        if f.strip().lower() not in ie.ignored_fields()
+    ]
     ie.field_order = json.dumps(field_names)
     ie.save()
 
@@ -59,8 +61,10 @@ def _create_rows(ie, reader):
             rows.append(RowModel(data=data, import_event=ie, idx=idx))
 
             idx += 1
-            if ((int(idx / settings.IMPORT_BATCH_SIZE) *
-                 settings.IMPORT_BATCH_SIZE == idx)):
+            if (
+                int(idx / settings.IMPORT_BATCH_SIZE) * settings.IMPORT_BATCH_SIZE
+                == idx
+            ):
                 RowModel.objects.bulk_create(rows)
                 rows = []
 
@@ -138,7 +142,7 @@ def _assure_status_is_at_least_verifying(ie):
 @shared_task()
 def _validate_rows(import_type, import_event_id, start_row_id):
     ie = _get_import_event(import_type, import_event_id)
-    rows = ie.rows()[start_row_id:(start_row_id+settings.IMPORT_BATCH_SIZE)]
+    rows = ie.rows()[start_row_id : (start_row_id + settings.IMPORT_BATCH_SIZE)]
     for row in rows:
         row.validate_row()
     ie.update_progress_timestamp_and_save()
@@ -164,7 +168,8 @@ def commit_import_event(import_type, import_event_id):
 
     commit_tasks = [
         _commit_rows.s(import_type, import_event_id, i)
-        for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE)]
+        for i in xrange(0, ie.row_count, settings.IMPORT_BATCH_SIZE)
+    ]
 
     finalize_task = _finalize_commit.si(import_type, import_event_id)
 
@@ -182,7 +187,7 @@ def commit_import_event(import_type, import_event_id):
 def _commit_rows(import_type, import_event_id, i):
     ie = _get_import_event(import_type, import_event_id)
 
-    for row in ie.rows()[i:(i + settings.IMPORT_BATCH_SIZE)]:
+    for row in ie.rows()[i : (i + settings.IMPORT_BATCH_SIZE)]:
         row.commit_row()
     ie.update_progress_timestamp_and_save()
 
@@ -196,9 +201,9 @@ def _finalize_commit(import_type, import_event_id):
 
     # A species import could change a species' i-Tree region,
     # affecting eco
-    rev_updates = ['eco_rev', 'universal_rev']
+    rev_updates = ["eco_rev", "universal_rev"]
     if import_type == TreeImportEvent.import_type:
-        rev_updates.append('geo_rev')
+        rev_updates.append("geo_rev")
 
     ie.instance.update_revs(*rev_updates)
 
@@ -208,8 +213,9 @@ def _get_import_event(import_type, import_event_id):
     try:
         return Model.objects.get(pk=import_event_id)
     except ObjectDoesNotExist:
-        raise Exception('Import event not found "%s" %s'
-                        % (import_type, import_event_id))
+        raise Exception(
+            'Import event not found "%s" %s' % (import_type, import_event_id)
+        )
 
 
 def get_import_event_model(import_type):
@@ -233,9 +239,7 @@ def get_import_row_model(import_type):
 
 
 def _get_waiting_row_count(ie):
-    return ie.rows()\
-             .filter(status=GenericImportRow.WAITING)\
-             .count()
+    return ie.rows().filter(status=GenericImportRow.WAITING).count()
 
 
 @shared_task

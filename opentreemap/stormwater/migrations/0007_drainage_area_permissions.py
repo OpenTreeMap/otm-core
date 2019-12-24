@@ -6,9 +6,9 @@ from django.db.models import F
 
 
 def add_permissions_all(apps, schema_editor):
-    Instance = apps.get_model('treemap', 'Instance')
-    Role = apps.get_model('treemap', 'Role')
-    FieldPermission = apps.get_model('treemap', 'FieldPermission')
+    Instance = apps.get_model("treemap", "Instance")
+    Role = apps.get_model("treemap", "Role")
+    FieldPermission = apps.get_model("treemap", "FieldPermission")
 
     # Adapted from treemap.audit.add_default_permissions.
     # We can't use that function directly, partly because of its
@@ -16,12 +16,10 @@ def add_permissions_all(apps, schema_editor):
     # for a migration, and partly because a migration is a snapshot
     # in time, and we need to snapshot the logic as well.
     def update_field_permissions(perm_specs, role, instance):
-        existing = FieldPermission.objects.filter(
-            role=role, instance=instance)
+        existing = FieldPermission.objects.filter(role=role, instance=instance)
         if existing.exists():
             for perm in perm_specs:
-                perm['defaults'] = {
-                    'permission_level': role.default_permission}
+                perm["defaults"] = {"permission_level": role.default_permission}
                 FieldPermission.objects.get_or_create(**perm)
             return False
         else:
@@ -32,18 +30,23 @@ def add_permissions_all(apps, schema_editor):
             return True
 
     for instance in Instance.objects.filter(config__contains='"Plot",'):
-        types = instance.config['map_feature_types']
-        if 'Bioswale' in types or 'RainGarden' in types:
+        types = instance.config["map_feature_types"]
+        if "Bioswale" in types or "RainGarden" in types:
             for role in Role.objects.filter(instance=instance):
                 perm_specs = [
-                    {'model_name': 'Bioswale',
-                     'field_name': 'drainage_area',
-                     'role': role,
-                     'instance': instance},
-                    {'model_name': 'RainGarden',
-                     'field_name': 'drainage_area',
-                     'role': role,
-                     'instance': instance}]
+                    {
+                        "model_name": "Bioswale",
+                        "field_name": "drainage_area",
+                        "role": role,
+                        "instance": instance,
+                    },
+                    {
+                        "model_name": "RainGarden",
+                        "field_name": "drainage_area",
+                        "role": role,
+                        "instance": instance,
+                    },
+                ]
                 update_field_permissions(perm_specs, role, instance)
 
     # Adapted from treemap.object_caches.increment_adjuncts_timestamp.
@@ -55,24 +58,22 @@ def add_permissions_all(apps, schema_editor):
     # vagrant destroy, because on the AWS machines, the migration will
     # inevitably be accompanied by a fresh deployment, which won't have
     # anything cached.
-    Instance.objects.all() \
-        .update(adjuncts_timestamp=F('adjuncts_timestamp') + 1)
+    Instance.objects.all().update(adjuncts_timestamp=F("adjuncts_timestamp") + 1)
 
 
 def remove_drainage_area_permissions(apps, schema_editor):
-    FieldPermission = apps.get_model('treemap', 'FieldPermission')
-    for perm in FieldPermission.objects.filter(field_name='drainage_area'):
+    FieldPermission = apps.get_model("treemap", "FieldPermission")
+    for perm in FieldPermission.objects.filter(field_name="drainage_area"):
         perm.delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stormwater', '0006_stormwater_drainage_area'),
-        ('treemap', '0029_merge'),
+        ("stormwater", "0006_stormwater_drainage_area"),
+        ("treemap", "0029_merge"),
     ]
 
     operations = [
-        migrations.RunPython(add_permissions_all,
-                             remove_drainage_area_permissions)
+        migrations.RunPython(add_permissions_all, remove_drainage_area_permissions)
     ]

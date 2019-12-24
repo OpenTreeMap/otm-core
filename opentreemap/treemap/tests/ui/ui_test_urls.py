@@ -23,21 +23,19 @@ def full_utf8_grid(request):
     """
     global testing_id
 
-    quoted_space_line = '"' + (' ' * 64) + '"'
-    quoted_space_line_with_comma = quoted_space_line + ','
+    quoted_space_line = '"' + (" " * 64) + '"'
+    quoted_space_line_with_comma = quoted_space_line + ","
 
-    full_space_utf8_grid = ('{"grid":[' +
-                            (quoted_space_line_with_comma * 63) +
-                            quoted_space_line +
-                            '],"keys":["1"],"data":{"1":{"id":%s}}}'
-                            % testing_id)
+    full_space_utf8_grid = (
+        '{"grid":['
+        + (quoted_space_line_with_comma * 63)
+        + quoted_space_line
+        + '],"keys":["1"],"data":{"1":{"id":%s}}}' % testing_id
+    )
 
     response = HttpResponse(full_space_utf8_grid)
-    response['Content-Type'] = 'application/json'
+    response["Content-Type"] = "application/json"
     return response
 
 
-urlpatterns = [
-    url(r'^tile/.*', full_utf8_grid),
-    url(r'', include(urls))
-]
+urlpatterns = [url(r"^tile/.*", full_utf8_grid), url(r"", include(urls))]

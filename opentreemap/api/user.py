@@ -18,9 +18,14 @@ from treemap.views.user import upload_user_photo
 from treemap.models import User
 
 
-REQ_FIELDS = {'email', 'username', 'password'}
-ALL_FIELDS = REQ_FIELDS | {'organization', 'last_name', 'first_name',
-                           'allow_email_contact', 'make_info_public'}
+REQ_FIELDS = {"email", "username", "password"}
+ALL_FIELDS = REQ_FIELDS | {
+    "organization",
+    "last_name",
+    "first_name",
+    "allow_email_contact",
+    "make_info_public",
+}
 
 
 def update_profile_photo(request, user_id):
@@ -35,7 +40,7 @@ def update_profile_photo(request, user_id):
 def _context_dict_for_user(user):
     user_dict = user.as_dict()
 
-    del user_dict['password']
+    del user_dict["password"]
     user_dict["status"] = "success"
 
     return user_dict
@@ -65,9 +70,9 @@ def update_user(request, user_id):
     for field in ALL_FIELDS:
         if field in data:
             if field in REQ_FIELDS and not field:
-                errors[field] = [_('This field cannot be empty')]
+                errors[field] = [_("This field cannot be empty")]
             else:
-                if field == 'password':
+                if field == "password":
                     user.set_password(data[field])
                 else:
                     setattr(user, field, data[field])
@@ -86,35 +91,35 @@ def create_user(request):
     errors = {}
     for field in REQ_FIELDS:
         if field not in data:
-            errors[field] = [_('This field is required')]
+            errors[field] = [_("This field is required")]
 
     for inputfield in data:
         if inputfield not in ALL_FIELDS:
-            errors[inputfield] = [_('Unrecognized field')]
+            errors[inputfield] = [_("Unrecognized field")]
 
     if errors:
         raise ValidationError(errors)
 
-    dup_username = User.objects.filter(username=data['username'])
-    dup_email = User.objects.filter(email=data['email'])
+    dup_username = User.objects.filter(username=data["username"])
+    dup_email = User.objects.filter(email=data["email"])
 
     if dup_username.exists():
-        return _conflict_response(_('Username is already in use'))
+        return _conflict_response(_("Username is already in use"))
     if dup_email.exists():
         # BE WARNED - The iOS application relies on this error message string.
         # If you change this you WILL NEED TO ALTER CODE THERE AS WELL.
-        return _conflict_response(_('Email is already in use'))
+        return _conflict_response(_("Email is already in use"))
 
     user = User(**data)
 
     # Needed to properly hash the password
-    user.set_password(data['password'])
+    user.set_password(data["password"])
     user.active = True
     user.save()
 
     RegistrationProfile.objects.create_profile(user)
 
-    return {'status': 'success', 'id': user.pk}
+    return {"status": "success", "id": user.pk}
 
 
 def transform_user_request(user_view_fn):
@@ -123,18 +128,19 @@ def transform_user_request(user_view_fn):
 
     The issue was fixed in 3d2e95390c, but needs to be supported for API < 3
     """
+
     @wraps(user_view_fn)
     def wrapper(request, *args, **kwargs):
         if request.api_version < 3:
             body_dict = json.loads(request.body)
 
-            if 'firstname' in body_dict:
-                body_dict['first_name'] = body_dict.get('firstname', '')
-                del body_dict['firstname']
+            if "firstname" in body_dict:
+                body_dict["first_name"] = body_dict.get("firstname", "")
+                del body_dict["firstname"]
 
-            if 'lastname' in body_dict:
-                body_dict['last_name'] = body_dict.get('lastname', '')
-                del body_dict['lastname']
+            if "lastname" in body_dict:
+                body_dict["last_name"] = body_dict.get("lastname", "")
+                del body_dict["lastname"]
 
             body = json.dumps(body_dict)
             # You can't directly set a new request body
@@ -153,13 +159,14 @@ def transform_user_response(user_view_fn):
 
     The issue was fixed in 3d2e95390c, but needs to be supported for API < 3
     """
+
     @wraps(user_view_fn)
     def wrapper(request, *args, **kwargs):
         user_dict = user_view_fn(request, *args, **kwargs)
 
         if request.api_version < 3:
-            user_dict['firstname'] = user_dict['first_name']
-            user_dict['lastname'] = user_dict['last_name']
+            user_dict["firstname"] = user_dict["first_name"]
+            user_dict["lastname"] = user_dict["last_name"]
 
         return user_dict
 

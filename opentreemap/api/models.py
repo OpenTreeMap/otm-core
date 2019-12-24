@@ -32,8 +32,8 @@ class APIAccessCredential(models.Model):
     @classmethod
     def create(clz, user=None):
         secret_key = base64.urlsafe_b64encode(os.urandom(64))
-        access_key = base64.urlsafe_b64encode(uuid.uuid4().bytes)\
-                           .replace('=', '')
+        access_key = base64.urlsafe_b64encode(uuid.uuid4().bytes).replace("=", "")
 
         return APIAccessCredential.objects.create(
-            user=user, access_key=access_key, secret_key=secret_key)
+            user=user, access_key=access_key, secret_key=secret_key
+        )

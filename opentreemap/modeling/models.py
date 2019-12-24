@@ -26,24 +26,29 @@ class Plan(models.Model):
 
     def to_json(self):
         return {
-            'id': self.id,
-            'revision': self.revision,
-            'owner': self.owner.username,
-            'name': self.name,
-            'description': self.description,
-            'is_published': self.is_published,
-            'scenarios': self.scenarios,
-            'zoom_lat_lng': self.zoom_lat_lng,
+            "id": self.id,
+            "revision": self.revision,
+            "owner": self.owner.username,
+            "name": self.name,
+            "description": self.description,
+            "is_published": self.is_published,
+            "scenarios": self.scenarios,
+            "zoom_lat_lng": self.zoom_lat_lng,
         }
 
     def update(self, plan_dict):
         for key, value in plan_dict.iteritems():
-            if key in ('revision', 'name', 'description', 'is_published',
-                       'scenarios', 'zoom_lat_lng'):
+            if key in (
+                "revision",
+                "name",
+                "description",
+                "is_published",
+                "scenarios",
+                "zoom_lat_lng",
+            ):
                 setattr(self, key, value)
-            elif key not in ('id', 'owner'):
-                raise ValidationError(
-                    'Unexpected key in plan JSON: %s' % key)
+            elif key not in ("id", "owner"):
+                raise ValidationError("Unexpected key in plan JSON: %s" % key)
 
     def save(self, *args, **kwargs):
         self.prioritization_params = '{"dummy": 1}'

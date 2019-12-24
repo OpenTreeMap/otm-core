@@ -16,7 +16,7 @@ class UrlHelper(object):
 
     def update_query_data(self, **kwargs):
         for key, val in kwargs.iteritems():
-            if hasattr(val, '__iter__'):
+            if hasattr(val, "__iter__"):
                 self.query_dict.setlist(key, val)
             else:
                 self.query_dict[key] = val
@@ -24,8 +24,8 @@ class UrlHelper(object):
     def get_full_path(self, **kwargs):
         query_string = self.get_query_string(**kwargs)
         if query_string:
-            query_string = '?' + query_string
-        fragment = self.fragment and '#' + iri_to_uri(self.fragment) or ''
+            query_string = "?" + query_string
+        fragment = self.fragment and "#" + iri_to_uri(self.fragment) or ""
 
         return iri_to_uri(self.path) + query_string + fragment
 

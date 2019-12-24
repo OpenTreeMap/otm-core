@@ -8,8 +8,7 @@ import json
 from unittest.case import skip
 
 from django.test.client import RequestFactory
-from django.core.exceptions import (FieldError, ValidationError,
-                                    ObjectDoesNotExist)
+from django.core.exceptions import FieldError, ValidationError, ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 
 from django.db import IntegrityError, connection
@@ -18,21 +17,33 @@ from django.contrib.gis.geos import Point
 from stormwater.models import RainBarrel
 from treemap.templatetags.util import audit_detail_link
 
-from treemap.models import (Tree, Plot, FieldPermission, User, InstanceUser,
-                            Instance)
-from treemap.audit import (Audit, Role, UserTrackingException,
-                           AuthorizeException, ReputationMetric,
-                           approve_or_reject_audits_and_apply,
-                           approve_or_reject_audit_and_apply,
-                           approve_or_reject_existing_edit,
-                           get_id_sequence_name)
+from treemap.models import Tree, Plot, FieldPermission, User, InstanceUser, Instance
+from treemap.audit import (
+    Audit,
+    Role,
+    UserTrackingException,
+    AuthorizeException,
+    ReputationMetric,
+    approve_or_reject_audits_and_apply,
+    approve_or_reject_audit_and_apply,
+    approve_or_reject_existing_edit,
+    get_id_sequence_name,
+)
 from treemap.udf import UserDefinedFieldDefinition
-from treemap.tests import (make_instance, make_user_with_default_role,
-                           make_user_and_role, make_commander_user,
-                           make_officer_user, make_observer_user,
-                           make_apprentice_user, set_write_permissions,
-                           make_admin_user, make_tweaker_user,
-                           make_conjurer_user, make_commander_role)
+from treemap.tests import (
+    make_instance,
+    make_user_with_default_role,
+    make_user_and_role,
+    make_commander_user,
+    make_officer_user,
+    make_observer_user,
+    make_apprentice_user,
+    set_write_permissions,
+    make_admin_user,
+    make_tweaker_user,
+    make_conjurer_user,
+    make_commander_role,
+)
 from treemap.tests.base import OTMTestCase
 
 
@@ -50,17 +61,20 @@ class ScopeModelTest(OTMTestCase):
 
         self.instance1 = make_instance(point=self.p1)
         self.instance1.default_role.instance_permissions.add(
-            *Role.model_permissions((Plot, Tree)))
+            *Role.model_permissions((Plot, Tree))
+        )
 
-        self.user = make_user_with_default_role(self.instance1, 'auser')
+        self.user = make_user_with_default_role(self.instance1, "auser")
         self.instance1.default_role.instance_permissions.add(
-            *Role.model_permissions((Plot, Tree)))
+            *Role.model_permissions((Plot, Tree))
+        )
 
-        self.instance2 = make_instance(name='i2')
+        self.instance2 = make_instance(name="i2")
         self.instance2.save()
 
-        iuser = InstanceUser(instance=self.instance2, user=self.user,
-                             role=self.instance1.default_role)
+        iuser = InstanceUser(
+            instance=self.instance2, user=self.user, role=self.instance1.default_role
+        )
         iuser.save_with_user(self.user)
 
         self.plot1 = Plot(geom=self.p1, instance=self.instance1)
@@ -112,23 +126,25 @@ class ScopeModelTest(OTMTestCase):
 
 
 class AuditTest(OTMTestCase):
-
     def setUp(self):
         inst = self.instance = make_instance()
 
         field_permissions = (
-            ('Tree', 'species', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'readonly', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'diameter', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'height', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'canopy_height', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'date_planted', FieldPermission.WRITE_DIRECTLY),
-            ('Tree', 'date_removed', FieldPermission.WRITE_DIRECTLY))
+            ("Tree", "species", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "readonly", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "diameter", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "height", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "canopy_height", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "date_planted", FieldPermission.WRITE_DIRECTLY),
+            ("Tree", "date_removed", FieldPermission.WRITE_DIRECTLY),
+        )
 
-        self.user1 = make_user_and_role(inst, 'charles', 'role1',
-                                        field_permissions, (Plot, Tree))
-        self.user2 = make_user_and_role(inst, 'amy', 'role2',
-                                        field_permissions, (Plot, Tree))
+        self.user1 = make_user_and_role(
+            inst, "charles", "role1", field_permissions, (Plot, Tree)
+        )
+        self.user2 = make_user_and_role(
+            inst, "amy", "role2", field_permissions, (Plot, Tree)
+        )
 
     def assertAuditsEqual(self, exps, acts):
         self.assertEqual(len(exps), len(acts))
@@ -136,15 +152,16 @@ class AuditTest(OTMTestCase):
         exps = list(exps)
         for act in acts:
             act = act.dict()
-            act['created'] = None
+            act["created"] = None
 
             if act in exps:
                 exps.remove(act)
             else:
-                raise AssertionError('Missing audit record for %s' % act)
+                raise AssertionError("Missing audit record for %s" % act)
 
-    def make_audit(self, pk, field, old, new,
-                   action=Audit.Type.Insert, user=None, model=u'Tree'):
+    def make_audit(
+        self, pk, field, old, new, action=Audit.Type.Insert, user=None, model="Tree"
+    ):
         if field:
             field = unicode(field)
         if old:
@@ -154,17 +171,19 @@ class AuditTest(OTMTestCase):
 
         user = user or self.user1
 
-        return {'model': model,
-                'model_id': pk,
-                'instance_id': self.instance.pk,
-                'field': field,
-                'previous_value': old,
-                'current_value': new,
-                'user_id': user.pk,
-                'action': action,
-                'requires_auth': False,
-                'ref': None,
-                'created': None}
+        return {
+            "model": model,
+            "model_id": pk,
+            "instance_id": self.instance.pk,
+            "field": field,
+            "previous_value": old,
+            "current_value": new,
+            "user_id": user.pk,
+            "action": action,
+            "requires_auth": False,
+            "ref": None,
+            "created": None,
+        }
 
     def test_cant_use_regular_methods(self):
         plot = Plot(geom=self.instance.center, instance=self.instance)
@@ -179,21 +198,24 @@ class AuditTest(OTMTestCase):
         plot = Plot(geom=self.instance.center, instance=self.instance)
         plot.save_with_user(self.user1)
 
-        self.assertAuditsEqual([
-            self.make_audit(plot.pk, 'id', None, str(plot.pk), model='Plot'),
-            self.make_audit(plot.pk, 'readonly', None, 'False',
-                            model='Plot'),
-            self.make_audit(plot.pk, 'geom', None, str(plot.geom),
-                            model='Plot')], plot.audits())
+        self.assertAuditsEqual(
+            [
+                self.make_audit(plot.pk, "id", None, str(plot.pk), model="Plot"),
+                self.make_audit(plot.pk, "readonly", None, "False", model="Plot"),
+                self.make_audit(plot.pk, "geom", None, str(plot.geom), model="Plot"),
+            ],
+            plot.audits(),
+        )
 
         t = Tree(plot=plot, instance=self.instance, readonly=True)
 
         t.save_with_user(self.user1)
 
         expected_audits = [
-            self.make_audit(t.pk, 'id', None, str(t.pk)),
-            self.make_audit(t.pk, 'readonly', None, True),
-            self.make_audit(t.pk, 'plot', None, plot.pk)]
+            self.make_audit(t.pk, "id", None, str(t.pk)),
+            self.make_audit(t.pk, "readonly", None, True),
+            self.make_audit(t.pk, "plot", None, plot.pk),
+        ]
 
         self.assertAuditsEqual(expected_audits, t.audits())
 
@@ -201,8 +223,16 @@ class AuditTest(OTMTestCase):
         t.save_with_user(self.user2)
 
         expected_audits.insert(
-            0, self.make_audit(t.pk, 'readonly', 'True', 'False',
-                               action=Audit.Type.Update, user=self.user2))
+            0,
+            self.make_audit(
+                t.pk,
+                "readonly",
+                "True",
+                "False",
+                action=Audit.Type.Update,
+                user=self.user2,
+            ),
+        )
 
         self.assertAuditsEqual(expected_audits, t.audits())
 
@@ -210,17 +240,19 @@ class AuditTest(OTMTestCase):
         t.delete_with_user(self.user1)
 
         expected_audits.insert(
-            0, self.make_audit(old_pk, None, None, None,
-                               action=Audit.Type.Delete, user=self.user1))
+            0,
+            self.make_audit(
+                old_pk, None, None, None, action=Audit.Type.Delete, user=self.user1
+            ),
+        )
 
         self.assertAuditsEqual(
-            expected_audits,
-            Audit.audits_for_model('Tree', self.instance, old_pk))
+            expected_audits, Audit.audits_for_model("Tree", self.instance, old_pk)
+        )
 
     def test_get_id_sequence_name(self):
-        self.assertEqual(get_id_sequence_name(Tree), 'treemap_tree_id_seq')
-        self.assertEqual(get_id_sequence_name(Plot),
-                         'treemap_mapfeature_id_seq')
+        self.assertEqual(get_id_sequence_name(Tree), "treemap_tree_id_seq")
+        self.assertEqual(get_id_sequence_name(Plot), "treemap_mapfeature_id_seq")
 
 
 class MultiUserTestCase(OTMTestCase):
@@ -231,7 +263,7 @@ class MultiUserTestCase(OTMTestCase):
         self.direct_user = make_officer_user(self.instance)
         self.pending_user = make_apprentice_user(self.instance)
         self.observer_user = make_observer_user(self.instance)
-        self.outlaw_user = make_user_with_default_role(self.instance, 'outlaw')
+        self.outlaw_user = make_user_with_default_role(self.instance, "outlaw")
         self.tweaker_user = make_tweaker_user(self.instance)
         self.conjurer_user = make_conjurer_user(self.instance)
 
@@ -247,16 +279,15 @@ class ReviewTest(MultiUserTestCase):
         self.plot.width = 444
         self.plot.save_with_user(self.commander_user)
 
-        width_audit = self.plot.audits().order_by('-created')[0]
+        width_audit = self.plot.audits().order_by("-created")[0]
 
         # Sanity check
-        self.assertEqual(width_audit.field, 'width')
+        self.assertEqual(width_audit.field, "width")
 
         # Should not have a reference associated with it
         self.assertIsNone(width_audit.ref)
 
-        approve_or_reject_existing_edit(
-            width_audit, self.commander_user, approved=True)
+        approve_or_reject_existing_edit(width_audit, self.commander_user, approved=True)
 
         width_audit_reloaded = Audit.objects.get(pk=width_audit.pk)
         self.assertIsNotNone(width_audit_reloaded.ref)
@@ -271,16 +302,17 @@ class ReviewTest(MultiUserTestCase):
         self.plot.width = 555
         self.plot.save_with_user(self.commander_user)
 
-        width_audit = self.plot.audits().order_by('-created')[0]
+        width_audit = self.plot.audits().order_by("-created")[0]
 
         # Sanity check
-        self.assertEqual(width_audit.field, 'width')
+        self.assertEqual(width_audit.field, "width")
 
         # Should not have a reference associated with it
         self.assertIsNone(width_audit.ref)
 
         approve_or_reject_existing_edit(
-            width_audit, self.commander_user, approved=False)
+            width_audit, self.commander_user, approved=False
+        )
 
         width_audit_reloaded = Audit.objects.get(pk=width_audit.pk)
         self.assertIsNotNone(width_audit_reloaded.ref)
@@ -292,10 +324,9 @@ class ReviewTest(MultiUserTestCase):
         self.assertEqual(plot_reloaded.width, 444)
 
     def test_reject_id_edit(self):
-        id_audit = self.plot.audits().get(field='id')
+        id_audit = self.plot.audits().get(field="id")
 
-        approve_or_reject_existing_edit(
-            id_audit, self.commander_user, approved=False)
+        approve_or_reject_existing_edit(id_audit, self.commander_user, approved=False)
 
         all_audits = list(self.plot.audits())
 
@@ -307,53 +338,68 @@ class ReviewTest(MultiUserTestCase):
         self.assertIsNotNone(ref_audit)
         self.assertEqual(ref_audit.action, Audit.Type.ReviewReject)
 
-        self.assertRaises(Plot.DoesNotExist,
-                          Plot.objects.get, pk=self.plot.pk)
+        self.assertRaises(Plot.DoesNotExist, Plot.objects.get, pk=self.plot.pk)
 
     def test_requires_write_permissions_on_field(self):
         self.plot.width = 333
         self.plot.save_with_user(self.commander_user)
 
-        width_audit = self.plot.audits().order_by('-created')[0]
+        width_audit = self.plot.audits().order_by("-created")[0]
 
         # Read only can't edit
-        FieldPermission.objects.filter(field_name='width').update(
-            permission_level=FieldPermission.READ_ONLY)
+        FieldPermission.objects.filter(field_name="width").update(
+            permission_level=FieldPermission.READ_ONLY
+        )
 
-        self.assertRaises(AuthorizeException,
-                          approve_or_reject_existing_edit,
-                          width_audit, self.commander_user, approved=True)
+        self.assertRaises(
+            AuthorizeException,
+            approve_or_reject_existing_edit,
+            width_audit,
+            self.commander_user,
+            approved=True,
+        )
 
         # Neither can 'write with audit'
-        FieldPermission.objects.filter(field_name='width').update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+        FieldPermission.objects.filter(field_name="width").update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT
+        )
 
-        self.assertRaises(AuthorizeException,
-                          approve_or_reject_existing_edit,
-                          width_audit, self.commander_user, approved=True)
+        self.assertRaises(
+            AuthorizeException,
+            approve_or_reject_existing_edit,
+            width_audit,
+            self.commander_user,
+            approved=True,
+        )
 
         # But write directly can
-        FieldPermission.objects.filter(field_name='width').update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
+        FieldPermission.objects.filter(field_name="width").update(
+            permission_level=FieldPermission.WRITE_DIRECTLY
+        )
 
-        approve_or_reject_existing_edit(
-            width_audit, self.commander_user, approved=True)
+        approve_or_reject_existing_edit(width_audit, self.commander_user, approved=True)
 
     def test_reject_or_approve_pending_edit_fails(self):
-        FieldPermission.objects.filter(field_name='width').update(
-            permission_level=FieldPermission.WRITE_WITH_AUDIT)
+        FieldPermission.objects.filter(field_name="width").update(
+            permission_level=FieldPermission.WRITE_WITH_AUDIT
+        )
 
         self.plot.width = 333
         self.plot.save_with_user(self.commander_user)
 
-        pdg_width_audit = self.plot.audits().order_by('-created')[0]
+        pdg_width_audit = self.plot.audits().order_by("-created")[0]
 
-        FieldPermission.objects.filter(field_name='width').update(
-            permission_level=FieldPermission.WRITE_DIRECTLY)
+        FieldPermission.objects.filter(field_name="width").update(
+            permission_level=FieldPermission.WRITE_DIRECTLY
+        )
 
-        self.assertRaises(Exception,
-                          approve_or_reject_existing_edit,
-                          pdg_width_audit, self.commander_user, approved=True)
+        self.assertRaises(
+            Exception,
+            approve_or_reject_existing_edit,
+            pdg_width_audit,
+            self.commander_user,
+            approved=True,
+        )
 
     def test_rejecting_old_edits_doesnt_update_object(self):
         self.plot.width = 333
@@ -362,13 +408,14 @@ class ReviewTest(MultiUserTestCase):
         self.plot.width = 444
         self.plot.save_with_user(self.commander_user)
 
-        width_audit = self.plot.audits().order_by('-created')[0]
+        width_audit = self.plot.audits().order_by("-created")[0]
 
         self.plot.width = 555
         self.plot.save_with_user(self.commander_user)
 
         approve_or_reject_existing_edit(
-            width_audit, self.commander_user, approved=False)
+            width_audit, self.commander_user, approved=False
+        )
 
         reloaded_plot = Plot.objects.get(pk=self.plot.pk)
         self.assertEqual(reloaded_plot.width, 555)
@@ -377,12 +424,13 @@ class ReviewTest(MultiUserTestCase):
         self.plot.width = 444
         self.plot.save_with_user(self.commander_user)
 
-        width_audit = self.plot.audits().order_by('-created')[0]
+        width_audit = self.plot.audits().order_by("-created")[0]
 
         self.plot.delete_with_user(self.commander_user, cascade=True)
 
         approve_or_reject_existing_edit(
-            width_audit, self.commander_user, approved=False)
+            width_audit, self.commander_user, approved=False
+        )
 
 
 class PendingTest(OTMTestCase):
@@ -414,13 +462,16 @@ class PendingTest(OTMTestCase):
 
         # Users who don't have direct field access can't reject
         # the edit
-        self.assertRaises(AuthorizeException,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.observer_user, approved=False)
+        self.assertRaises(
+            AuthorizeException,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.observer_user,
+            approved=False,
+        )
 
         # User with write access can reject the change
-        approve_or_reject_audit_and_apply(
-            audit, self.direct_user, approved=False)
+        approve_or_reject_audit_and_apply(audit, self.direct_user, approved=False)
 
         # Reload from DB
         audit = Audit.objects.get(pk=audit.pk)
@@ -434,24 +485,30 @@ class PendingTest(OTMTestCase):
         self.assertEqual(refaudit.action, Audit.Type.PendingReject)
 
         # The object shouldn't have changed
-        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length,
-                         plot_length_orig)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, plot_length_orig)
 
         ohash = Plot.objects.get(pk=self.plot.pk).hash
 
         # Can't reject a pending edit twice
-        self.assertRaises(Exception,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.direct_user, approved=False)
+        self.assertRaises(
+            Exception,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.direct_user,
+            approved=False,
+        )
 
         # Can't approve a pending edit once rejected
-        self.assertRaises(Exception,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.direct_user, approved=False)
+        self.assertRaises(
+            Exception,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.direct_user,
+            approved=False,
+        )
 
         # Nothing was changed, no audits were added
-        self.assertEqual(ohash,
-                         Plot.objects.get(pk=self.plot.pk).hash)
+        self.assertEqual(ohash, Plot.objects.get(pk=self.plot.pk).hash)
 
     def test_accept(self):
         # Setup
@@ -469,13 +526,16 @@ class PendingTest(OTMTestCase):
 
         # Users who don't have direct field access can't accept
         # the edit
-        self.assertRaises(AuthorizeException,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.observer_user, approved=True)
+        self.assertRaises(
+            AuthorizeException,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.observer_user,
+            approved=True,
+        )
 
         # User with write access can apply the change
-        approve_or_reject_audit_and_apply(
-            audit, self.direct_user, approved=True)
+        approve_or_reject_audit_and_apply(audit, self.direct_user, approved=True)
 
         # Reload from DB
         audit = Audit.objects.get(pk=audit.pk)
@@ -489,28 +549,33 @@ class PendingTest(OTMTestCase):
         self.assertEqual(refaudit.action, Audit.Type.PendingApprove)
 
         # The object should be updated
-        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length,
-                         plot_length_new)
+        self.assertEqual(Plot.objects.get(pk=self.plot.pk).length, plot_length_new)
 
         ohash = Plot.objects.get(pk=self.plot.pk).hash
 
         # Can't approve a pending edit twice
-        self.assertRaises(Exception,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.direct_user, approved=True)
+        self.assertRaises(
+            Exception,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.direct_user,
+            approved=True,
+        )
 
         # Can't reject a pending edit once approved
-        self.assertRaises(Exception,
-                          approve_or_reject_audit_and_apply,
-                          audit, self.direct_user, approved=False)
+        self.assertRaises(
+            Exception,
+            approve_or_reject_audit_and_apply,
+            audit,
+            self.direct_user,
+            approved=False,
+        )
 
         # Nothing was changed, no audits were added
-        self.assertEqual(ohash,
-                         Plot.objects.get(pk=self.plot.pk).hash)
+        self.assertEqual(ohash, Plot.objects.get(pk=self.plot.pk).hash)
 
 
 class PendingInsertTest(OTMTestCase):
-
     def setUp(self):
         psycopg2.extras.register_hstore(connection.cursor(), globally=True)
 
@@ -527,18 +592,16 @@ class PendingInsertTest(OTMTestCase):
         # Give pending user permissions on all of the required
         # fields for a plot
         role = self.pending_user.get_instance_user(self.instance).role
-        role.fieldpermission_set\
-            .filter(field_name__in=['id', 'geom', 'readonly'])\
-            .update(permission_level=FieldPermission.WRITE_DIRECTLY)
+        role.fieldpermission_set.filter(
+            field_name__in=["id", "geom", "readonly"]
+        ).update(permission_level=FieldPermission.WRITE_DIRECTLY)
 
         self.assertEquals(Plot.objects.count(), 0)
 
         # new_plot should be created, but there should be
         # a pending record for length (and it should not be
         # applied)
-        new_plot = Plot(geom=self.p1,
-                        instance=self.instance,
-                        length=4)
+        new_plot = Plot(geom=self.p1, instance=self.instance, length=4)
 
         new_plot.save_with_user(self.pending_user)
 
@@ -557,8 +620,8 @@ class PendingInsertTest(OTMTestCase):
         self.assertEquals(Tree.objects.count(), 0)
 
         approve_or_reject_audits_and_apply(
-            list(new_tree.audits()) + list(new_plot.audits()),
-            self.commander_user, True)
+            list(new_tree.audits()) + list(new_plot.audits()), self.commander_user, True
+        )
 
         self.assertEqual(Plot.objects.all().count(), 1)
         self.assertEqual(Tree.objects.all().count(), 1)
@@ -567,26 +630,26 @@ class PendingInsertTest(OTMTestCase):
         new_plot = Plot(geom=self.p1, instance=self.instance)
         new_plot.save_with_user(self.pending_user)
 
-        new_tree = Tree(plot=new_plot, instance=self.instance,
-                        diameter=10, height=10, readonly=False)
+        new_tree = Tree(
+            plot=new_plot,
+            instance=self.instance,
+            diameter=10,
+            height=10,
+            readonly=False,
+        )
 
         new_tree.save_with_user(self.pending_user)
 
-        approve_or_reject_audits_and_apply(
-            new_plot.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(new_plot.audits(), self.commander_user, True)
 
-        insert_audit = Audit.objects.filter(model='Tree')\
-                                    .get(field='id')
-        field_audits = Audit.objects.filter(model='Tree')\
-                                    .filter(field__in=['readonly', 'diameter',
-                                                       'plot'])
+        insert_audit = Audit.objects.filter(model="Tree").get(field="id")
+        field_audits = Audit.objects.filter(model="Tree").filter(
+            field__in=["readonly", "diameter", "plot"]
+        )
         for audit in field_audits:
-            approve_or_reject_audit_and_apply(
-                audit, self.commander_user, approved=True)
+            approve_or_reject_audit_and_apply(audit, self.commander_user, approved=True)
 
-        approve_or_reject_audit_and_apply(insert_audit,
-                                          self.commander_user, True)
+        approve_or_reject_audit_and_apply(insert_audit, self.commander_user, True)
 
         real_tree = Tree.objects.get(pk=new_tree.pk)
 
@@ -599,17 +662,13 @@ class PendingInsertTest(OTMTestCase):
         new_plot = Plot(geom=self.p1, instance=self.instance)
         new_plot.save_with_user(self.pending_user)
 
-        insert_audit = Audit.objects.filter(model='Plot')\
-                                    .get(field='id')
-        field_audits = Audit.objects.filter(model='Plot')\
-                                    .exclude(field='id')
+        insert_audit = Audit.objects.filter(model="Plot").get(field="id")
+        field_audits = Audit.objects.filter(model="Plot").exclude(field="id")
 
         for audit in field_audits:
-            approve_or_reject_audit_and_apply(
-                audit, self.commander_user, approved=True)
+            approve_or_reject_audit_and_apply(audit, self.commander_user, approved=True)
 
-        approve_or_reject_audit_and_apply(insert_audit,
-                                          self.commander_user, False)
+        approve_or_reject_audit_and_apply(insert_audit, self.commander_user, False)
 
         # need to refresh the field_audits collection from the db
         # because references are broken
@@ -621,93 +680,110 @@ class PendingInsertTest(OTMTestCase):
         for field_audit in field_audits:
             attached_review_audit = Audit.objects.get(pk=field_audit.ref.pk)
 
-            self.assertEqual(attached_review_audit.action,
-                             Audit.Type.PendingReject)
+            self.assertEqual(attached_review_audit.action, Audit.Type.PendingReject)
 
-            self.assertNotEqual(None,
-                                Audit.objects.get(
-                                    model=field_audit.model,
-                                    field=field_audit.field,
-                                    model_id=field_audit.model_id,
-                                    action=Audit.Type.PendingApprove))
+            self.assertNotEqual(
+                None,
+                Audit.objects.get(
+                    model=field_audit.model,
+                    field=field_audit.field,
+                    model_id=field_audit.model_id,
+                    action=Audit.Type.PendingApprove,
+                ),
+            )
 
     @skip("Insert pending approval not implemented at this time")
     def test_approve_insert_without_required_raises_integrity_error(self):
         new_plot = Plot(geom=self.p1, instance=self.instance)
         new_plot.save_with_user(self.pending_user)
 
-        new_tree = Tree(plot=new_plot, instance=self.instance,
-                        diameter=10, height=10, readonly=False)
+        new_tree = Tree(
+            plot=new_plot,
+            instance=self.instance,
+            diameter=10,
+            height=10,
+            readonly=False,
+        )
         new_tree.save_with_user(self.pending_user)
 
-        approve_or_reject_audits_and_apply(
-            new_plot.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(new_plot.audits(), self.commander_user, True)
 
-        diameter_audit = Audit.objects.get(model='Tree',
-                                           field='diameter',
-                                           model_id=new_tree.pk)
-        insert_audit = Audit.objects.get(model='Tree',
-                                         model_id=new_tree.pk,
-                                         field='id')
+        diameter_audit = Audit.objects.get(
+            model="Tree", field="diameter", model_id=new_tree.pk
+        )
+        insert_audit = Audit.objects.get(model="Tree", model_id=new_tree.pk, field="id")
 
         approve_or_reject_audit_and_apply(
-            diameter_audit, self.commander_user, approved=True)
+            diameter_audit, self.commander_user, approved=True
+        )
 
-        self.assertRaises(IntegrityError, approve_or_reject_audit_and_apply,
-                          insert_audit, self.commander_user, True)
+        self.assertRaises(
+            IntegrityError,
+            approve_or_reject_audit_and_apply,
+            insert_audit,
+            self.commander_user,
+            True,
+        )
 
-    @skip('Pending udfs are not implemented')
+    @skip("Pending udfs are not implemented")
     def test_pending_udf_audits(self):
         UserDefinedFieldDefinition.objects.create(
             instance=self.instance,
-            model_type='Plot',
-            datatype=json.dumps({'type': 'choice',
-                                 'choices': ['1', '2', '3']}),
+            model_type="Plot",
+            datatype=json.dumps({"type": "choice", "choices": ["1", "2", "3"]}),
             iscollection=False,
-            name='times climbed')
+            name="times climbed",
+        )
 
-        set_write_permissions(self.instance, self.commander_user,
-                              'Plot', ['udf:times climbed'])
+        set_write_permissions(
+            self.instance, self.commander_user, "Plot", ["udf:times climbed"]
+        )
 
         FieldPermission.objects.create(
-            model_name='Plot',
-            field_name='udf:times climbed',
+            model_name="Plot",
+            field_name="udf:times climbed",
             permission_level=FieldPermission.WRITE_WITH_AUDIT,
             role=self.pending_user.get_instance_user(self.instance).role,
-            instance=self.instance)
+            instance=self.instance,
+        )
 
         initial_plot = Plot(geom=self.p1, instance=self.instance)
-        initial_plot.udfs['times climbed'] = '2'
+        initial_plot.udfs["times climbed"] = "2"
         initial_plot.save_with_user(self.pending_user)
 
-        udf_audit = Audit.objects.get(model='Plot', field='udf:times climbed',
-                                      model_id=initial_plot.pk)
-        approve_or_reject_audit_and_apply(udf_audit, self.commander_user,
-                                          approved=True)
+        udf_audit = Audit.objects.get(
+            model="Plot", field="udf:times climbed", model_id=initial_plot.pk
+        )
+        approve_or_reject_audit_and_apply(udf_audit, self.commander_user, approved=True)
 
-        geom_audit = Audit.objects.get(model='Plot', field='geom',
-                                       model_id=initial_plot.pk)
-        approve_or_reject_audit_and_apply(geom_audit, self.commander_user,
-                                          approved=True)
+        geom_audit = Audit.objects.get(
+            model="Plot", field="geom", model_id=initial_plot.pk
+        )
+        approve_or_reject_audit_and_apply(
+            geom_audit, self.commander_user, approved=True
+        )
 
-        readonly_audit = Audit.objects.get(model='Plot', field='readonly',
-                                           model_id=initial_plot.pk)
-        approve_or_reject_audit_and_apply(readonly_audit,
-                                          self.commander_user, approved=True)
+        readonly_audit = Audit.objects.get(
+            model="Plot", field="readonly", model_id=initial_plot.pk
+        )
+        approve_or_reject_audit_and_apply(
+            readonly_audit, self.commander_user, approved=True
+        )
 
-        insert_audit = Audit.objects.get(model='Plot', field='id',
-                                         model_id=initial_plot.pk)
+        insert_audit = Audit.objects.get(
+            model="Plot", field="id", model_id=initial_plot.pk
+        )
 
-        approve_or_reject_audit_and_apply(insert_audit,
-                                          self.commander_user, approved=True)
+        approve_or_reject_audit_and_apply(
+            insert_audit, self.commander_user, approved=True
+        )
 
         new_plot = Plot.objects.get(pk=initial_plot.pk)
 
         self.assertEqual(new_plot.pk, initial_plot.pk)
         self.assertEqual(new_plot.readonly, False)
         self.assertEqual(new_plot.geom, self.p1)
-        self.assertEqual(new_plot.udfs['times climbed'], '2')
+        self.assertEqual(new_plot.udfs["times climbed"], "2")
 
     @skip("Insert pending approval not implemented at this time")
     def test_lots_of_trees_and_plots(self):
@@ -733,27 +809,22 @@ class PendingInsertTest(OTMTestCase):
         tree4 = Tree(plot=plot3, instance=self.instance)
         tree4.save_with_user(self.pending_user)
 
-        approve_or_reject_audits_and_apply(
-            plot2.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(plot2.audits(), self.commander_user, True)
 
-        approve_or_reject_audits_and_apply(
-            tree1.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(tree1.audits(), self.commander_user, True)
 
-        approve_or_reject_audits_and_apply(
-            tree2.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(tree2.audits(), self.commander_user, True)
 
-        approve_or_reject_audits_and_apply(
-            tree3.audits(),
-            self.commander_user, True)
+        approve_or_reject_audits_and_apply(tree3.audits(), self.commander_user, True)
 
         self.assertRaises(ObjectDoesNotExist, Plot.objects.get, pk=plot3.pk)
-        self.assertRaises(ObjectDoesNotExist,
-                          approve_or_reject_audits_and_apply,
-                          tree4.audits(),
-                          self.commander_user, True)
+        self.assertRaises(
+            ObjectDoesNotExist,
+            approve_or_reject_audits_and_apply,
+            tree4.audits(),
+            self.commander_user,
+            True,
+        )
 
 
 class ReputationTest(OTMTestCase):
@@ -769,69 +840,86 @@ class ReputationTest(OTMTestCase):
 
         self.plot.save_with_user(self.commander)
 
-        rm = ReputationMetric(instance=self.instance, model_name='Tree',
-                              action=Audit.Type.Insert, direct_write_score=2,
-                              approval_score=20, denial_score=5)
+        rm = ReputationMetric(
+            instance=self.instance,
+            model_name="Tree",
+            action=Audit.Type.Insert,
+            direct_write_score=2,
+            approval_score=20,
+            denial_score=5,
+        )
         rm.save()
 
     def test_reputations_increase_for_direct_writes(self):
         self.assertEqual(self.privileged_user.get_reputation(self.instance), 0)
-        t = Tree(plot=self.plot, instance=self.instance,
-                 readonly=True)
+        t = Tree(plot=self.plot, instance=self.instance, readonly=True)
         t.save_with_user(self.privileged_user)
         user = User.objects.get(pk=self.privileged_user.id)
         reputation = user.get_reputation(self.instance)
         self.assertGreater(reputation, 0)
 
     def test_reputation_metric_no_adjustment_for_no_rm_record(self):
-        audit = Audit(model='Plot', model_id=1,
-                      action=Audit.Type.Insert,
-                      instance=self.instance, field='readonly',
-                      previous_value=None,
-                      current_value=True,
-                      user=self.privileged_user)
+        audit = Audit(
+            model="Plot",
+            model_id=1,
+            action=Audit.Type.Insert,
+            instance=self.instance,
+            field="readonly",
+            previous_value=None,
+            current_value=True,
+            user=self.privileged_user,
+        )
 
         ReputationMetric.apply_adjustment(audit)
 
-        self.assertEqual(0,
-                         self.privileged_user.get_reputation(self.instance))
+        self.assertEqual(0, self.privileged_user.get_reputation(self.instance))
 
     def test_reputation_metric_positive_adjustment_for_rm(self):
-        self.assertEqual(0,
-                         self.unprivileged_user.get_reputation(self.instance))
-        audit = Audit(model='Tree', model_id=1,
-                      action=Audit.Type.Insert,
-                      instance=self.instance, field='readonly',
-                      previous_value=None,
-                      current_value=True,
-                      user=self.unprivileged_user)
+        self.assertEqual(0, self.unprivileged_user.get_reputation(self.instance))
+        audit = Audit(
+            model="Tree",
+            model_id=1,
+            action=Audit.Type.Insert,
+            instance=self.instance,
+            field="readonly",
+            previous_value=None,
+            current_value=True,
+            user=self.unprivileged_user,
+        )
 
         ReputationMetric.apply_adjustment(audit)
 
-        self.assertEqual(2,
-                         self.unprivileged_user.get_reputation(self.instance))
+        self.assertEqual(2, self.unprivileged_user.get_reputation(self.instance))
 
     def _test_negative_adjustment(self, initial, adjusted):
         iuser = self.unprivileged_user.get_instance_user(self.instance)
         iuser.reputation = initial
         iuser.save_base()
 
-        audit = Audit(model='Tree', model_id=1,
-                      action=Audit.Type.Insert,
-                      instance=self.instance, field='readonly',
-                      previous_value=None,
-                      current_value=True,
-                      user=self.unprivileged_user,
-                      requires_auth=True)
+        audit = Audit(
+            model="Tree",
+            model_id=1,
+            action=Audit.Type.Insert,
+            instance=self.instance,
+            field="readonly",
+            previous_value=None,
+            current_value=True,
+            user=self.unprivileged_user,
+            requires_auth=True,
+        )
         audit.save()
         self.assertEqual(initial, iuser.reputation)
 
-        review_audit = Audit(model='Tree', model_id=1,
-                             action=Audit.Type.PendingReject,
-                             instance=self.instance, field='readonly',
-                             previous_value=None,
-                             current_value=True,
-                             user=self.privileged_user)
+        review_audit = Audit(
+            model="Tree",
+            model_id=1,
+            action=Audit.Type.PendingReject,
+            instance=self.instance,
+            field="readonly",
+            previous_value=None,
+            current_value=True,
+            user=self.privileged_user,
+        )
         review_audit.save()
 
         audit.ref = review_audit
@@ -859,27 +947,31 @@ class UserRoleFieldPermissionTest(MultiUserTestCase):
 
     def test_no_permission_cant_edit_object(self):
         self.plot.length = 10
-        self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.outlaw_user)
+        self.assertRaises(
+            AuthorizeException, self.plot.save_with_user, self.outlaw_user
+        )
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
         self.tree.diameter = 10
-        self.assertRaises(AuthorizeException,
-                          self.tree.save_with_user, self.outlaw_user)
+        self.assertRaises(
+            AuthorizeException, self.tree.save_with_user, self.outlaw_user
+        )
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
     def test_readonly_cant_edit_object(self):
         self.plot.length = 10
-        self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.observer_user)
+        self.assertRaises(
+            AuthorizeException, self.plot.save_with_user, self.observer_user
+        )
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
 
         self.tree.diameter = 10
-        self.assertRaises(AuthorizeException,
-                          self.tree.save_with_user, self.observer_user)
+        self.assertRaises(
+            AuthorizeException, self.tree.save_with_user, self.observer_user
+        )
 
         self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
@@ -925,8 +1017,9 @@ class UserRoleFieldPermissionTest(MultiUserTestCase):
         self.plot.length = 10
         self.plot.width = 110
 
-        self.assertRaises(AuthorizeException,
-                          self.plot.save_with_user, self.direct_user)
+        self.assertRaises(
+            AuthorizeException, self.plot.save_with_user, self.direct_user
+        )
 
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).length, 10)
         self.assertNotEqual(Plot.objects.get(pk=self.plot.pk).width, 110)
@@ -934,14 +1027,13 @@ class UserRoleFieldPermissionTest(MultiUserTestCase):
         self.tree.diameter = 10
         self.tree.canopy_height = 110
 
-        self.assertRaises(AuthorizeException, self.tree.save_with_user,
-                          self.direct_user)
+        self.assertRaises(
+            AuthorizeException, self.tree.save_with_user, self.direct_user
+        )
 
-        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter,
-                            10)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).diameter, 10)
 
-        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height,
-                            110)
+        self.assertNotEqual(Tree.objects.get(pk=self.tree.pk).canopy_height, 110)
 
 
 class UserRoleModelPermissionTest(MultiUserTestCase):
@@ -960,8 +1052,8 @@ class UserRoleModelPermissionTest(MultiUserTestCase):
         iuser.save_with_user(self.commander_user)
 
     def test_save_new_object_authorized_officer(self):
-        ''' Save two new objects with authorized user,
-        nothing should happen'''
+        """ Save two new objects with authorized user,
+        nothing should happen"""
         plot = Plot(geom=self.p1, instance=self.instance)
 
         plot.save_with_user(self.direct_user)
@@ -971,8 +1063,8 @@ class UserRoleModelPermissionTest(MultiUserTestCase):
         tree.save_with_user(self.direct_user)
 
     def test_save_new_object_authorized_conjurer(self):
-        ''' Save two new objects with authorized user,
-        nothing should happen'''
+        """ Save two new objects with authorized user,
+        nothing should happen"""
         plot = Plot(geom=self.p1, instance=self.instance)
 
         plot.save_with_user(self.conjurer_user)
@@ -984,33 +1076,30 @@ class UserRoleModelPermissionTest(MultiUserTestCase):
     def test_save_new_object_unauthorized_outlaw(self):
         plot = Plot(geom=self.p1, instance=self.instance)
 
-        self.assertRaises(AuthorizeException,
-                          plot.save_with_user, self.outlaw_user)
+        self.assertRaises(AuthorizeException, plot.save_with_user, self.outlaw_user)
 
         plot.save_base()
         tree = Tree(plot=plot, instance=self.instance)
 
-        self.assertRaises(AuthorizeException,
-                          tree.save_with_user, self.outlaw_user)
+        self.assertRaises(AuthorizeException, tree.save_with_user, self.outlaw_user)
 
     def test_save_new_object_unauthorized_tweaker(self):
         plot = Plot(geom=self.p1, instance=self.instance)
 
-        self.assertRaises(AuthorizeException,
-                          plot.save_with_user, self.tweaker_user)
+        self.assertRaises(AuthorizeException, plot.save_with_user, self.tweaker_user)
 
         plot.save_base()
         tree = Tree(plot=plot, instance=self.instance)
 
-        self.assertRaises(AuthorizeException,
-                          tree.save_with_user, self.tweaker_user)
+        self.assertRaises(AuthorizeException, tree.save_with_user, self.tweaker_user)
 
     def test_assign_commander_role_can_delete(self):
         with self.assertRaises(AuthorizeException):
             self.tree.delete_with_user(self.outlaw_user)
 
         self._change_user_role(
-            self.outlaw_user, make_commander_role(self.tree.get_instance()))
+            self.outlaw_user, make_commander_role(self.tree.get_instance())
+        )
 
         self.tree.delete_with_user(self.outlaw_user)
         self.assertEqual(Tree.objects.count(), 0)
@@ -1039,7 +1128,7 @@ class UserCanDeleteTestCase(OTMTestCase):
 
         self.creator_user = make_officer_user(instance)
         self.admin_user = make_admin_user(instance)
-        self.other_user = make_observer_user(instance, username='other')
+        self.other_user = make_observer_user(instance, username="other")
         self.tweaker_user = make_tweaker_user(instance)
         self.conjurer_user = make_conjurer_user(instance)
 
@@ -1049,8 +1138,9 @@ class UserCanDeleteTestCase(OTMTestCase):
         self.tree = Tree(plot=self.plot, instance=instance)
         self.tree.save_with_user(self.creator_user)
 
-        self.rainBarrel = RainBarrel(geom=instance.center, instance=instance,
-                                     capacity=5)
+        self.rainBarrel = RainBarrel(
+            geom=instance.center, instance=instance, capacity=5
+        )
         self.rainBarrel.save_with_user(self.creator_user)
 
     def assert_can_delete(self, user, deletable, should_be_able_to_delete):
@@ -1095,8 +1185,7 @@ class FieldPermMgmtTest(OTMTestCase):
         self.instance = make_instance()
         self.commander = make_commander_user(self.instance)
 
-        self.new_role = Role(name='Ambassador', instance=self.instance,
-                             rep_thresh=0)
+        self.new_role = Role(name="Ambassador", instance=self.instance, rep_thresh=0)
         self.new_role.save()
 
         self.factory = RequestFactory()
@@ -1108,18 +1197,16 @@ class FieldPermMgmtTest(OTMTestCase):
         self.assertRaises(ValidationError, fp.save)
 
     def test_invalid_model_does_not_exist_unit(self):
-        self.assertInvalidFPRaises(model_name='Gethen', field_name='readonly')
+        self.assertInvalidFPRaises(model_name="Gethen", field_name="readonly")
 
     def test_invalid_model_does_not_authorizable_unit(self):
-        self.assertInvalidFPRaises(model_name='FieldPermission',
-                                   field_name='role')
+        self.assertInvalidFPRaises(model_name="FieldPermission", field_name="role")
 
     def test_invalid_field_name_unit(self):
-        self.assertInvalidFPRaises(model_name='Tree', field_name='model_name')
+        self.assertInvalidFPRaises(model_name="Tree", field_name="model_name")
 
 
 class AuditDetailTagTest(OTMTestCase):
-
     def setUp(self):
         self.p1 = Point(-8515222.0, 4953200.0)
 
@@ -1129,18 +1216,21 @@ class AuditDetailTagTest(OTMTestCase):
         self.plot = Plot(geom=self.p1, instance=self.instance)
         self.plot.save_with_user(self.user)
 
-        self.tree = Tree(
-            plot=self.plot, instance=self.instance, readonly=False)
+        self.tree = Tree(plot=self.plot, instance=self.instance, readonly=False)
         self.tree.save_with_user(self.user)
 
     def test_tree_link(self):
         audit = self.tree.audits()[0]
         link = audit_detail_link(audit)
 
-        target = reverse('tree_detail',
-                         kwargs={'instance_url_name': self.instance.url_name,
-                                 'feature_id': self.tree.plot.pk,
-                                 'tree_id': self.tree.pk})
+        target = reverse(
+            "tree_detail",
+            kwargs={
+                "instance_url_name": self.instance.url_name,
+                "feature_id": self.tree.plot.pk,
+                "tree_id": self.tree.pk,
+            },
+        )
 
         self.assertEqual(link, target)
 
@@ -1148,15 +1238,19 @@ class AuditDetailTagTest(OTMTestCase):
         audit = self.plot.audits()[0]
         link = audit_detail_link(audit)
 
-        target = reverse('map_feature_detail',
-                         kwargs={'instance_url_name': self.instance.url_name,
-                                 'feature_id': self.plot.pk})
+        target = reverse(
+            "map_feature_detail",
+            kwargs={
+                "instance_url_name": self.instance.url_name,
+                "feature_id": self.plot.pk,
+            },
+        )
 
         self.assertEqual(link, target)
 
     def test_bad_model_returns_none(self):
         audit = self.plot.audits()[0]
-        audit.model = 'invaild'
+        audit.model = "invaild"
 
         self.assertIsNone(audit_detail_link(audit))
 

@@ -8,8 +8,7 @@ from treemap.lib.object_caches import role_field_permissions
 
 from django.contrib.gis.db.models import Field
 from treemap.audit import Authorizable
-from treemap.models import (InstanceUser, Role, Plot, Tree, TreePhoto,
-                            MapFeaturePhoto)
+from treemap.models import InstanceUser, Role, Plot, Tree, TreePhoto, MapFeaturePhoto
 
 """
 Tools to assist in resolving permissions, specifically when the type of
@@ -29,18 +28,22 @@ on several models, and auxilary functions live in template_tags,
 object_caches, and probably views in the multiple packages.
 """
 
-WRITE = 'write'
-READ = 'read'
-ALLOWS_WRITES = 'allows_writes'
-ALLOWS_READS = 'allows_reads'
-PHOTO_PERM_FIELDS = frozenset({'image', 'thumbnail', 'id', 'map_feature'})
+WRITE = "write"
+READ = "read"
+ALLOWS_WRITES = "allows_writes"
+ALLOWS_READS = "allows_reads"
+PHOTO_PERM_FIELDS = frozenset({"image", "thumbnail", "id", "map_feature"})
 
 
-def _allows_perm(role_related_obj, model_name,
-                 predicate, perm_attr,
-                 field=None,
-                 fields=None,
-                 feature_name=None):
+def _allows_perm(
+    role_related_obj,
+    model_name,
+    predicate,
+    perm_attr,
+    field=None,
+    fields=None,
+    feature_name=None,
+):
     """
     The main permission testing function. This function should
     be called from exported (non-underscore) helper functions.
@@ -74,8 +77,7 @@ def _allows_perm(role_related_obj, model_name,
     if feature_name and not role.instance.feature_enabled(feature_name):
         return False
 
-    perms = {perm for perm in
-             role_field_permissions(role, role.instance, model_name)}
+    perms = {perm for perm in role_field_permissions(role, role.instance, model_name)}
 
     # process args
     if field and fields:
@@ -87,8 +89,7 @@ def _allows_perm(role_related_obj, model_name,
 
     # forcibly convert fields to a set of names (strings)
     # if they were passed in as objects.
-    fields = {field.name if isinstance(field, Field) else field
-              for field in fields}
+    fields = {field.name if isinstance(field, Field) else field for field in fields}
 
     if fields:
         perms = {perm for perm in perms if perm.field_name in fields}
@@ -131,14 +132,13 @@ def _get_role_from_related_object(role_related_obj):
     elif isinstance(role_related_obj, Role):
         return role_related_obj
     else:
-        raise NotImplementedError("Please provide a condition for '%s'"
-                                  % type(role_related_obj))
+        raise NotImplementedError(
+            "Please provide a condition for '%s'" % type(role_related_obj)
+        )
 
 
 def _invalid_instanceuser(instanceuser):
-    return (instanceuser is None or
-            instanceuser == '' or
-            instanceuser.user_id is None)
+    return instanceuser is None or instanceuser == "" or instanceuser.user_id is None
 
 
 def is_read_or_write(perm_string):
@@ -186,10 +186,10 @@ def udf_write_level(instanceuser, udf):
         role = instanceuser.role
 
     kwargs = {
-        'role_related_obj': role,
-        'model_name': udf.model_type,
-        'predicate': any,
-        'field': 'udf:' + udf.name
+        "role_related_obj": role,
+        "model_name": udf.model_type,
+        "predicate": any,
+        "field": "udf:" + udf.name,
     }
 
     if _allows_perm(perm_attr=ALLOWS_WRITES, **kwargs):
@@ -203,26 +203,28 @@ def udf_write_level(instanceuser, udf):
 
 
 def map_feature_is_writable(role_related_obj, model_obj, field=None):
-    feature_is_writable = _allows_perm(role_related_obj,
-                                       model_obj.__class__.__name__,
-                                       perm_attr=ALLOWS_WRITES,
-                                       predicate=any, field=field)
+    feature_is_writable = _allows_perm(
+        role_related_obj,
+        model_obj.__class__.__name__,
+        perm_attr=ALLOWS_WRITES,
+        predicate=any,
+        field=field,
+    )
     tree_is_creatable = False
     tree_is_writable = False
-    if (model_obj.__class__.__name__ == 'Plot' and field is None):
+    if model_obj.__class__.__name__ == "Plot" and field is None:
         tree_is_creatable = model_is_creatable(role_related_obj, Tree)
-        tree_is_writable = _allows_perm(role_related_obj,
-                                        'Tree',
-                                        perm_attr=ALLOWS_WRITES,
-                                        predicate=any)
+        tree_is_writable = _allows_perm(
+            role_related_obj, "Tree", perm_attr=ALLOWS_WRITES, predicate=any
+        )
 
     return feature_is_writable or tree_is_creatable or tree_is_writable
 
 
 def plot_is_writable(role_related_obj, field=None):
-    return _allows_perm(role_related_obj, 'Plot',
-                        perm_attr=ALLOWS_WRITES,
-                        predicate=any, field=field)
+    return _allows_perm(
+        role_related_obj, "Plot", perm_attr=ALLOWS_WRITES, predicate=any, field=field
+    )
 
 
 def plot_is_creatable(role_related_obj):
@@ -230,9 +232,9 @@ def plot_is_creatable(role_related_obj):
 
 
 def tree_is_writable(role_related_obj, field=None):
-    return _allows_perm(role_related_obj, 'Tree',
-                        perm_attr=ALLOWS_WRITES,
-                        predicate=any, field=field)
+    return _allows_perm(
+        role_related_obj, "Tree", perm_attr=ALLOWS_WRITES, predicate=any, field=field
+    )
 
 
 def model_is_creatable(role_related_obj, Model):
@@ -247,32 +249,36 @@ def any_resource_is_creatable(role_related_obj):
     if role is None:
         return False
 
-    return any(model_is_creatable(role, Model)
-               for Model in role.instance.resource_classes)
+    return any(
+        model_is_creatable(role, Model) for Model in role.instance.resource_classes
+    )
 
 
 def _get_associated_model_class(associated_model):
     if inspect.isclass(associated_model):
         clz = associated_model
     else:
-        if callable(getattr(associated_model, 'cast_to_subtype', None)):
+        if callable(getattr(associated_model, "cast_to_subtype", None)):
             associated_model = associated_model.cast_to_subtype()
-        clz = associated_model.__class__ if \
-            isinstance(associated_model, Authorizable) else associated_model
+        clz = (
+            associated_model.__class__
+            if isinstance(associated_model, Authorizable)
+            else associated_model
+        )
     return Tree if clz == Plot else clz
 
 
 def photo_is_addable(role_related_obj, associated_model):
-    '''
+    """
     photo_is_addable(role_related_obj, associated_model) returns
     True if a user possessing role_related_obj can add a photo
     to the associated_model, False otherwise.
 
     role_related_obj may be a role or an instance user.
     associated_model may be a model class or instance of a model.
-    '''
+    """
     AssociatedClass = _get_associated_model_class(associated_model)
     PhotoClass = TreePhoto if AssociatedClass == Tree else MapFeaturePhoto
-    codename = Role.permission_codename(AssociatedClass, 'add', photo=True)
+    codename = Role.permission_codename(AssociatedClass, "add", photo=True)
     role = _get_role_from_related_object(role_related_obj)
     return role and role.has_permission(codename, PhotoClass) or False

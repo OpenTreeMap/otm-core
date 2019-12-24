@@ -19,25 +19,24 @@ class ExportJob(models.Model):
     COMPLETE = 3
 
     STATUS_STRINGS = {
-        UNCAUGHT_EXCEPTION_ERROR: 'UNCAUGHT_EXCEPTION_ERROR',
-        PENDING: 'PENDING',
-        EMPTY_QUERYSET_ERROR: 'EMPTY_QUERYSET_ERROR',
-        MODEL_PERMISSION_ERROR: 'MODEL_PERMISSION_ERROR',
-        COMPLETE: 'COMPLETE',
+        UNCAUGHT_EXCEPTION_ERROR: "UNCAUGHT_EXCEPTION_ERROR",
+        PENDING: "PENDING",
+        EMPTY_QUERYSET_ERROR: "EMPTY_QUERYSET_ERROR",
+        MODEL_PERMISSION_ERROR: "MODEL_PERMISSION_ERROR",
+        COMPLETE: "COMPLETE",
     }
 
     STATUS_CHOICES = {
-        UNCAUGHT_EXCEPTION_ERROR: 'Something went wrong with your export.',
-        PENDING: 'Pending',
-        EMPTY_QUERYSET_ERROR: 'Query returned no trees or planting sites.',
-        MODEL_PERMISSION_ERROR: 'User has no permissions on this model',
-        COMPLETE: 'Ready',
+        UNCAUGHT_EXCEPTION_ERROR: "Something went wrong with your export.",
+        PENDING: "Pending",
+        EMPTY_QUERYSET_ERROR: "Query returned no trees or planting sites.",
+        MODEL_PERMISSION_ERROR: "User has no permissions on this model",
+        COMPLETE: "Ready",
     }
 
     instance = models.ForeignKey(Instance)
 
-    status = models.IntegerField(choices=STATUS_CHOICES.items(),
-                                 default=PENDING)
+    status = models.IntegerField(choices=STATUS_CHOICES.items(), default=PENDING)
     user = models.ForeignKey(User, null=True, blank=True)
     outfile = models.FileField(upload_to="exports/%Y/%m/%d")
     created = models.DateTimeField(null=True, blank=True)

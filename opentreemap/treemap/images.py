@@ -32,21 +32,21 @@ def _get_file_for_image(image, filename, format):
     temp = StringIO()
     image.save(temp, format=format)
     temp.seek(0)
-    return SimpleUploadedFile(filename, temp.read(),
-                              'image/%s' % format.lower())
+    return SimpleUploadedFile(filename, temp.read(), "image/%s" % format.lower())
 
 
 def save_image_from_request(request, name_prefix, thumb_size=None):
-    if 'file' in request.FILES:
-        image_data = request.FILES['file'].file
+    if "file" in request.FILES:
+        image_data = request.FILES["file"].file
     else:
         image_data = request.body
 
     return save_uploaded_image(image_data, name_prefix, thumb_size)
 
 
-def save_uploaded_image(image_data, name_prefix, thumb_size=None,
-                        degrees_to_rotate=None):
+def save_uploaded_image(
+    image_data, name_prefix, thumb_size=None, degrees_to_rotate=None
+):
     # We support passing data directly in here but we
     # have to treat it as a file-like object
     if type(image_data) is str:
@@ -56,7 +56,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
     file_size = image_data.tell()
 
     if file_size > settings.MAXIMUM_IMAGE_SIZE:
-        raise ValidationError(_('The uploaded image is too large'))
+        raise ValidationError(_("The uploaded image is too large"))
 
     image_data.seek(0)
 
@@ -64,7 +64,7 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
         image = Image.open(image_data)
         image.verify()
     except IOError:
-        raise ValidationError(_('Invalid image'))
+        raise ValidationError(_("Invalid image"))
 
     try:
         # http://pillow.readthedocs.org/en/latest/_modules/PIL/Image.html#Image.verify  # NOQA
@@ -89,19 +89,18 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
         if thumb_size is not None:
             thumb_image = image.copy()
             thumb_image.thumbnail(thumb_size, Image.ANTIALIAS)
-            thumb_file = _get_file_for_image(thumb_image, 'thumb-%s' % name,
-                                             format)
+            thumb_file = _get_file_for_image(thumb_image, "thumb-%s" % name, format)
 
         # Reset image position
         image_data.seek(0)
 
         return image_file, thumb_file
     except:
-        raise ValidationError(_('Image upload issue'))
+        raise ValidationError(_("Image upload issue"))
 
 
 def get_image_from_request(request):
-    if 'file' in request.FILES:
-        return request.FILES['file'].file
+    if "file" in request.FILES:
+        return request.FILES["file"].file
     else:
         return request.body

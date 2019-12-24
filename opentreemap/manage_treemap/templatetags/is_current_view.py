@@ -11,10 +11,9 @@ register = template.Library()
 
 @register.filter
 def is_current_view(request, views):
-    views = views.split(' ')
+    views = views.split(" ")
     for view in views:
-        url = reverse(view, kwargs={
-            'instance_url_name': request.instance.url_name})
+        url = reverse(view, kwargs={"instance_url_name": request.instance.url_name})
         if request.path == url:
             return True
 
