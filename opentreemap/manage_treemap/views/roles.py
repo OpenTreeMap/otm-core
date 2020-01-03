@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from copy import deepcopy
 
@@ -23,6 +23,7 @@ from treemap.lib.object_caches import role_field_permissions
 from treemap.plugin import get_instance_permission_spec
 
 from manage_treemap.views import remove_udf_notification
+from functools import reduce
 
 
 WRITE_PERM = (_('Full Write Access'),
@@ -70,19 +71,19 @@ def _update_perms_from_object(role_perms, instance):
     roles_by_id = {role.pk:
                    role for role in Role.objects.filter(instance=instance)}
     field_perms = {(role, perm.full_name): perm
-                   for role in roles_by_id.itervalues()
+                   for role in roles_by_id.values()
                    for perm in deepcopy(role_field_permissions(role))}
 
-    input_role_ids = [int(role_id) for role_id in role_perms.iterkeys()]
+    input_role_ids = [int(role_id) for role_id in role_perms.keys()]
     for role_id in input_role_ids:
         if role_id not in roles_by_id:
             raise ValidationError("Unrecognized role id [%s]" % role_id)
     input_roles = [roles_by_id[role_id] for role_id in input_role_ids]
 
-    input_role_fields = zip(input_roles, [
-        role_inputs['fields'] for role_inputs in role_perms.itervalues()])
-    input_role_models = zip(input_roles, [
-        role_inputs['models'] for role_inputs in role_perms.itervalues()])
+    input_role_fields = list(zip(input_roles, [
+        role_inputs['fields'] for role_inputs in role_perms.values()]))
+    input_role_models = list(zip(input_roles, [
+        role_inputs['models'] for role_inputs in role_perms.values()]))
 
     def validate_model_name(model_name, valid_names):
         if model_name not in valid_names:
@@ -91,7 +92,7 @@ def _update_perms_from_object(role_perms, instance):
                 (", ".join(valid_names), model_name))
 
     def validate_and_save_field_perm(role, field_perm):
-        for model_field_name, perm_type in field_perm.iteritems():
+        for model_field_name, perm_type in field_perm.items():
             model_name, field_name = dotted_split(model_field_name, 2)
             validate_model_name(model_name, valid_field_model_names)
 
@@ -145,7 +146,7 @@ def _update_perms_from_object(role_perms, instance):
 
     def validate_and_save_model_perm(role, model_perm):
         unassign = []
-        for model_perm_name, should_be_assigned in model_perm.iteritems():
+        for model_perm_name, should_be_assigned in model_perm.items():
             model_name, codename = dotted_split(model_perm_name, 2)
             validate_model_name(
                 model_name, set(valid_perm_models_by_name.keys()))
@@ -235,8 +236,8 @@ def roles_list(request, instance):
 
     def get_instance_perms(roles):
         def translated(spec):
-            return {k: unicode(v) if isinstance(v, Promise) else v
-                    for k, v in spec.iteritems()}
+            return {k: str(v) if isinstance(v, Promise) else v
+                    for k, v in spec.items()}
 
         def combine(base_dict, additional_dict):
             combination = deepcopy(base_dict)
@@ -263,13 +264,13 @@ def roles_list(request, instance):
             for spec in specs]
 
     def role_field_perms(Model):
-        return zip(*[get_field_perms(role, Model) for role in roles])
+        return list(zip(*[get_field_perms(role, Model) for role in roles]))
 
     def role_model_perms(Model):
-        return zip(*[get_role_model_perms(role, Model) for role in roles])
+        return list(zip(*[get_role_model_perms(role, Model) for role in roles]))
 
     def role_photo_perms(Model):
-        return zip(*[get_role_photo_perms(role, Model) for role in roles])
+        return list(zip(*[get_role_photo_perms(role, Model) for role in roles]))
 
     groups = [{
         'role_model_perms': role_model_perms(Model),

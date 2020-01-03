@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.paginator import Paginator, EmptyPage
@@ -34,7 +34,7 @@ def _extract_role_updates(post):
     mapping them to the values
     """
     updates = {}
-    for key, value in post.iteritems():
+    for key, value in post.items():
         if key.startswith("iuser_") and key.endswith("_role"):
             iuser_id = key[6:-5]
             updates[iuser_id] = value
@@ -190,7 +190,7 @@ def update_user_roles(request, instance):
                        (InstanceInvitation, 'invites')):
         updates = role_updates.get(key, {})
 
-        for pk, updated_info in updates.iteritems():
+        for pk, updated_info in updates.items():
             model = Model.objects.get(pk=pk)
 
             updated_role = int(updated_info.get('role', model.role_id))

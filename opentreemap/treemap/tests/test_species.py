@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from treemap.tests.base import OTMTestCase
 from treemap.species import species_for_otm_code, species_for_scientific_name

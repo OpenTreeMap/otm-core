@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import os
 import json
@@ -66,7 +66,7 @@ class UrlTestCase(OTMTestCase):
         self.assert_static_file_exists(expected_url)
 
     def assert_static_file_exists(self, url):
-        self.assertEquals(url[:8], '/static/')
+        self.assertEqual(url[:8], '/static/')
         path = os.path.join(STATIC_ROOT, url[8:])
         self.assertTrue(os.path.exists(path))
 

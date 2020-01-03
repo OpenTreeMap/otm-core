@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from contextlib import contextmanager
 from unittest.case import skip
@@ -281,11 +281,11 @@ class ResourceEcoBenefitsTest(EcoTestCase):
 
         plot_currencies = {
             cat: benefit.get('currency', None)
-            for cat, benefit in plot_benefits.items()}
+            for cat, benefit in list(plot_benefits.items())}
         self.assertIsNotNone(min(plot_currencies.values()))
 
         expected_total_currency = sum(
-            [benefit['currency'] for benefit in plot_benefits.values()]) - \
+            [benefit['currency'] for benefit in list(plot_benefits.values())]) - \
             plot_benefits[BenefitCategory.CO2STORAGE]['currency'] + \
             benefits['resource'][BenefitCategory.STORMWATER]['currency']
 

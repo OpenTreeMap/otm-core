@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import io
@@ -80,7 +80,7 @@ def start_import(request, instance):
         }
 
     kwargs = {k: 1 / storage_to_instance_units_factor(instance, v[0], v[1])
-              for (k, v) in factors.items()}
+              for (k, v) in list(factors.items())}
 
     process_csv(request, instance, import_type, **kwargs)
 
@@ -260,7 +260,7 @@ def update_row(request, instance, import_type, row_id):
             fields.trees.COMMON_NAME: species.common_name
         })
 
-    for k, v in request.POST.iteritems():
+    for k, v in request.POST.items():
         if k in basedata:
             basedata[k] = v
 
@@ -433,7 +433,7 @@ def _get_status_panel(instance, ie, panel_spec, page_number=1):
 
 
 def _add_species_resolver_to_fields(collected_fields, row):
-    species_error_fields = ((f, v) for f, v in collected_fields.items()
+    species_error_fields = ((f, v) for f, v in list(collected_fields.items())
                             if f in fields.trees.SPECIES_FIELDS
                             and v.get('css_class'))
 
@@ -706,7 +706,7 @@ def commit(request, instance, import_type, import_event_id):
 
 def process_csv(request, instance, import_type, **kwargs):
     files = request.FILES
-    filename = files.keys()[0]
+    filename = list(files.keys())[0]
     file_obj = files[filename]
 
     file_obj = io.BytesIO(decode(file_obj.read()).encode('utf-8'))
@@ -754,7 +754,7 @@ def cancel(request, instance, import_type, import_event_id):
 
 @queryset_as_exported_csv
 def export_all_species(request, instance):
-    field_names = SpeciesImportRow.SPECIES_MAP.keys()
+    field_names = list(SpeciesImportRow.SPECIES_MAP.keys())
     field_names.remove('id')
     return Species.objects.filter(instance_id=instance.id).values(*field_names)
 

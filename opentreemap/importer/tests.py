@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import tempfile
 import csv
@@ -10,7 +10,7 @@ import json
 import psycopg2
 
 from datetime import date
-from StringIO import StringIO
+from io import StringIO
 from unittest.case import skip, skipIf
 
 from django.conf import settings
@@ -1022,7 +1022,7 @@ class IntegrationTests(OTMTestCase):
         if 'errors' not in json:
             return errors
 
-        for k, v in json['errors'].iteritems():
+        for k, v in json['errors'].items():
             errors[k] = []
             for e in v:
                 d = e['data']

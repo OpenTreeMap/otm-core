@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from copy import deepcopy
 
@@ -8,7 +8,7 @@ from django.db import migrations
 from treemap.DotDict import DotDict
 
 
-identifier = u'mapFeature.updated_by'
+identifier = 'mapFeature.updated_by'
 
 
 def update_config_property(apps, update_fn, *categories):
@@ -24,9 +24,9 @@ def add_to_config(config, *categories):
     for category in categories:
         lookup = '.'.join(['search_config', category])
         specs = config.setdefault(lookup, [])
-        if 0 == len([v for s in specs for v in s.values() if v == identifier]):
+        if 0 == len([v for s in specs for v in list(s.values()) if v == identifier]):
             # mutates config[lookup]
-            specs.append({u'identifier': identifier})
+            specs.append({'identifier': identifier})
 
     return config
 
@@ -42,7 +42,7 @@ def remove_from_config(config, *categories):
         specs = config.get(lookup)
         if specs:
             find_index = [i for i, s in enumerate(specs)
-                          if identifier in s.values()]
+                          if identifier in list(s.values())]
             if 0 < len(find_index):
                 specs.pop(find_index[0])
 

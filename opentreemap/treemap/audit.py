@@ -1,6 +1,6 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import hashlib
@@ -84,7 +84,7 @@ def _reserve_model_id(model_class):
         cursor.execute("select nextval('%s');" % id_seq_name)
         results = cursor.fetchone()
         model_id = results[0]
-        assert(type(model_id) in [int, long])
+        assert(type(model_id) in [int, int])
     except:
         msg = "There was a database error while retrieving a unique audit ID."
         raise IntegrityError(msg)
@@ -106,7 +106,7 @@ def _reserve_model_id_range(model_class, num):
             {'seq': id_seq_name, 'num': num})
 
         model_ids = [row[0] for row in cursor]
-        assert(type(model_id) in [int, long] for model_id in model_ids)
+        assert(type(model_id) in [int, int] for model_id in model_ids)
     except:
         msg = "There was a database error while retrieving a unique audit ID."
         raise IntegrityError(msg)
@@ -530,7 +530,7 @@ class Dictable(object):
 
     @property
     def hash(self):
-        values = ['%s:%s' % (k, v) for (k, v) in self.as_dict().iteritems()]
+        values = ['%s:%s' % (k, v) for (k, v) in self.as_dict().items()]
         string = '|'.join(values).encode('utf-8')
         return hashlib.md5(string).hexdigest()
 
@@ -608,12 +608,12 @@ class UserTrackable(Dictable):
 
     def _direct_updates(self, updates, user):
         pending_fields = self.get_pending_fields(user)
-        return {key: val for key, val in updates.iteritems()
+        return {key: val for key, val in updates.items()
                 if key not in pending_fields}
 
     def _pending_updates(self, updates, user):
         pending_fields = self.get_pending_fields(user)
-        return {key: val for key, val in updates.iteritems()
+        return {key: val for key, val in updates.items()
                 if key in pending_fields}
 
     def _updated_fields(self):
@@ -668,7 +668,7 @@ class UserTrackable(Dictable):
         return user.get_role(instance).name == Role.ADMINISTRATOR
 
     def fields(self):
-        return self.as_dict().keys()
+        return list(self.as_dict().keys())
 
     def get_previous_state(self):
         return self._previous_state
@@ -687,7 +687,7 @@ class UserTrackable(Dictable):
             # "initial" state is empty so we clear it here
             self.clear_previous_state()
         else:
-            self._previous_state = {k: v for k, v in self.as_dict().iteritems()
+            self._previous_state = {k: v for k, v in self.as_dict().items()
                                     if k not in self._do_not_track}
 
     def get_pending_fields(self, user=None):
@@ -1133,7 +1133,7 @@ class Auditable(UserTrackable):
                          requires_auth=False,
                          ref=None)
 
-        for [field, (prev_value, next_value)] in direct_updates.iteritems():
+        for [field, (prev_value, next_value)] in direct_updates.items():
             yield make_audit(field, prev_value, next_value)
 
     @property
@@ -1234,7 +1234,7 @@ class _PendingAuditable(Auditable):
 
         # Before saving we need to restore any pending values to their
         # previous state
-        for pending_field, (old_val, __) in pending_updates.iteritems():
+        for pending_field, (old_val, __) in pending_updates.items():
             try:
                 self.apply_change(pending_field, old_val)
             except ValueError:
@@ -1289,7 +1289,7 @@ class _PendingAuditable(Auditable):
                          requires_auth=True,
                          ref=None)
 
-        for [field, (prev_value, next_value)] in pending_updates.iteritems():
+        for [field, (prev_value, next_value)] in pending_updates.items():
             yield make_pending_audit(field, prev_value, next_value)
 
 
@@ -1436,7 +1436,7 @@ class Audit(models.Model):
         if isinstance(field_cls, models.GeometryField):
             field_modified_value = GEOSGeometry(field_modified_value)
         elif isinstance(field_cls, models.ForeignKey):
-            if isinstance(field_modified_value, (str, unicode)):
+            if isinstance(field_modified_value, str):
                 # sometimes audit records have descriptive string values
                 # stored in what should be a foreign key field.
                 # these cannot be resolved to foreign key models.
@@ -1577,7 +1577,7 @@ class Audit(models.Model):
                 'created': str(self.created)}
 
     def __unicode__(self):
-        return u"pk=%s - action=%s - %s.%s:(%s) - %s => %s" % \
+        return "pk=%s - action=%s - %s.%s:(%s) - %s => %s" % \
             (self.pk, self.TYPES[self.action], self.model,
              self.field, self.model_id,
              self.previous_value, self.current_value)
@@ -1640,7 +1640,7 @@ class ReputationMetric(models.Model):
             elif not audit.requires_auth:
                 iuser.reputation += rm.direct_write_score
 
-        for iuser in iusers.itervalues():
+        for iuser in iusers.values():
             iuser.save_base()
 
 
@@ -1654,7 +1654,7 @@ def _get_model_class(class_dict, cls, model_name):
     Convert a model name (as a string) into the model class
     """
     if model_name.startswith('udf:'):
-        from udf import UserDefinedCollectionValue
+        from .udf import UserDefinedCollectionValue
         return UserDefinedCollectionValue
 
     if not class_dict:

@@ -1,11 +1,11 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import requests
 import os
-from urllib import urlencode
+from urllib.parse import urlencode
 from unittest import skipIf
 
 from django.http import HttpResponse

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from copy import deepcopy
 
@@ -8,7 +8,7 @@ from django.db import migrations
 from treemap.DotDict import DotDict
 
 
-identifier = u'plot.owner_orig_id'
+identifier = 'plot.owner_orig_id'
 
 
 def update_config_property(apps, update_fn, *categories):
@@ -24,9 +24,9 @@ def add_to_config(config, *categories):
     for category in categories:
         lookup = '.'.join(['search_config', category])
         specs = config.setdefault(lookup, [])
-        if True not in [identifier in v for s in specs for v in s.values()]:
+        if True not in [identifier in v for s in specs for v in list(s.values())]:
             # mutates config[lookup]
-            specs.append({u'identifier': identifier})
+            specs.append({'identifier': identifier})
 
     return config
 
@@ -42,7 +42,7 @@ def remove_from_config(config, *categories):
         specs = config.get(lookup)
         if specs:
             for index, spec in enumerate(specs):
-                if identifier in spec.values():
+                if identifier in list(spec.values()):
                     break
             if index < len(specs):
                 specs.pop(index)

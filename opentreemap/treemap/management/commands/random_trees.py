@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import random
 import math
@@ -74,7 +74,7 @@ class Command(InstanceDataCommand):
 
         ct = 0
         cp = 0
-        for i in xrange(0, n):
+        for i in range(0, n):
             mktree = random.random() < tree_prob
             radius = random.gauss(0.0, max_radius)
             theta = random.random() * 2.0 * math.pi

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import importlib
 from time import sleep
@@ -179,7 +179,7 @@ class UITestCase(StaticLiveServerTestCase):
         return element
 
     def _get_element(self, element_or_selector):
-        if isinstance(element_or_selector, basestring):
+        if isinstance(element_or_selector, str):
             return self.find(element_or_selector)
         else:
             return element_or_selector
@@ -188,7 +188,7 @@ class UITestCase(StaticLiveServerTestCase):
 @override_settings(**test_settings)
 class TreemapUITestCase(UITestCase):
     def assertElementVisibility(self, element, visible):
-        if isinstance(element, basestring):
+        if isinstance(element, str):
             element = self.find_id(element)
         wait = (self.wait_until_visible if visible
                 else self.wait_until_invisible)

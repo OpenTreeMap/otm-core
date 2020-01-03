@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from copy import deepcopy
 import tempfile
@@ -619,11 +619,11 @@ class InlineFieldTagTests(OTMTestCase):
             content = template.render(Context({
                 'request': {'user': self.observer, 'instance': self.instance}
             })).strip()
-            self.assertEqual(content, unicode(Plot().length))
+            self.assertEqual(content, str(Plot().length))
 
     def test_search_uses_new_model(self):
         self.assert_search_context_value(
-            self.observer, 'field.value', unicode(Plot().length),
+            self.observer, 'field.value', str(Plot().length),
             {'identifier': 'Plot.length'})
 
     def test_search_adds_field_config(self):
@@ -646,7 +646,7 @@ class InlineFieldTagTests(OTMTestCase):
     def test_search_gets_default_label_when_none_given(self):
         self.assert_search_context_value(
             self.observer, 'field.label',
-            unicode(Plot._meta.get_field('length').verbose_name),
+            str(Plot._meta.get_field('length').verbose_name),
             {'identifier': 'Plot.length', 'label': None})
 
     def test_search_fields_get_added_only_for_valid_json_matches(self):

@@ -4,7 +4,7 @@ from django.contrib.auth.views import login
 from django.views.generic.base import TemplateView
 
 
-from views import (RegistrationView, ActivationView, LoginForm,
+from .views import (RegistrationView, ActivationView, LoginForm,
                    PasswordResetView)
 
 

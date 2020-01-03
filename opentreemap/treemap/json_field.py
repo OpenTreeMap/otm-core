@@ -8,7 +8,7 @@ from treemap.DotDict import DotDict
 
 class JSONField(models.TextField):
     def to_python(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             obj = json.loads(value or "{}")
             return DotDict(obj) if isinstance(obj, dict) else obj
         else:

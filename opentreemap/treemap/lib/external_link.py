@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import re
 
 from django.utils.translation import ugettext_lazy as _
+from functools import reduce
 
 
 # Utilities for external links
@@ -34,7 +35,7 @@ def _re_group_count(compiled, text):
     return reduce(
         lambda ac, groupdict: {
             k: v if groupdict[k] is None else v + 1
-            for k, v in ac.iteritems()},
+            for k, v in ac.items()},
         [m.groupdict() for m in compiled.finditer(text)],
         totals)
 
@@ -48,4 +49,4 @@ def get_url_tokens_for_display(in_bold=False):
     show = lambda t: ('<b>#{%s}</b>' if in_bold else '#{%s}') % t
 
     return (', '.join(show(token) for token in _valid_url_tokens[:-1]) +
-            unicode(_(' or ')) + show(_valid_url_tokens[-1]))
+            str(_(' or ')) + show(_valid_url_tokens[-1]))

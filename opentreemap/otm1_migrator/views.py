@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import csv
 
@@ -10,7 +10,7 @@ from django.conf import settings
 from treemap.util import get_csv_response
 from treemap.models import User
 
-from models import OTM1UserRelic
+from .models import OTM1UserRelic
 
 # assumptions:
 # * there are n userrelics and m users, such that n >= m

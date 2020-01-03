@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import logging
@@ -129,7 +129,7 @@ def extent_as_json(extent):
 
 
 def extent_intersection(*extents):
-    extents = zip(*extents)
+    extents = list(zip(*extents))
     xmins, ymins, xmaxes, ymaxes = extents
     return (max(xmins), max(ymins), min(xmaxes), min(ymaxes))
 

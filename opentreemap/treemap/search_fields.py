@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
@@ -151,7 +151,7 @@ def advanced_search_fields(instance, user):
 
     fields = copy.deepcopy(instance.search_config)
     fields = {category: get_visible_fields(field_infos, user)
-              for category, field_infos in fields.iteritems()}
+              for category, field_infos in fields.items()}
 
     for field_info in fields.get('missing', []):
         _set_missing_search_label(instance, field_info)
@@ -165,7 +165,7 @@ def advanced_search_fields(instance, user):
         for feature in sorted(instance.map_feature_types) if feature != 'Plot']
 
     num = 0
-    for filters in fields.itervalues():
+    for filters in fields.values():
         for field in filters:
             # It makes styling easier if every field has an identifier
             id = "%s_%s" % (field.get('identifier', ''), num)
@@ -290,7 +290,7 @@ def get_udfc_search_fields(instance, user):
         model_name = clz.__name__
         if model_name not in ['Tree'] + instance.map_feature_types:
             continue
-        for k, v in clz.collection_udf_settings.items():
+        for k, v in list(clz.collection_udf_settings.items()):
             udfds = (u for u in udf_defs(instance, model_name) if u.name == k)
             for udfd in udfds:
                 if udf_write_level(iu, udfd) in (READ, WRITE):

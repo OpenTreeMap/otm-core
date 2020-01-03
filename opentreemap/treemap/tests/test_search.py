@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import psycopg2
@@ -111,14 +111,14 @@ def _create_tree_and_plot(instance, user, point,
     plot = Plot(geom=point, instance=instance)
 
     if plotudfs:
-        for k, v in plotudfs.iteritems():
+        for k, v in plotudfs.items():
             plot.udfs[k] = v
 
     plot.save_with_user(user)
 
     tree = Tree(plot=plot, instance=instance)
     if treeudfs:
-        for k, v in treeudfs.iteritems():
+        for k, v in treeudfs.items():
             tree.udfs[k] = v
 
     tree.save_with_user(user)
@@ -528,14 +528,14 @@ class SearchTests(OTMTestCase):
         plot = Plot(geom=self.p1, instance=self.instance)
 
         if plotudfs:
-            for k, v in plotudfs.iteritems():
+            for k, v in plotudfs.items():
                 plot.udfs[k] = v
 
         plot.save_with_user(self.commander)
 
         tree = Tree(plot=plot, instance=self.instance)
         if treeudfs:
-            for k, v in treeudfs.iteritems():
+            for k, v in treeudfs.items():
                 tree.udfs[k] = v
 
         tree.save_with_user(self.commander)

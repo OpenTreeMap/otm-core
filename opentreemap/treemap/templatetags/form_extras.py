@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 import re
@@ -55,7 +55,7 @@ FIELD_MAPPINGS = {
 
 FOREIGN_KEY_PREDICATE = 'IS'
 
-VALID_FIELD_KEYS = ','.join(FIELD_MAPPINGS.keys())
+VALID_FIELD_KEYS = ','.join(list(FIELD_MAPPINGS.keys()))
 
 
 class Variable(Grammar):
@@ -333,7 +333,7 @@ class AbstractNode(template.Node):
         field_template = get_template(_resolve_variable(
                                       self.field_template, context)).template
 
-        if not isinstance(identifier, basestring)\
+        if not isinstance(identifier, str)\
            or not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
                 'expected a string with the format "object_name.property" '
@@ -433,7 +433,7 @@ class AbstractNode(template.Node):
         elif data_type == 'float':
             display_val = num_format(field_value)
         else:
-            display_val = unicode(field_value)
+            display_val = str(field_value)
 
         context['field'] = {
             'label': label,
@@ -535,7 +535,7 @@ class SearchNode(CreateNode):
         def update_field(settings):
             # Identifier is lower-cased above to match the calling convention
             # of update endpoints, so we shouldn't overwrite it :(
-            field.update({k: v for k, v in settings.items()
+            field.update({k: v for k, v in list(settings.items())
                           if v is not None and k != 'identifier'})
 
         search_settings = getattr(model, 'search_settings', {}).get(field_name)

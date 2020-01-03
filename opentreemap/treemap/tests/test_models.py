@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from django.test import SimpleTestCase
 from django.test.utils import override_settings
@@ -75,19 +75,19 @@ class HashModelTest(OTMTestCase):
 class SpeciesModelTests(OTMTestCase):
     def test_scientific_name_genus(self):
         s = Species(genus='Ulmus')
-        self.assertEquals(s.scientific_name, 'Ulmus')
+        self.assertEqual(s.scientific_name, 'Ulmus')
 
     def test_scientific_name_genus_species(self):
         s = Species(genus='Ulmus', species='rubra')
-        self.assertEquals(s.scientific_name, 'Ulmus rubra')
+        self.assertEqual(s.scientific_name, 'Ulmus rubra')
 
     def test_scientific_name_genus_cultivar(self):
         s = Species(genus='Ulmus', cultivar='Columella')
-        self.assertEquals(s.scientific_name, "Ulmus 'Columella'")
+        self.assertEqual(s.scientific_name, "Ulmus 'Columella'")
 
     def test_scientific_name_all(self):
         s = Species(genus='Ulmus', species='rubra', cultivar='Columella')
-        self.assertEquals(s.scientific_name, "Ulmus rubra 'Columella'")
+        self.assertEqual(s.scientific_name, "Ulmus rubra 'Columella'")
 
 
 class ModelUnicodeTests(OTMTestCase):
@@ -142,42 +142,42 @@ class ModelUnicodeTests(OTMTestCase):
         self.reputation_metric.save_base()
 
     def test_instance_model(self):
-        self.assertEqual(unicode(self.instance), "Test Instance")
+        self.assertEqual(str(self.instance), "Test Instance")
 
     def test_species_model(self):
         self.assertEqual(
-            unicode(self.species),
+            str(self.species),
             "Test Common Name [Test Genus Test Species 'Test Cultivar']")
 
     def test_user_model(self):
-        self.assertEqual(unicode(self.user), 'commander')
+        self.assertEqual(str(self.user), 'commander')
 
     def test_plot_model(self):
-        self.assertEqual(unicode(self.plot),
+        self.assertEqual(str(self.plot),
                          'Plot (1.0, 1.0) 123 Main Street')
 
     def test_tree_model(self):
-        self.assertEqual(unicode(self.tree), '')
+        self.assertEqual(str(self.tree), '')
 
     def test_boundary_model(self):
-        self.assertEqual(unicode(self.boundary), 'Test Boundary')
+        self.assertEqual(str(self.boundary), 'Test Boundary')
 
     def test_role_model(self):
-        self.assertEqual(unicode(self.role), 'Test Role (%s)' % self.role.pk)
+        self.assertEqual(str(self.role), 'Test Role (%s)' % self.role.pk)
 
     def test_field_permission_model(self):
-        self.assertEqual(unicode(self.field_permission),
+        self.assertEqual(str(self.field_permission),
                          'Tree.readonly - Test Role (%s) - Read Only'
                          % self.role.pk)
 
     def test_audit_model(self):
         self.assertEqual(
-            unicode(self.audit),
+            str(self.audit),
             'pk=%s - action=Update - Tree.readonly:(1) - True => False'
             % self.audit.pk)
 
     def test_reputation_metric_model(self):
-        self.assertEqual(unicode(self.reputation_metric),
+        self.assertEqual(str(self.reputation_metric),
                          'Test Instance - Tree - Test Action')
 
 

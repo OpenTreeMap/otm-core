@@ -2,7 +2,7 @@
 
 
 def all_itree_region_codes():
-    return _CODES.keys()
+    return list(_CODES.keys())
 
 def all_species_codes():
     return species_codes_for_regions(all_itree_region_codes())
@@ -3518,4 +3518,4 @@ ITREE_REGIONS = {
 }
 
 
-ITREE_REGION_CHOICES = [(code, conf['name']) for code, conf in ITREE_REGIONS.items()]
+ITREE_REGION_CHOICES = [(code, conf['name']) for code, conf in list(ITREE_REGIONS.items())]

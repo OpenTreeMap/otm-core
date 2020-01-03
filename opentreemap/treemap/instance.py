@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from copy import deepcopy
 
@@ -19,7 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import hashlib
 import json
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from opentreemap.util import extent_intersection, extent_as_json
 
@@ -455,7 +455,7 @@ class Instance(models.Model):
 
     @property
     def scss_query_string(self):
-        scss_vars = ({k: val for k, val in self.scss_variables.items() if val}
+        scss_vars = ({k: val for k, val in list(self.scss_variables.items()) if val}
                      if self.scss_variables else {})
         return urlencode(scss_vars)
 
@@ -583,7 +583,7 @@ class Instance(models.Model):
 
         for type, clz in zip(types, classes):
             settings = (getattr(clz, 'udf_settings', {}))
-            for udfc_name, udfc_settings in settings.items():
+            for udfc_name, udfc_settings in list(settings.items()):
                 if udfc_settings.get('defaults'):
                     get_or_create_udf(self, type, udfc_name)
 
@@ -725,7 +725,7 @@ class Instance(models.Model):
             raise_errors([INSTANCE_FIELD_ERRORS['no_field_groups']])
 
         for group in field_groups:
-            if not _truthy_of_type(group.get('header'), basestring):
+            if not _truthy_of_type(group.get('header'), str):
                 errors.add(INSTANCE_FIELD_ERRORS['group_has_no_header'])
 
             if ((not isinstance(group.get('collection_udf_keys'), list)

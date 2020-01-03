@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from django import template
 from django.conf import settings
@@ -182,7 +182,7 @@ def usercontent_tag(parser, token):
             'expected format is: '
             'usercontent for {user_identifier}')
 
-    if isinstance(user_identifier, (int, long)):
+    if isinstance(user_identifier, int):
         user_identifier = user_identifier
     else:
         if user_identifier[0] == '"'\
@@ -211,10 +211,10 @@ class UserContentNode(template.Node):
             user_identifier = self.user_identifier
 
         user_content = self.nodelist.render(context)
-        if isinstance(user_identifier, (int, long)):
+        if isinstance(user_identifier, int):
             if req_user.pk == user_identifier:
                 return user_content
-        elif isinstance(user_identifier, basestring):
+        elif isinstance(user_identifier, str):
             if req_user.username == user_identifier:
                 return user_content
         else:

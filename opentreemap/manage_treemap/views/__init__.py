@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from django.core.exceptions import ValidationError
 
@@ -31,7 +31,7 @@ def update_instance_fields(request, instance, validation_fn=None):
 def _update_instance_fields(json_data, instance, validation_fn=None,
                             should_update_universal_rev=False):
     error_dict = {}
-    for identifier, value in json_data.iteritems():
+    for identifier, value in json_data.items():
         model, field_name = dotted_split(identifier, 2, maxsplit=1)
 
         obj = instance
@@ -55,7 +55,7 @@ def _update_instance_fields(json_data, instance, validation_fn=None,
             if should_update_universal_rev:
                 instance.update_universal_rev()
             return {'ok': True}
-        except ValidationError, ve:
+        except ValidationError as ve:
             validation_error = ve
 
     raise ValidationError(package_field_errors('instance', validation_error))

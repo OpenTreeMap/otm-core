@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from registration.models import RegistrationProfile
 
@@ -71,7 +71,7 @@ class InstanceInvitationTest(UrlTestCase):
         user = users[0]
 
         self.assertFalse(user.is_active)
-        self.assertEquals(len(InstanceUser.objects.filter(user=user)), 0)
+        self.assertEqual(len(InstanceUser.objects.filter(user=user)), 0)
 
         success_url = rv.get_success_url(user)
         self.assertEqual(success_url, 'registration_complete')
@@ -115,7 +115,7 @@ class InstanceInvitationTest(UrlTestCase):
         success_url, __, __ = view.get_success_url(new_user)
         self.assertEqual(success_url, '/%s/map/' % self.instance.url_name)
 
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
 
         # Make sure we have some chars and the correct receivers
@@ -123,7 +123,7 @@ class InstanceInvitationTest(UrlTestCase):
         self.assertGreater(len(msg.body), 10)
         to = set(msg.to)
         expected_to = {self.user.email}
-        self.assertEquals(to, expected_to)
+        self.assertEqual(to, expected_to)
 
     # Disable plug-in function to ensure we are testing core behavior
     @override_settings(INVITATION_ACCEPTED_NOTIFICATION_EMAILS=None)
@@ -154,10 +154,10 @@ class InstanceInvitationTest(UrlTestCase):
 
         # We should get an activation email, and no others, because the emails
         # did not match
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
 
-        self.assertEquals(tuple(msg.to), (new_user.email,))
+        self.assertEqual(tuple(msg.to), (new_user.email,))
 
     def test_does_not_redirect_when_key_does_not_match(self):
         rv = self._invite_and_register("some@email.com", key_matches=False)
@@ -177,10 +177,10 @@ class InstanceInvitationTest(UrlTestCase):
 
         # We should get an activation email, and no others, because the emails
         # did not match
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
         msg = mail.outbox[0]
 
-        self.assertEquals(tuple(msg.to), (new_user.email,))
+        self.assertEqual(tuple(msg.to), (new_user.email,))
 
     # Disable plug-in function to ensure we are testing core behavior
     @override_settings(INVITATION_ACCEPTED_NOTIFICATION_EMAILS=None)

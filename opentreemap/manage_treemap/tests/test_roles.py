@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import json
 
@@ -80,7 +80,7 @@ class UserRolesTest(OTMTestCase):
         self.assertGreater(len(msg.subject), 10)
         self.assertGreater(len(msg.body), 10)
 
-        self.assertEquals(tuple(msg.to), (self.user4.email,))
+        self.assertEqual(tuple(msg.to), (self.user4.email,))
 
     def test_email_not_found_creates_invite(self):
         self.assertEqual(InstanceInvitation.objects.count(), 0)
@@ -114,7 +114,7 @@ class UserRolesTest(OTMTestCase):
         self.assertGreater(len(msg.subject), 10)
         self.assertGreater(len(msg.body), 10)
 
-        self.assertEquals(tuple(msg.to), (email,))
+        self.assertEqual(tuple(msg.to), (email,))
 
     def test_invalid_email(self):
         body = {'email': 'asdfasdf@'}
@@ -296,7 +296,7 @@ class ModelPermMgmtTest(OTMTestCase):
             'MapFeaturePhoto.delete_bioswalephoto']
 
         self.request_updates(
-            dict(zip(permissions, [True] * len(permissions))))
+            dict(list(zip(permissions, [True] * len(permissions)))))
 
         for existing in permissions:
             __, codename = dotted_split(existing, 2, maxsplit=1)

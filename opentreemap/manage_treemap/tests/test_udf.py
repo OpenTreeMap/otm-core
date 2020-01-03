@@ -1,6 +1,6 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
+
 
 import datetime
 import json
@@ -52,7 +52,7 @@ class UdfBulkUpdateTest(OTMTestCase):
     def _make_put_request(self, params):
         request = RequestFactory().put(
             'does/not/matter/', json.dumps(params),
-            content_type=u'application/json')
+            content_type='application/json')
         request.method = 'PUT'
         setattr(request, 'user',  self.user)
         setattr(request, 'instance', self.instance)
@@ -152,7 +152,7 @@ class UdfDeleteTest(OTMTestCase):
         self.instance.config['plot_stewardship_udf_id'] = self.cudf.pk
         self.instance.save()
         resp = udf_delete(make_request(), self.instance, self.cudf.pk)
-        self.assertEquals(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 400)
 
     def test_delete_udf_deletes_perms(self):
         body = {'udf.name': 'cool udf',
@@ -189,7 +189,7 @@ class UdfDeleteTest(OTMTestCase):
                                      .exists())
 
         resp = udf_delete(make_request(), self.instance, self.udf.pk)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         self.assertFalse(Audit.objects.filter(instance=self.instance)
                                       .filter(model=self.udf.model_type)
@@ -214,7 +214,7 @@ class UdfDeleteTest(OTMTestCase):
                                      .exists())
 
         resp = udf_delete(make_request(), self.instance, self.cudf.pk)
-        self.assertEquals(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 400)
 
         self.assertTrue(Audit.objects.filter(instance=self.instance)
                         .filter(model='udf:%s' % self.cudf.pk)

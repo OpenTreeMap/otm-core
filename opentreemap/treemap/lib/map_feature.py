@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import datetime
 from string import Template
@@ -278,7 +278,7 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
                   'feature_id': plot.pk}
     if tree:
         url_name = 'add_photo_to_tree'
-        url_kwargs = dict(url_kwargs.items() + [('tree_id', tree.pk)])
+        url_kwargs = dict(list(url_kwargs.items()) + [('tree_id', tree.pk)])
     else:
         url_name = 'add_photo_to_plot'
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 
 import hashlib
@@ -235,7 +235,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         if config:
             benefits_conversion = cls()
             benefits_conversion.currency_symbol = '$'
-            for field, conversion in config.iteritems():
+            for field, conversion in config.items():
                 setattr(benefits_conversion, field, conversion)
             return benefits_conversion
         else:

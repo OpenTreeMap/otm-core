@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 from copy import deepcopy
 
@@ -76,7 +76,7 @@ def set_search_config(request, instance):
     search_fields = json_from_request(request)
     for prop in ('search_config', 'mobile_search_fields'):
         config = deepcopy(getattr(instance, prop))
-        for key, val in search_fields[prop].iteritems():
+        for key, val in search_fields[prop].items():
             config[key] = search_fields[prop][key]
 
         setattr(instance, prop, config)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
+
+
 
 import codecs
 import csv
@@ -9,17 +9,17 @@ import csv
 
 def _clean_string(s):
     s = s.strip()
-    if not isinstance(s, unicode):
-        s = unicode(s, 'utf-8')
+    if not isinstance(s, str):
+        s = str(s, 'utf-8')
     return s
 
 
 def clean_row_data(h):
     h2 = {}
-    for (k, v) in h.iteritems():
+    for (k, v) in h.items():
         k = clean_field_name(k)
         if k != 'ignore':
-            if isinstance(v, basestring):
+            if isinstance(v, str):
                 v = _clean_string(v)
 
             h2[k] = v
