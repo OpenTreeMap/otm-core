@@ -17,7 +17,8 @@ def obj(properties, optional_properties={}):
         'type': 'object',
         'additionalProperties': False,
         'required': list(properties.keys()),
-        'properties': dict(list(properties.items()) + list(optional_properties.items()))
+        'properties':
+        dict(list(properties.items()) + list(optional_properties.items()))
     }
 
 

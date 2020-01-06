@@ -45,7 +45,8 @@ def site_config_green_infrastructure(request, instance):
         return form_fields
 
     terminology_fields = {thing: _get_form_fields(defaults, thing)
-                          for thing, defaults in list(REPLACEABLE_TERMS.items())}
+                          for thing, defaults
+                          in list(REPLACEABLE_TERMS.items())}
 
     __, annual_rainfall_display_value = get_display_value(
         instance, 'greenInfrastructure', 'rainfall',

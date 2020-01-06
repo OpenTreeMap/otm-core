@@ -52,7 +52,8 @@ def _create_rows(ie, reader):
 
     for row in reader:
         data = clean_row_data(row)
-        if len([_f for _f in list(data.values()) if _f]) > 0:  # skip blank rows
+        # check for truthiness to skip blank rows
+        if len([_f for _f in list(data.values()) if _f]) > 0:
             data = json.dumps(data)
             rows.append(RowModel(data=data, import_event=ie, idx=idx))
 

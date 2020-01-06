@@ -453,7 +453,8 @@ class Instance(models.Model):
 
     @property
     def scss_query_string(self):
-        scss_vars = ({k: val for k, val in list(self.scss_variables.items()) if val}
+        scss_vars = ({k: val for k, val
+                      in list(self.scss_variables.items()) if val}
                      if self.scss_variables else {})
         return urlencode(scss_vars)
 

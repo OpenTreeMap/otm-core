@@ -129,7 +129,9 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
         return result, None
     except urllib.error.HTTPError as e:
         error_body = e.fp.read()
-        for code, patterns in list(ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items()):
+        codes_and_patterns = \
+            list(ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items())
+        for code, patterns in codes_and_patterns:
             for pattern in patterns:
                 match = re.match(pattern, error_body)
                 if match:

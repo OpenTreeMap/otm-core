@@ -262,13 +262,16 @@ def roles_list(request, instance):
             for spec in specs]
 
     def role_field_perms(Model):
-        return list(zip(*[get_field_perms(role, Model) for role in roles]))
+        return list(
+            zip(*[get_field_perms(role, Model) for role in roles]))
 
     def role_model_perms(Model):
-        return list(zip(*[get_role_model_perms(role, Model) for role in roles]))
+        return list(
+            zip(*[get_role_model_perms(role, Model) for role in roles]))
 
     def role_photo_perms(Model):
-        return list(zip(*[get_role_photo_perms(role, Model) for role in roles]))
+        return list(
+            zip(*[get_role_photo_perms(role, Model) for role in roles]))
 
     groups = [{
         'role_model_perms': role_model_perms(Model),
