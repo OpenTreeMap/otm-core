@@ -529,8 +529,8 @@ class UserDefinedFieldDefinition(models.Model):
     def _list_replace_or_remove(self, l, old, new):
         if l is None:
             return None
-        new_l = [_f for _f in [(new if choice == old else choice)
-             for choice in l] if _f]
+        new_l = [_f for _f
+                 in [(new if choice == old else choice) for choice in l] if _f]
         return new_l or None
 
     def add_choice(self, new_choice_value, name=None):

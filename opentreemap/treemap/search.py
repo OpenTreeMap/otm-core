@@ -305,7 +305,7 @@ def _parse_by_key_type(key, mapping):
 
 def _unparse_scalars(scalars):
     return dict(list(zip([qd['key'] for qd in scalars],
-                    [qd['value'] for qd in scalars])))
+                         [qd['value'] for qd in scalars])))
 
 
 def _parse_collections(by_type, mapping):

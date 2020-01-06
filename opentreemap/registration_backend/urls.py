@@ -5,7 +5,7 @@ from django.views.generic.base import TemplateView
 
 
 from .views import (RegistrationView, ActivationView, LoginForm,
-                   PasswordResetView)
+                    PasswordResetView)
 
 
 urlpatterns = [
