@@ -5,7 +5,9 @@ from io import StringIO
 from json import loads, dumps
 from urllib.parse import urlparse
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 import os
 import json
 import base64

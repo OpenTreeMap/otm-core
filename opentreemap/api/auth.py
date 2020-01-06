@@ -5,7 +5,9 @@ import base64
 import hashlib
 import hmac
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import urllib.parse
+import urllib.error
 
 from django.http import HttpResponse
 from django.contrib.auth import authenticate
