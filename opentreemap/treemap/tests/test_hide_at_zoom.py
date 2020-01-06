@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.contrib.gis.geos import Point
 from django.db.models import Count
 

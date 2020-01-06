@@ -1,7 +1,5 @@
 
 
-
-
 import inspect
 
 from treemap.lib.object_caches import role_field_permissions

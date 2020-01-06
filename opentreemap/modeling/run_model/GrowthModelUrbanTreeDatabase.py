@@ -2,8 +2,6 @@
 # flake8: noqa
 
 
-
-
 from copy import deepcopy
 from operator import itemgetter
 
@@ -134,7 +132,6 @@ def bisect(f, x_lo, x_hi, y_target, max_iterations, tolerance):
         else:
             x_hi = x_mid
     raise Exception("Max iterations exceeded")
-
 
 
 # Growth functions from TS4_Growth_eqn_forms.csv

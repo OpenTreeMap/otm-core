@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test.utils import override_settings
 

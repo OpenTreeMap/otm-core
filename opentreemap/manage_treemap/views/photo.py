@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.core.paginator import Paginator, EmptyPage
 from django.db import transaction
 from django.http import Http404

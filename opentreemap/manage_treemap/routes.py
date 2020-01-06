@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from functools import partial
 
 from django_tinsel.decorators import route, render_template, json_api_call

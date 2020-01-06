@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import uuid
 import base64
 import os

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from treemap.models import Tree
 
 from .cases import PlotDetailUITestCase

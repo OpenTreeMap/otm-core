@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
-
 # The contrib.comments app will load whichever app is specified in the settings
 # by COMMENT_APP.  The two methods below will make it use our subclassed Model
 def get_model():

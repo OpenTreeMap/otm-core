@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from io import StringIO
 
 from django.core.management import call_command

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import json
 
 from django.core.exceptions import ValidationError, MultipleObjectsReturned

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import logging
 from io import StringIO
 import subprocess

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf.urls import url
 
 from django_tinsel.decorators import route

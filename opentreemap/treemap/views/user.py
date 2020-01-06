@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import collections
 
 from registration.models import RegistrationProfile

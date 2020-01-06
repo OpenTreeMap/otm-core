@@ -1,8 +1,5 @@
 
 
-
-
-
 def export_enabled_for(instance, user):
     if instance.feature_enabled('exports'):
         if instance.non_admins_can_export:

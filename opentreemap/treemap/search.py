@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from json import loads
 from datetime import datetime
 from functools import partial

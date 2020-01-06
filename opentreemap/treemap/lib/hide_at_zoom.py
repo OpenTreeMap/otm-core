@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from math import floor
 
 from django.db import connection

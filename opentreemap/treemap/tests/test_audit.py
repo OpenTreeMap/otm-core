@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import psycopg2
 import json
 from unittest.case import skip

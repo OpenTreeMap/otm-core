@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from treemap.tests import make_instance
 from treemap.instance import Instance
 from treemap.tests.base import OTMTestCase

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from threadedcomments.models import ThreadedComment
 
 from django.conf import settings

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
-
 def sanitize_unicode_value(value):
     # make sure every text value is of type 'str', coercing unicode
     if isinstance(value, str):

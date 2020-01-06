@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from PIL import Image
 
 from treemap.images import save_uploaded_image

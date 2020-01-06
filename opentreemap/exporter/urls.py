@@ -1,7 +1,5 @@
 
 
-
-
 from django.conf.urls import url
 
 from exporter.views import begin_export_endpoint, check_export_endpoint

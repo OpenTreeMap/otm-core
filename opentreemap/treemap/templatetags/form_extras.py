@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import json
 import re
 from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError

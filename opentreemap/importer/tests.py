@@ -2,8 +2,6 @@
 # flake8: noqa
 
 
-
-
 import tempfile
 import csv
 import json
@@ -203,7 +201,6 @@ class TreeValidationTest(TreeValidationTestBase):
         i.validate_row()
         self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 > 12
         self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 < 30
-
 
     def test_proximity(self):
         p1 = mkPlot(self.instance, self.user,
@@ -1251,7 +1248,6 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_GEOM[0], gflds, None)])
 
-
         self.assertNotIn('2', ierrors)
         self.assertNotIn('3', ierrors)
         self.assertEqual(ierrors['4'],
@@ -1321,7 +1317,6 @@ class TreeIntegrationTests(IntegrationTests):
         response = start_import(req, self.instance)
 
         self.assertTrue(isinstance(response, HttpResponseBadRequest))
-
 
     def test_unit_changes(self):
         csv = ("| point x | point y | tree height | canopy height | "
@@ -1498,7 +1493,6 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
 
-
     def test_import_updates_updated_at_fields(self):
         original_creator = make_admin_user(self.instance, username='original_creator')
         p1 = mkPlot(self.instance, original_creator)
@@ -1527,7 +1521,6 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertGreater(p1.updated_at, p1_original_updated_at)
         self.assertGreater(t1.plot.updated_at, p2_original_updated_at)
-
 
     def test_swap_locations_using_otm_id(self):
         center = self.instance.center

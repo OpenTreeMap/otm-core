@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from io import StringIO
 from json import loads, dumps
 from urllib.parse import urlparse

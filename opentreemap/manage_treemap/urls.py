@@ -1,7 +1,5 @@
 
 
-
-
 from django.conf.urls import url
 
 from manage_treemap import routes

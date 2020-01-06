@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from registration.models import RegistrationProfile
 
 from django.core import mail

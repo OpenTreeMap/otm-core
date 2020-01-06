@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from copy import deepcopy
 
 from django.utils.translation import ugettext as _

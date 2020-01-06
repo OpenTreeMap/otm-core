@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
-
 class Tree(object):
     def __init__(self, growth_model, mortality_model,
                  spec=None, tree=None, year_planted=0):

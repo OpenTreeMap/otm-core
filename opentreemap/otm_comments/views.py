@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from functools import partial
 
 from django.core.paginator import Paginator, EmptyPage

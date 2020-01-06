@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from unittest.case import skip
 
 from treemap.models import Tree

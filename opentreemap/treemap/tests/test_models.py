@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.test import SimpleTestCase
 from django.test.utils import override_settings
 from django.contrib.gis.geos import Point, MultiPolygon

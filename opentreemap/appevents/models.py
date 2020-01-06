@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.db import models
 
 from treemap.json_field import JSONField

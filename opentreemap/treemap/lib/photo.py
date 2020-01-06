@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from urllib.parse import urlparse, urlunparse
 
 from django.core.urlresolvers import reverse

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf.urls import include, url
 from django.template import Template, RequestContext
 from django.template.response import HttpResponse

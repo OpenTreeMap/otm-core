@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from treemap.ecobenefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
                                  GALLONS_PER_CUBIC_FT)
 from treemap.lib import perms

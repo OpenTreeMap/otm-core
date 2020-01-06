@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.geos.point import Point
 from django.db import connection

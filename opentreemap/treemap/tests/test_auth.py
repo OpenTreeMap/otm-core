@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from treemap.tests import (RequestTestCase, make_instance,
                            make_user)
 

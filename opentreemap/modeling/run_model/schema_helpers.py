@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 # Helpers for building a JSON schema
 
 string = {'type': 'string'}

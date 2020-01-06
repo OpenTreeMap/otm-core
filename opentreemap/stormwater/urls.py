@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf.urls import url
 
 from opentreemap.urls import instance_pattern

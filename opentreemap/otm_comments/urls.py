@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf.urls import url
 
 from otm_comments.views import (comments_csv_endpoint, flag_endpoint,

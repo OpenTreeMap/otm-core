@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.core.exceptions import MultipleObjectsReturned
 
 from django.contrib.gis.db import models

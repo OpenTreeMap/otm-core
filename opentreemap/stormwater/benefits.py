@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 

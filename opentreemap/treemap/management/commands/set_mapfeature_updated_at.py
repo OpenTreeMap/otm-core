@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.core.management.base import BaseCommand
 
 from treemap.lib.map_feature import set_map_feature_updated_at

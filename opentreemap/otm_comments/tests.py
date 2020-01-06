@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from datetime import datetime, timedelta
 
 from django.contrib.sites.models import Site

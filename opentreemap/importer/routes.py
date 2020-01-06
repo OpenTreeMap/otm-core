@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import render_template, json_api_call
 

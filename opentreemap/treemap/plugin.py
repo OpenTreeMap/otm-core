@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf import settings
 from django.db.models import Q
 from django.test.signals import setting_changed

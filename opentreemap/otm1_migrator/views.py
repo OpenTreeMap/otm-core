@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import csv
 
 from django.conf import settings

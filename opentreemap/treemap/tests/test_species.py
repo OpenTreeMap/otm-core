@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from treemap.tests.base import OTMTestCase
 from treemap.species import species_for_otm_code, species_for_scientific_name
 

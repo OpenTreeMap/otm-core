@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.test.utils import override_settings
 
 from manage_treemap.views.management import units

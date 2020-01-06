@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from celery import shared_task
 from django.db import transaction
 from django.utils.timezone import now

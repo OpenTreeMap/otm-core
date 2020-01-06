@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from copy import deepcopy
 import tempfile
 import json

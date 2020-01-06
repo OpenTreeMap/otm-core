@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.core.exceptions import ValidationError
 
 from opentreemap.util import json_from_request, dotted_split

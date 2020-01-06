@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from opentreemap.middleware import InternetExplorerRedirectMiddleware

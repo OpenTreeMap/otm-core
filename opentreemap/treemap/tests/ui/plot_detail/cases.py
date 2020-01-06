@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from selenium.common.exceptions import ElementNotVisibleException
 
 from treemap.tests.ui import TreemapUITestCase

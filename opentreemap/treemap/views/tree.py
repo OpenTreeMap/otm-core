@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 import hashlib
 
 from django.core.exceptions import ValidationError

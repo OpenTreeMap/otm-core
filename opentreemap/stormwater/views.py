@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D

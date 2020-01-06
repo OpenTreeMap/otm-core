@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-
-
 from time import sleep
 from django.core.urlresolvers import reverse
 from django.core import mail
