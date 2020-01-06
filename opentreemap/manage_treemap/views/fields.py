@@ -200,7 +200,7 @@ def _add_field_info(instance, field_names):
         if ALERT_IDENTIFIER_PATTERN.match(identifier):
             return get_alert_field_info(identifier, instance)
         else:
-            return set_search_field_label(instance, {'identifier': field_name})
+            return set_search_field_label(instance, {'identifier': identifier})
 
     return [field_context(field_name) for field_name in field_names]
 

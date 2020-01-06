@@ -179,7 +179,7 @@ def species_list(request, instance):
         display_name = "%s [%s]" % (sdict['common_name'],
                                     sci_name)
 
-        tokens = tokenize(species)
+        tokens = tokenize(sdict)
 
         sdict.update({
             'scientific_name': sci_name,
