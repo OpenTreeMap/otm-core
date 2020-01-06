@@ -167,7 +167,12 @@ class trees(object):
 
     # TODO: READONLY restore when implemented
     # Note: this is a tuple and not a set so it will be ordered in exports
-    ALL = tuple([p[1] for p in EXPORTER_PAIRS if p[1] not in IGNORED])
+    # List comprehensions create a scope that does not have access to the
+    # previously defined class variables, so we use a lambda to bind the
+    # variables and make them available
+    # https://stackoverflow.com/a/13913933
+    ALL = (lambda IGNORED=IGNORED, EXPORTER_PAIRS=EXPORTER_PAIRS:
+           tuple([p[1] for p in EXPORTER_PAIRS if p[1] not in IGNORED]))()
 
 
 def title_case(field_names):
