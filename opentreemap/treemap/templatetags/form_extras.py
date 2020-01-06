@@ -57,20 +57,20 @@ VALID_FIELD_KEYS = ','.join(list(FIELD_MAPPINGS.keys()))
 
 
 class Variable(Grammar):
-    grammar = (G(b'"', WORD(b'^"'), b'"') | G(b"'", WORD(b"^'"), b"'")
-               | WORD(b"a-zA-Z_", b"a-zA-Z0-9_."))
+    grammar = (G('"', WORD('^"'), '"') | G("'", WORD("^'"), "'")
+               | WORD("a-zA-Z_", "a-zA-Z0-9_."))
 
 
 class Label(Grammar):
-    grammar = (G(b'_("', WORD(b'^"'), b'")') | G(b"_('", WORD(b"^'"), b"')")
+    grammar = (G('_("', WORD('^"'), '")') | G("_('", WORD("^'"), "')")
                | Variable)
 
 
 class InlineEditGrammar(Grammar):
-    grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Label)), b"search"),
-               b"from", Variable, OPTIONAL(b"for", Variable),
-               OPTIONAL(b"in", Variable), b"withtemplate", Variable,
-               OPTIONAL(b"withhelp", Label))
+    grammar = (OR(G(OR("field", "create"), OPTIONAL(Label)), "search"),
+               "from", Variable, OPTIONAL("for", Variable),
+               OPTIONAL("in", Variable), "withtemplate", Variable,
+               OPTIONAL("withhelp", Label))
     grammar_whitespace = True
 
 
