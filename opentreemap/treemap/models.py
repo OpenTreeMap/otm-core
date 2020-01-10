@@ -360,7 +360,7 @@ class User(AbstractUniqueEmailUser, Auditable):
 
     @property
     def email_hash(self):
-        return hashlib.sha512(self.email).hexdigest()
+        return hashlib.sha512(self.email.encode()).hexdigest()
 
     def dict(self):
         return {'id': self.pk,
