@@ -8,6 +8,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.http import RawPostDataException
 
 from django_tinsel.exceptions import HttpBadRequestException
 
@@ -50,8 +51,7 @@ def plots_closest_to_point(request, instance, lat, lng):
         distance = float(request.GET.get(
             'distance', settings.MAP_CLICK_RADIUS))
     except ValueError:
-        raise HttpBadRequestException(
-            'The distance parameter must be a number')
+        raise HttpBadRequestException('The distance parameter must be a number')
 
     plots = Plot.objects.distance(point)\
                         .filter(instance=instance)\
@@ -72,7 +72,16 @@ def update_or_create_plot(request, instance, plot_id=None):
     # The API communicates via nested dictionaries but
     # our internal functions prefer dotted pairs (which
     # is what inline edit form users)
-    request_dict = json.loads(request.body)
+    # Sometimes reading from body fails, so try reading as a file-like object
+    try:
+        body_decoded = request.body.decode()
+    except RawPostDataException:
+        body_decoded = request.read().decode()
+
+    if body_decoded:
+        request_dict = json.loads(body_decoded)
+    else:
+        request_dict = {}
 
     data = {}
 

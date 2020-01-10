@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from io import StringIO
+from io import BytesIO
 from json import loads, dumps
 from urllib.parse import urlparse
 
@@ -14,6 +14,7 @@ import base64
 import datetime
 import psycopg2
 from unittest.case import skip
+from django_tinsel.exceptions import HttpBadRequestException
 
 from django.db import connection
 from django.contrib.auth.models import AnonymousUser
@@ -96,11 +97,11 @@ def send_json_body(url, body_object, client, method, user=None):
     are posting form data, so you need to manually setup the parameters
     to override that default functionality.
     """
-    body_string = dumps(body_object)
-    body_stream = StringIO(body_string)
+    body_binary_string = dumps(body_object).encode()
+    body_stream = BytesIO(body_binary_string)
     parsed_url = urlparse(url)
     client_params = {
-        'CONTENT_LENGTH': len(body_string),
+        'CONTENT_LENGTH': len(body_binary_string),
         'CONTENT_TYPE': 'application/json',
         'PATH_INFO': _get_path(parsed_url),
         'QUERY_STRING': parsed_url[4],
@@ -375,8 +376,8 @@ class Locations(OTMTestCase):
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be '
-                         'a number between 1 and 500')
+                         b'The max_plots parameter must be '
+                         b'a number between 1 and 500')
 
     def test_locations_plots_max_plots_param_cannot_be_greater_than_500(self):
         response = get_signed(
@@ -385,8 +386,8 @@ class Locations(OTMTestCase):
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be '
-                         'a number between 1 and 500')
+                         b'The max_plots parameter must be '
+                         b'a number between 1 and 500')
         response = get_signed(
             self.client,
             "%s/instance/%s/locations/0,0/plots?max_plots=500" %
@@ -402,8 +403,8 @@ class Locations(OTMTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be a '
-                         'number between 1 and 500')
+                         b'The max_plots parameter must be a '
+                         b'number between 1 and 500')
         response = get_signed(
             self.client,
             "%s/instance/%s/locations/0,0/plots?max_plots=1" %
@@ -419,7 +420,7 @@ class Locations(OTMTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The distance parameter must be a number')
+                         b'The distance parameter must be a number')
 
         response = get_signed(
             self.client,
@@ -472,7 +473,7 @@ class CreatePlotAndTree(OTMTestCase):
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
-                         "Create failed:" + response.content)
+                         "Create failed:" + response.content.decode())
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -509,7 +510,7 @@ class CreatePlotAndTree(OTMTestCase):
         self.assertEqual(400,
                          response.status_code,
                          "Expected creating a million foot "
-                         "tall tree to return 400:" + response.content)
+                         "tall tree to return 400:" + response.content.decode())
 
         body_dict = loads(response.content)
         self.assertTrue('fieldErrors' in body_dict,
@@ -548,7 +549,7 @@ class CreatePlotAndTree(OTMTestCase):
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
-                         "Create failed:" + response.content)
+                         "Create failed:" + response.content.decode())
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -1334,8 +1335,8 @@ class Instance(LocalMediaTestCase):
              'sort_key': 'Date'}
         ]
         self.instance.save()
-        self.instance.logo.save(Instance.test_png_name,
-                                File(open(Instance.test_png_path, 'r')))
+        with open(Instance.test_png_path, 'rb') as f:
+            self.instance.logo.save(Instance.test_png_name, f)
 
     def test_returns_config_colors(self):
         request = sign_request_as_user(make_request(), self.user)
@@ -2003,26 +2004,25 @@ class Authentication(OTMTestCase):
         self.assertEqual(ret.status_code, 401)
 
     def test_ok(self):
-        auth = base64.b64encode("jim:password")
+        auth = base64.b64encode(b"jim:password")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
-
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 200)
 
     def test_malformed_auth(self):
-        withauth = {"HTTP_AUTHORIZATION": "FUUBAR"}
+        withauth = {"HTTP_AUTHORIZATION": "FUUBAR" }
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
-        auth = base64.b64encode("foobar")
+        auth = base64.b64encode(b"foobar")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
     def test_bad_cred(self):
-        auth = base64.b64encode("jim:passwordz")
+        auth = base64.b64encode(b"jim:passwordz")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
@@ -2034,7 +2034,7 @@ class Authentication(OTMTestCase):
         ijim.reputation = 1001
         ijim.save()
 
-        auth = base64.b64encode("jim:password")
+        auth = base64.b64encode(b"jim:password")
         withauth = dict(list(self.sign.items()) +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
@@ -2083,7 +2083,7 @@ class UserApiExportsTest(UserExportsTestCase):
 class PasswordResetTest(OTMTestCase):
     def setUp(self):
         self.instance = setupTreemapEnv()
-        self.jim = User.objects.get(username="jim")
+        self.jim = User.objects.get(username="jim", password="password")
 
     def test_send_password_reset_email_url(self):
         url = "%s/send-password-reset-email?email=%s"

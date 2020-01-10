@@ -2,7 +2,7 @@
 
 
 import logging
-from io import StringIO
+from io import BytesIO
 import subprocess
 import shutil
 import tempfile
@@ -365,7 +365,7 @@ def make_request(params=None, user=None, instance=None,
 
     extra = {}
     if body:
-        body_stream = StringIO(body)
+        body_stream = BytesIO(body.encode())
         extra['wsgi.input'] = body_stream
         extra['CONTENT_LENGTH'] = len(body)
 
