@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import copy
 
@@ -130,10 +128,10 @@ _unit_conversions = {
     "sq_m": {"sq_m": 1, "sq_ft": 10.7639}
 }
 _unit_conversions["ft"] = {u: v * 12 for (u, v)
-                           in _unit_conversions["in"].iteritems()}
+                           in _unit_conversions["in"].items()}
 _unit_conversions["sq_ft"] = {
     u: v / _unit_conversions["sq_m"]["sq_ft"]
-    for u, v in _unit_conversions["sq_m"].iteritems()}
+    for u, v in _unit_conversions["sq_m"].items()}
 
 
 def get_unit_name(abbrev):
@@ -146,7 +144,7 @@ def get_unit_abbreviation(abbrev):
 
 def get_convertible_units(category_name, value_name):
     abbrev = _get_display_default(category_name, value_name, 'units')
-    return _unit_conversions[abbrev].keys()
+    return list(_unit_conversions[abbrev].keys())
 
 
 def _get_display_default(category_name, value_name, key):
@@ -212,7 +210,7 @@ def _is_configured_for(keys, category_name, value_name):
     defaults = settings.DISPLAY_DEFAULTS
     return (category_name in defaults
             and value_name in defaults[category_name]
-            and keys & defaults[category_name][value_name].viewkeys())
+            and keys & defaults[category_name][value_name].keys())
 
 
 is_convertible_or_formattable = partial(_is_configured_for,
@@ -232,7 +230,7 @@ def storage_to_instance_units_factor(instance, category_name, value_name):
     instance_unit = get_units(instance, category_name, value_name)
     conversion_dict = _unit_conversions.get(storage_unit)
 
-    if instance_unit not in conversion_dict.keys():
+    if instance_unit not in list(conversion_dict.keys()):
         raise Exception("Cannot convert from [%s] to [%s]"
                         % (storage_unit, instance_unit))
 

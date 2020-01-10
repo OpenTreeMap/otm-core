@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 import copy
@@ -53,13 +51,13 @@ def transform_instance_info_response(instance_view_fn):
         if request.api_version < 4:
             multichoice_fields = {
                 field for field, info
-                in instance_info_dict['fields'].iteritems()
+                in instance_info_dict['fields'].items()
                 if info['data_type'] == 'multichoice'}
 
             # Remove multichoice fields from perms
             instance_info_dict['fields'] = {
                 field: info for field, info
-                in instance_info_dict['fields'].iteritems()
+                in instance_info_dict['fields'].items()
                 if field not in multichoice_fields}
 
             # Remove multichoice fields from field groups
@@ -300,7 +298,7 @@ def public_instances(request):
 
 def _contextify_instances(instances):
     """ Converts instances to context dictionary"""
-    return map(_instance_info_dict, instances)
+    return list(map(_instance_info_dict, instances))
 
 
 def _instance_info_dict(instance):

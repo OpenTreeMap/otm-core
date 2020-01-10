@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import logging
-from cStringIO import StringIO
+from io import StringIO
 import subprocess
 import shutil
 import tempfile
@@ -432,7 +430,7 @@ class LocalMediaTestCase(OTMTestCase):
         return path
 
     def load_resource(self, name):
-        return file(self.resource_path(name))
+        return open(self.resource_path(name))
 
     def tearDown(self):
         shutil.rmtree(self.photoDir)

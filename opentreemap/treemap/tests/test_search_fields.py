@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 
@@ -19,17 +17,17 @@ class InstanceAdvancedSearch(OTMTestCase):
 
     def assert_search_present(self, **groups):
         search = self.instance.advanced_search_fields(self.user)
-        for group_name, field in groups.iteritems():
+        for group_name, field in groups.items():
             self.assertIn(group_name, search)
             search_group = search[group_name]
 
             field_info = search_group[0]
             if 'label' in field_info:
-                field_info['label'] = unicode(field_info['label'])
+                field_info['label'] = str(field_info['label'])
             if 'id' in field_info:
                 del field_info['id']
 
-            self.assertEquals(field_info, field)
+            self.assertEqual(field_info, field)
 
     def assert_search_absent(self, group_name):
         search = self.instance.advanced_search_fields(self.user)
@@ -86,15 +84,15 @@ class InstanceMobileSearch(OTMTestCase):
 
     def assert_search_present(self, **groups):
         search = mobile_search_fields(self.instance)
-        for group_name, field in groups.iteritems():
+        for group_name, field in groups.items():
             self.assertIn(group_name, search)
             search_group = search[group_name]
 
             field_info = search_group[0]
             if 'label' in field_info:
-                field_info['label'] = unicode(field_info['label'])
+                field_info['label'] = str(field_info['label'])
 
-            self.assertEquals(field_info, field)
+            self.assertEqual(field_info, field)
 
     def test_missing_filters(self):
         self.instance.mobile_search_fields = {

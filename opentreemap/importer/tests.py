@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import tempfile
 import csv
@@ -10,7 +8,7 @@ import json
 import psycopg2
 
 from datetime import date
-from StringIO import StringIO
+from io import StringIO
 from unittest.case import skip, skipIf
 
 from django.conf import settings
@@ -203,7 +201,6 @@ class TreeValidationTest(TreeValidationTestBase):
         i.validate_row()
         self.assertHasError(i, errors.SPECIES_DBH_TOO_HIGH)  # 15 > 12
         self.assertNotHasError(i, errors.SPECIES_HEIGHT_TOO_HIGH)  # 25 < 30
-
 
     def test_proximity(self):
         p1 = mkPlot(self.instance, self.user,
@@ -1022,7 +1019,7 @@ class IntegrationTests(OTMTestCase):
         if 'errors' not in json:
             return errors
 
-        for k, v in json['errors'].iteritems():
+        for k, v in json['errors'].items():
             errors[k] = []
             for e in v:
                 d = e['data']
@@ -1251,7 +1248,6 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(ierrors['1'],
                          [(errors.INVALID_GEOM[0], gflds, None)])
 
-
         self.assertNotIn('2', ierrors)
         self.assertNotIn('3', ierrors)
         self.assertEqual(ierrors['4'],
@@ -1321,7 +1317,6 @@ class TreeIntegrationTests(IntegrationTests):
         response = start_import(req, self.instance)
 
         self.assertTrue(isinstance(response, HttpResponseBadRequest))
-
 
     def test_unit_changes(self):
         csv = ("| point x | point y | tree height | canopy height | "
@@ -1498,7 +1493,6 @@ class TreeIntegrationTests(IntegrationTests):
         self.assertEqual(int(p1_geom.x*100), 4553)
         self.assertEqual(int(p1_geom.y*100), 3109)
 
-
     def test_import_updates_updated_at_fields(self):
         original_creator = make_admin_user(self.instance, username='original_creator')
         p1 = mkPlot(self.instance, original_creator)
@@ -1527,7 +1521,6 @@ class TreeIntegrationTests(IntegrationTests):
 
         self.assertGreater(p1.updated_at, p1_original_updated_at)
         self.assertGreater(t1.plot.updated_at, p2_original_updated_at)
-
 
     def test_swap_locations_using_otm_id(self):
         center = self.instance.center

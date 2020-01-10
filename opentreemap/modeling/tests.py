@@ -59,7 +59,7 @@ class TestPlanCrud(OTMTestCase):
         delete_plan(request, self.instance, self.plan_id)
 
     def _assert_plans_match(self, spec, result):
-        for key, value in spec.iteritems():
+        for key, value in spec.items():
             self.assertEqual(value, result[key],
                              "Mismatch in plan field '%s'" % key)
 
@@ -207,7 +207,7 @@ class TestGrowthModel(OTMTestCase):
 
 class TestBisect(SimpleTestCase):
     def setUp(self):
-        self.choices = range(10)
+        self.choices = list(range(10))
         self.identity = lambda n: n
         self.tolerance = 0
         self.max_iterations = 15

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import os
 import importlib
@@ -48,10 +46,9 @@ def save_objects(migration_rules, model_name, model_dicts, relic_ids,
                      if dict['pk'] not in model_key_map)
 
     for model_dict in dicts_to_save:
-        dependencies = (migration_rules
+        dependencies = (list(migration_rules
                         .get(model_name, {})
-                        .get('dependencies', {})
-                        .items())
+                        .get('dependencies', {}).items()))
 
         old_model_dict = model_dict.copy()
         old_model_dict['fields'] = model_dict['fields'].copy()
@@ -145,7 +142,7 @@ class Command(InstanceDataCommand):
 
         if options['config_file']:
             config_data = json.load(open(options['config_file'], 'r'))
-            for k, v in config_data.items():
+            for k, v in list(config_data.items()):
                 if not options.get(k, None):
                     options[k] = v
 

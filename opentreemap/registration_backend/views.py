@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -32,7 +30,7 @@ class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super(LoginForm, self).__init__(*args, **kwargs)
 
-        for field_name, field in self.fields.items():
+        for field_name, field in list(self.fields.items()):
             field.widget.attrs['class'] = 'input-xlarge form-control'
 
 
@@ -74,7 +72,7 @@ class RegistrationForm(DefaultRegistrationForm):
         self.fields['email'].label = _('Email')
         self.fields['password2'].label = _('Confirm Password')
 
-        for field_name, field in self.fields.items():
+        for field_name, field in list(self.fields.items()):
             if not isinstance(field, forms.BooleanField):
                 field.widget.attrs['class'] = 'form-control'
 

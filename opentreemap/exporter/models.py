@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import datetime
 
@@ -36,7 +34,7 @@ class ExportJob(models.Model):
 
     instance = models.ForeignKey(Instance)
 
-    status = models.IntegerField(choices=STATUS_CHOICES.items(),
+    status = models.IntegerField(choices=list(STATUS_CHOICES.items()),
                                  default=PENDING)
     user = models.ForeignKey(User, null=True, blank=True)
     outfile = models.FileField(upload_to="exports/%Y/%m/%d")

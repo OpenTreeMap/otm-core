@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from copy import deepcopy
 from random import random
@@ -82,7 +80,7 @@ class MortalityModelUrbanTreeDatabase(object):
     def kill_trees(self, trees, remainders):
         categories = self._categorize(trees)
         new_remainders = {}
-        for key, c in categories.iteritems():
+        for key, c in categories.items():
             remainder = remainders.get(key, 0)
             float_to_kill = c.mortality * len(c.trees) + remainder
             int_to_kill = int(round(float_to_kill))

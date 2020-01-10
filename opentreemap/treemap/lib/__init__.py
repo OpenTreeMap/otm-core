@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import re
 
@@ -24,8 +22,8 @@ def format_benefits(instance, benefits, basis, digits=None):
 
     # FYI: this mutates the underlying benefit dictionaries
     total_currency = 0
-    for benefit_group in benefits.values():
-        for key, benefit in benefit_group.iteritems():
+    for benefit_group in list(benefits.values()):
+        for key, benefit in benefit_group.items():
             if benefit['currency'] is not None:
                 # TODO: Use i18n/l10n to format currency
                 benefit['currency_saved'] = currency_symbol + number_format(

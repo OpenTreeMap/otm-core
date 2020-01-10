@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 from functools import wraps
@@ -42,7 +40,7 @@ def plots_closest_to_point(request, instance, lat, lng):
     try:
         max_plots = int(request.GET.get('max_plots', '1'))
 
-        if max_plots not in xrange(1, 501):
+        if max_plots not in range(1, 501):
             raise ValueError()
     except ValueError:
         raise HttpBadRequestException(
@@ -80,7 +78,7 @@ def update_or_create_plot(request, instance, plot_id=None):
 
     for model in ["plot", "tree"]:
         if model in request_dict:
-            for key, val in request_dict[model].iteritems():
+            for key, val in request_dict[model].items():
                 data["%s.%s" % (model, key)] = val
 
     # We explicitly disallow setting a plot's tree id.

@@ -41,10 +41,30 @@ class DotDict(dict):
             dict.__setitem__(self, key, value)
 
     def __getitem__(self, key):
+        # An implementation note about the try blocks below.
+
+        # Django 1.11.17 calls `hasattr(a_dotdict_field, 'resolve_expression')`
+        # https://bit.ly/2ZWLoWF
+
+        # The Python 3 documentation says that this ends up calling `getattr`
+        # and returning False if an `AttributeError` is raised
+        # https://docs.python.org/3/library/functions.html#hasattr
+
+        # For dictionaries, `getattr` ends up calling `__getitem__`. Our
+        # implementation of `__getitem__` correctly raises KeyError, and we
+        # were relying on a bug in Python 2 where any exception raised during a
+        # `hasattr` check would result in False. Now that Python 3 explicitly
+        # checks for `AttributeError` we need this workaround
         if '.' not in key:
-            return dict.__getitem__(self, key)
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError as ke:
+                raise AttributeError(ke)
         myKey, restOfKey = key.split('.', 1)
-        target = dict.__getitem__(self, myKey)
+        try:
+            target = dict.__getitem__(self, myKey)
+        except KeyError as ke:
+            raise AttributeError(ke)
         self._ensure_dot_dict(target, restOfKey, myKey)
         return target[restOfKey]
 

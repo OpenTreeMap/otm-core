@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
-from StringIO import StringIO
+
+from io import StringIO
 from json import loads, dumps
-from urlparse import urlparse
+from urllib.parse import urlparse
 
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import os
 import json
 import base64
@@ -84,9 +84,9 @@ def _get_path(parsed_url):
     """
     # If there are parameters, add them
     if parsed_url[3]:
-        return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
+        return urllib.parse.unquote(parsed_url[2] + ";" + parsed_url[3])
     else:
-        return urllib.unquote(parsed_url[2])
+        return urllib.parse.unquote(parsed_url[2])
 
 
 def send_json_body(url, body_object, client, method, user=None):
@@ -794,7 +794,7 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(3, len(Audit.pending_audits()),
                          "Expected 3 pends, one for each edited field")
 
-        self.assertEqual(3, len(response_json['pending_edits'].keys()),
+        self.assertEqual(3, len(list(response_json['pending_edits'].keys())),
                          "Expected the json response to have a "
                          "pending_edits dict with 3 keys, one for each field")
 
@@ -808,10 +808,10 @@ class UpdatePlotAndTree(OTMTestCase):
 
         self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
-        self.assertFalse("error" in response_json.keys(),
+        self.assertFalse("error" in list(response_json.keys()),
                          "Did not expect an error")
 
-        self.assertFalse("foo" in response_json.keys(),
+        self.assertFalse("foo" in list(response_json.keys()),
                          "Did not expect foo to be added to the plot")
 
     def test_update_creates_tree(self):
@@ -924,7 +924,7 @@ class UpdatePlotAndTree(OTMTestCase):
                          "Expected 1 pend record for the edited field.")
 
         response_json = loads(response.content)
-        self.assertEqual(1, len(response_json['pending_edits'].keys()),
+        self.assertEqual(1, len(list(response_json['pending_edits'].keys())),
                          "Expected the json response to have a"
                          " pending_edits dict with 1 keys")
 
@@ -1418,7 +1418,7 @@ class Instance(LocalMediaTestCase):
 
         response = instance_info_endpoint(request, 4, self.instance.url_name)
         info_dict = json.loads(response.content)
-        self.assertIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertIn('plot.udf:multi', list(info_dict['fields'].keys()))
         self.assertTrue(any('plot.udf:multi' in group.get('field_keys', [])
                             for group in info_dict['field_key_groups']))
 
@@ -1428,7 +1428,7 @@ class Instance(LocalMediaTestCase):
         response = instance_info_endpoint(request, 3, self.instance.url_name)
         info_dict = json.loads(response.content)
 
-        self.assertNotIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertNotIn('plot.udf:multi', list(info_dict['fields'].keys()))
         self.assertFalse(any('plot.udf:multi' in group.get('field_keys', [])
                              for group in info_dict['field_key_groups']))
 
@@ -1630,7 +1630,7 @@ class UserTest(LocalMediaTestCase):
             response = update_profile_photo_endpoint(req, LATEST_API,
                                                      str(peon.pk))
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         peon = User.objects.get(pk=peon.pk)
         self.assertIsNotNone(peon.photo)
@@ -1657,7 +1657,7 @@ class UserTest(LocalMediaTestCase):
             response = update_profile_photo_endpoint(req, LATEST_API,
                                                      str(grunt.pk))
 
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
     def testCreateUser(self):
         rslt = create_user(self.make_post_request(self.defaultUserDict))
@@ -1665,7 +1665,7 @@ class UserTest(LocalMediaTestCase):
 
         user = User.objects.get(pk=pk)
 
-        for field, target_value in self.defaultUserDict.iteritems():
+        for field, target_value in self.defaultUserDict.items():
             if field != 'password':
                 self.assertEqual(getattr(user, field), target_value)
 
@@ -1758,12 +1758,12 @@ class UserTest(LocalMediaTestCase):
         updatePeonRequest({'last_name': 'l1'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l1')
+        self.assertEqual(peon.last_name, 'l1')
 
         updatePeonRequest({'last_name': 'l2'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l2')
+        self.assertEqual(peon.last_name, 'l2')
 
         updatePeonRequest({'password': 'whateva'})
 
@@ -1785,12 +1785,12 @@ class UserTest(LocalMediaTestCase):
         updatePeonRequest({'lastname': 'l1'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l1')
+        self.assertEqual(peon.last_name, 'l1')
 
         updatePeonRequest({'lastname': 'l2'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l2')
+        self.assertEqual(peon.last_name, 'l2')
 
     def testCantRemoveRequiredFields(self):
         peon = make_user(username='peon', password='pw')
@@ -1802,7 +1802,7 @@ class UserTest(LocalMediaTestCase):
         resp = put_json(url, {'username': ''},
                         self.client, user=peon)
 
-        self.assertEquals(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 400)
 
     def testCanOnlyUpdateLoggedInUser(self):
         peon = make_user(username='peon', password='pw')
@@ -1817,7 +1817,7 @@ class UserTest(LocalMediaTestCase):
         resp = put_json(url, {'password': 'whateva'},
                         self.client, user=grunt)
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
 
 class SigningTest(OTMTestCase):
@@ -1876,7 +1876,7 @@ class SigningTest(OTMTestCase):
         sig = get_signature_for_request(
             req, b'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')
 
-        self.assertEquals(
+        self.assertEqual(
             sig, 'i91nKc4PWAt0JJIdXwz9HxZCJDdiy6cf/Mj6vPxyYIs=')
 
     def testTimestampVoidsSignature(self):
@@ -2035,7 +2035,7 @@ class Authentication(OTMTestCase):
         ijim.save()
 
         auth = base64.b64encode("jim:password")
-        withauth = dict(self.sign.items() +
+        withauth = dict(list(self.sign.items()) +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/user" % API_PFX, **withauth)
@@ -2060,18 +2060,18 @@ class UserApiExportsTest(UserExportsTestCase):
         iuser.save_with_user(iuser)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         iuser.admin = True
         iuser.save_with_user(self.user1)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         iuser.delete_with_user(self.user1)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 401)
+        self.assertEqual(resp.status_code, 401)
 
     def test_csv_requires_admin(self):
         self._test_requires_admin_access('users_csv')
@@ -2089,7 +2089,7 @@ class PasswordResetTest(OTMTestCase):
         url = "%s/send-password-reset-email?email=%s"
         response = post_json(url % (API_PFX, self.jim.email),
                              {}, self.client, None)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
 
 class SpeciesListTest(OTMTestCase):

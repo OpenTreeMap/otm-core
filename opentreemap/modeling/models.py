@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -37,7 +35,7 @@ class Plan(models.Model):
         }
 
     def update(self, plan_dict):
-        for key, value in plan_dict.iteritems():
+        for key, value in plan_dict.items():
             if key in ('revision', 'name', 'description', 'is_published',
                        'scenarios', 'zoom_lat_lng'):
                 setattr(self, key, value)

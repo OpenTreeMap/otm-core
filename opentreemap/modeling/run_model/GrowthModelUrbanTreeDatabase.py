@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from copy import deepcopy
 from operator import itemgetter
@@ -99,7 +97,7 @@ def _get_species_for_planting(instance):
         return []
 
     itree_region = itree_regions[0]
-    otm_codes = _growth_data[itree_region.code].keys()
+    otm_codes = list(_growth_data[itree_region.code].keys())
     species = [species_for_otm_code(otm_code) for otm_code in otm_codes]
     species = sorted(species, key=itemgetter('common_name'))
 
@@ -134,7 +132,6 @@ def bisect(f, x_lo, x_hi, y_target, max_iterations, tolerance):
         else:
             x_hi = x_mid
     raise Exception("Max iterations exceeded")
-
 
 
 # Growth functions from TS4_Growth_eqn_forms.csv

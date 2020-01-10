@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
@@ -27,7 +25,7 @@ class MockRequest():
             'PATH_INFO': path_info
         }
         if other_params:
-            for k, v in other_params.items():
+            for k, v in list(other_params.items()):
                 self.META[k] = v
 
 
@@ -40,7 +38,7 @@ class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
 
     def _assert_redirects(self, response, expected_url):
         self.assertTrue(isinstance(response, HttpResponseRedirect))
-        self.assertEquals(expected_url, response["Location"])
+        self.assertEqual(expected_url, response["Location"])
 
     def test_detects_ie(self):
         req, __ = self._request_with_agent(USER_AGENT_STRINGS.IE_7)
@@ -61,43 +59,43 @@ class InternetExplorerRedirectMiddlewareTests(OTMTestCase):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_11)
         self.assertIsNone(res, 'Expected the middleware to return a None '
                           'response (no redirect) for IE 11')
-        self.assertEquals(11, req.ie_version, 'Expected the middleware to '
-                          'set "ie_version" to 11')
+        self.assertEqual(11, req.ie_version, 'Expected the middleware to '
+                         'set "ie_version" to 11')
 
     def test_sets_version_and_redirects_ie_10(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_10)
         self._assert_redirects(res,
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
-        self.assertEquals(10, req.ie_version, 'Expected the middleware to set '
-                          '"ie_version" to 10')
+        self.assertEqual(10, req.ie_version, 'Expected the middleware to set '
+                         '"ie_version" to 10')
 
     def test_sets_version_and_redirects_ie_9(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_9)
         self._assert_redirects(res,
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
-        self.assertEquals(9, req.ie_version, 'Expected the middleware to set '
-                          '"ie_version" to 9')
+        self.assertEqual(9, req.ie_version, 'Expected the middleware to set '
+                         '"ie_version" to 9')
 
     def test_sets_version_and_redirects_ie_8(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_8)
         self._assert_redirects(res,
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
-        self.assertEquals(8, req.ie_version, 'Expected the middleware to set '
-                          '"ie_version" to 8')
+        self.assertEqual(8, req.ie_version, 'Expected the middleware to set '
+                         '"ie_version" to 8')
 
     def test_sets_version_and_redirects_ie_7(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_7)
         self._assert_redirects(res,
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
-        self.assertEquals(7, req.ie_version, 'Expected the middleware to set '
-                          '"ie_version" to 7')
+        self.assertEqual(7, req.ie_version, 'Expected the middleware to set '
+                         '"ie_version" to 7')
 
     def test_sets_version_and_redirects_ie_6(self):
         req, res = self._request_with_agent(USER_AGENT_STRINGS.IE_6)
         self._assert_redirects(res,
                                settings.IE_VERSION_UNSUPPORTED_REDIRECT_PATH)
-        self.assertEquals(6, req.ie_version, 'Expected the middleware to set '
-                          '"ie_version" to 6')
+        self.assertEqual(6, req.ie_version, 'Expected the middleware to set '
+                         '"ie_version" to 6')
 
     def test_detects_json_and_does_not_redirect(self):
         params = {'HTTP_ACCEPT': 'application/json;q=0.9,*/*;q=0.8'}

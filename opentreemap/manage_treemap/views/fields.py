@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from copy import deepcopy
 
@@ -76,7 +74,7 @@ def set_search_config(request, instance):
     search_fields = json_from_request(request)
     for prop in ('search_config', 'mobile_search_fields'):
         config = deepcopy(getattr(instance, prop))
-        for key, val in search_fields[prop].iteritems():
+        for key, val in search_fields[prop].items():
             config[key] = search_fields[prop][key]
 
         setattr(instance, prop, config)
@@ -202,7 +200,7 @@ def _add_field_info(instance, field_names):
         if ALERT_IDENTIFIER_PATTERN.match(identifier):
             return get_alert_field_info(identifier, instance)
         else:
-            return set_search_field_label(instance, {'identifier': field_name})
+            return set_search_field_label(instance, {'identifier': identifier})
 
     return [field_context(field_name) for field_name in field_names]
 

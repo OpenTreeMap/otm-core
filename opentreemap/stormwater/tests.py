@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from treemap.ecobenefits import (FEET_SQ_PER_METER_SQ, FEET_PER_INCH,
                                  GALLONS_PER_CUBIC_FT)

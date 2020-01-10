@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 import hashlib
@@ -296,7 +294,7 @@ def update_map_feature(request_dict, user, feature):
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom
-    for (identifier, value) in request_dict.iteritems():
+    for (identifier, value) in request_dict.items():
         split_template = 'Malformed request - invalid field %s'
         object_name, field = dotted_split(identifier, 2,
                                           failure_format_string=split_template)
@@ -322,7 +320,7 @@ def update_map_feature(request_dict, user, feature):
             if field == 'species' and value:
                 value = get_object_or_404(Species,
                                           instance=feature.instance, pk=value)
-            elif field == 'plot' and value == unicode(feature.pk):
+            elif field == 'plot' and value == str(feature.pk):
                 value = feature
         else:
             raise ValueError(

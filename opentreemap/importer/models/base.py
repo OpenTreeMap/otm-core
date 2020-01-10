@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 from datetime import datetime, timedelta
@@ -321,7 +319,7 @@ class GenericImportRow(models.Model):
 
         # If you give append_error a single field
         # there is no need to get angry
-        if isinstance(fields, basestring):
+        if isinstance(fields, str):
             fields = (fields,)  # make into tuple
 
         self.errors = json.dumps(
@@ -384,7 +382,7 @@ class GenericImportRow(models.Model):
             return i
 
     def convert_units(self, data, converts):
-        for fld, factor in converts.iteritems():
+        for fld, factor in converts.items():
             if fld in data and factor != 1.0:
                 data[fld] = float(data[fld]) * factor
 

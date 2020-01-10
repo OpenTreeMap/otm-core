@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import locale
 import re
@@ -243,9 +241,9 @@ def benefits_convs(request, instance):
     pfx = ('<span class="currency-value">' +
            conv.currency_symbol + '</span> ')
 
-    for group_title, fields in field_groups.iteritems():
+    for group_title, fields in field_groups.items():
         fields_with_pfx = [((pfx + label), value)
-                           for label, value in fields.iteritems()]
+                           for label, value in fields.items()]
         field_groups[group_title] = fields_with_pfx
 
     return {'benefitCurrencyConversion': conv,
@@ -271,7 +269,7 @@ def update_benefits(request, instance):
 
     updated_values = json_from_request(request)
 
-    for field, value in updated_values.iteritems():
+    for field, value in updated_values.items():
         if field in valid_fields:
             field_part = dotted_split(field, 2)[1]
             setattr(conv, field_part, value)

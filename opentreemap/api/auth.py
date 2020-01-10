@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import base64
 import hashlib
 import hmac
 import re
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 
 from django.http import HttpResponse
 from django.contrib.auth import authenticate
@@ -29,9 +29,9 @@ def get_signature_for_request(request, secret_key):
     # This used to use request.REQUEST, but after some testing and analysis it
     # seems that both iOS & Android always pass named parameters in the query
     # string, even for non-GET requests
-    params = sorted(request.GET.iteritems(), key=lambda a: a[0])
+    params = sorted(iter(request.GET.items()), key=lambda a: a[0])
 
-    paramstr = '&'.join(['%s=%s' % (k, urllib.quote_plus(str(v)))
+    paramstr = '&'.join(['%s=%s' % (k, urllib.parse.quote_plus(str(v)))
                          for (k, v) in params
                          if k.lower() != "signature"])
 

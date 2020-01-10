@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 from random import shuffle
@@ -67,9 +65,9 @@ class UDFDictionaryTestCase(OTMTestCase):
 
     def test_set_item_to_none_removes_key(self):
         self.d['Test choice'] = 'a'
-        self.assertEqual(1, len(self.d.keys()))
+        self.assertEqual(1, len(list(self.d.keys())))
         self.d['Test choice'] = None
-        self.assertEqual(0, len(self.d.keys()))
+        self.assertEqual(0, len(list(self.d.keys())))
 
     def test_setting_nonexistant_key_to_none_is_a_noop(self):
         # Should not raise an error
@@ -147,7 +145,7 @@ class ScalarUDFFilterTest(ScalarUDFTestCase):
 
         def create_and_save_with_choice(c, n=1):
             plots = []
-            for i in xrange(n):
+            for i in range(n):
                 plot = Plot(geom=self.p, instance=self.instance)
                 plot.udfs['Test choice'] = c
                 plot.save_with_user(self.commander_user)
@@ -1200,7 +1198,7 @@ class CollectionUDFTest(OTMTestCase):
         all_new_stews = reloaded_plot.udfs['Stewardship']
 
         # Keep only 'prune' (note that UDF collection values are unordered)
-        new_stews = filter(lambda v: v['action'] == 'prune', all_new_stews)
+        new_stews = [v for v in all_new_stews if v['action'] == 'prune']
         reloaded_plot.udfs['Stewardship'] = new_stews
         reloaded_plot.save_with_user(self.commander_user)
 
@@ -1304,7 +1302,7 @@ class UdfDeleteTest(OTMTestCase):
         udf_def.delete()
 
         updated_instance = Instance.objects.get(pk=self.instance.pk)
-        self.assertEquals(
+        self.assertEqual(
             0, len(updated_instance.mobile_api_fields[0]['field_keys']))
 
     def test_delete_cudf_deletes_mobile_api_field_group(self):
@@ -1341,13 +1339,13 @@ class UdfDeleteTest(OTMTestCase):
         tree_udf_def.delete()
 
         updated_instance = Instance.objects.get(pk=self.instance.pk)
-        self.assertEquals(1, len(
+        self.assertEqual(1, len(
             updated_instance.mobile_api_fields[1]['collection_udf_keys']))
 
         plot_udf_def.delete()
 
         updated_instance = Instance.objects.get(pk=self.instance.pk)
-        self.assertEquals(1, len(updated_instance.mobile_api_fields))
+        self.assertEqual(1, len(updated_instance.mobile_api_fields))
 
 
 class UdfCRUTestCase(OTMTestCase):

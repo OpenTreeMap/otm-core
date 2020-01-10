@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import csv
 import json
@@ -47,7 +45,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
         rows[0][0] = rows[0][0][3:]
 
         self.assertTrue(len(rows) > 1)
-        for (header, value) in headers_and_values.iteritems():
+        for (header, value) in headers_and_values.items():
             target_column = rows[0].index(header)
             self.assertEqual(value, rows[row_index][target_column])
 
@@ -79,7 +77,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
 
         request = make_request(user=user)
         ctx = begin_export(request, self.instance, model)
-        self.assertIn('job_id', ctx.keys())
+        self.assertIn('job_id', list(ctx.keys()))
         self.assertEqual(ctx['start_status'], 'OK')
 
         job_id = ctx['job_id']
@@ -91,7 +89,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
         self.assertIn('.csv', ctx['url'])
         self.assertEqual(ctx['status'], 'COMPLETE')
 
-        self.assertRegexpMatches(job.outfile.name, assertion_filename)
+        self.assertRegex(job.outfile.name, assertion_filename)
 
 
 class ExportTreeTaskTest(AsyncCSVTestCase):
@@ -167,7 +165,7 @@ class ExportSpeciesTaskTest(AsyncCSVTestCase):
 class UserExportsTestCase(OTMTestCase):
 
     def assertUserJSON(self, data, expectations):
-        for key, expectation in expectations.items():
+        for key, expectation in list(expectations.items()):
             value = data[key]
             self.assertEqual(expectation, value,
                              "failure for key '%s': expected '%s', found '%s'"
@@ -218,16 +216,16 @@ class UserExportsTest(UserExportsTestCase):
         reader = csv.reader(resp)
 
         # Skip BOM and entry line
-        reader.next()
-        reader.next()
+        next(reader)
+        next(reader)
 
-        header = reader.next()
+        header = next(reader)
 
-        data = [dict(zip(header, [x.decode('utf8') for x in row]))
+        data = [dict(list(zip(header, [x.decode('utf8') for x in row])))
                 for row in reader]
 
         commander, user1data, user2data = data
-        self.assertEquals(commander['username'], self.commander.username)
+        self.assertEqual(commander['username'], self.commander.username)
         self.assertUserJSON(user1data,
                             {'username': self.user1.username,
                              'email': '',
@@ -252,7 +250,7 @@ class UserExportsTest(UserExportsTestCase):
     def test_export_users_csv_keep_info_private(self):
         data = self.get_csv_data_with_base_assertions()
         commander, user1data, user2data = data
-        self.assertEquals(commander['username'], self.commander.username)
+        self.assertEqual(commander['username'], self.commander.username)
         self.assertUserJSON(user1data,
                             {'first_name': '',
                              'last_name': '',
@@ -263,7 +261,7 @@ class UserExportsTest(UserExportsTestCase):
         self.user1.save()
         data = self.get_csv_data_with_base_assertions()
         commander, user1data, user2data = data
-        self.assertEquals(commander['username'], self.commander.username)
+        self.assertEqual(commander['username'], self.commander.username)
         self.assertUserJSON(user1data,
                             {'first_name': self.user1.first_name,
                              'last_name': self.user1.last_name,
@@ -287,8 +285,8 @@ class UserExportsTest(UserExportsTestCase):
 
         commander, user1data, user2data = data
 
-        self.assertEquals(commander['username'], self.commander.username)
-        self.assertEquals(user1data.get('email'), None)
+        self.assertEqual(commander['username'], self.commander.username)
+        self.assertEqual(user1data.get('email'), None)
         self.assertUserJSON(user1data,
                             {'username': self.user1.username,
                              'email_hash': self.user1.email_hash,
@@ -326,9 +324,9 @@ class UserExportsTest(UserExportsTestCase):
 
         data = json.loads(resp.content)
 
-        self.assertEquals(len(data), 1)
+        self.assertEqual(len(data), 1)
 
-        self.assertEquals(data[0]['username'], self.user2.username)
+        self.assertEqual(data[0]['username'], self.user2.username)
 
     def test_min_join_date(self):
         last_week = now() - datetime.timedelta(days=7)
@@ -353,9 +351,9 @@ class UserExportsTest(UserExportsTestCase):
 
         data = json.loads(resp.content)
 
-        self.assertEquals(len(data), 1)
+        self.assertEqual(len(data), 1)
 
-        self.assertEquals(data[0]['username'], self.user2.username)
+        self.assertEqual(data[0]['username'], self.user2.username)
 
     def test_min_join_date_validation(self):
         with self.assertRaises(ValidationError):
