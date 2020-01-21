@@ -153,7 +153,7 @@ class InstanceBounds(models.Model):
         try:
             geojson_dict = json.loads(geojson)
         except ValueError as e:
-            raise ValidationError(e.message)
+            raise ValidationError(str(e))
         if geojson_dict['type'] != 'FeatureCollection':
             raise ValidationError('GeoJSON must contain a FeatureCollection')
 
