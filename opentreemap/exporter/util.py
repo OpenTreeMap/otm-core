@@ -4,11 +4,11 @@
 def sanitize_unicode_value(value):
     # make sure every text value is of type 'str', coercing unicode
     if isinstance(value, str):
-        return value.encode("utf-8")
-    elif isinstance(value, str):
         return value
+    elif isinstance(value, int):
+        return str(value)
     else:
-        return str(value).encode("utf-8")
+        return value.decode("utf-8")
 
 
 # originally copied from, but now divergent from:
