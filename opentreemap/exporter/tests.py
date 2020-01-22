@@ -38,16 +38,19 @@ class AsyncCSVTestCase(LocalMediaTestCase):
                                                           password='bar')
 
     def assertCSVRowValue(self, csv_file, row_index, headers_and_values):
-        csvreader = csv.reader(csv_file, delimiter=b",")
-        rows = list(csvreader)
+        # decode bytes object into string list required by the csv reader
+        str_rows = [line.decode('utf-8') for line in csv_file]
 
         # strip the BOM out
-        rows[0][0] = rows[0][0][3:]
+        str_rows[0] = str_rows[0][1:]
 
-        self.assertTrue(len(rows) > 1)
+        csvreader = csv.reader(str_rows, delimiter=",")
+        reader_rows = list(csvreader)
+
+        self.assertTrue(len(reader_rows) > 1)
         for (header, value) in headers_and_values.items():
-            target_column = rows[0].index(header)
-            self.assertEqual(value, rows[row_index][target_column])
+            target_column = reader_rows[0].index(header)
+            self.assertEqual(value, reader_rows[row_index][target_column])
 
     def assertTaskProducesCSV(self, user, model, assert_fields_and_values):
         self._assertTaskProducesCSVBase(user, model, assert_fields_and_values)
@@ -82,6 +85,7 @@ class AsyncCSVTestCase(LocalMediaTestCase):
 
         job_id = ctx['job_id']
         job = ExportJob.objects.get(pk=job_id)
+
         self.assertCSVRowValue(job.outfile, 1,
                                {assertion_field: assertion_value})
 
@@ -213,16 +217,18 @@ class UserExportsTest(UserExportsTestCase):
 
     def get_csv_data_with_base_assertions(self):
         resp = users_csv(make_request(), self.instance)
-        reader = csv.reader(resp)
 
-        # Skip BOM and entry line
-        next(reader)
-        next(reader)
+        # decode bytes object into string list required by the csv reader
+        str_rows = [line.decode('utf-8') for line in resp]
 
+        # strip the BOM and entry line out
+        reader = csv.reader(str_rows[2:])
+
+        # grab and strip the header
         header = next(reader)
 
-        data = [dict(list(zip(header, [x.decode('utf8') for x in row])))
-                for row in reader]
+        data = (lambda h=header, reader=reader:
+                [dict(list(zip(h, [x for x in row]))) for row in reader])()
 
         commander, user1data, user2data = data
         self.assertEqual(commander['username'], self.commander.username)
