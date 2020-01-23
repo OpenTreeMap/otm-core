@@ -430,7 +430,7 @@ class LocalMediaTestCase(OTMTestCase):
         return path
 
     def load_resource(self, name):
-        return open(self.resource_path(name))
+        return open(self.resource_path(name), 'rb')
 
     def tearDown(self):
         shutil.rmtree(self.photoDir)
