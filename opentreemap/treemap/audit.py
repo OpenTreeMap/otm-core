@@ -530,7 +530,7 @@ class Dictable(object):
     def hash(self):
         values = ['%s:%s' % (k, v) for (k, v) in self.as_dict().items()]
         string = '|'.join(values).encode('utf-8')
-        return hashlib.md5(string).hexdigest()
+        return hashlib.md5(string.encode()).hexdigest()
 
 
 class UserTrackable(Dictable):
@@ -1154,7 +1154,7 @@ class Auditable(UserTrackable):
 
         string_to_hash = '%s:%s:%s' % (self._model_name, self.pk, audit_string)
 
-        return hashlib.md5(string_to_hash).hexdigest()
+        return hashlib.md5(string_to_hash.encode()).hexdigest()
 
     @classmethod
     def action_format_string_for_audit(clz, audit):
