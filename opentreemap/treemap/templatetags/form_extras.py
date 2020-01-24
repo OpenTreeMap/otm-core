@@ -59,19 +59,19 @@ VALID_FIELD_KEYS = ','.join(list(FIELD_MAPPINGS.keys()))
 class Variable(Grammar):
     grammar = (G('"', WORD('^"'), '"') | G("'", WORD("^'"), "'")
                | WORD("a-zA-Z_", "a-zA-Z0-9_."))
-
+    grammar_whitespace_mode = 'optional'
 
 class Label(Grammar):
     grammar = (G('_("', WORD('^"'), '")') | G("_('", WORD("^'"), "')")
                | Variable)
-
+    grammar_whitespace_mode = 'optional'
 
 class InlineEditGrammar(Grammar):
     grammar = (OR(G(OR("field", "create"), OPTIONAL(Label)), "search"),
                "from", Variable, OPTIONAL("for", Variable),
                OPTIONAL("in", Variable), "withtemplate", Variable,
                OPTIONAL("withhelp", Label))
-    grammar_whitespace = True
+    grammar_whitespace_mode = 'optional'
 
 
 _inline_edit_parser = InlineEditGrammar.parser()
@@ -186,8 +186,8 @@ def inline_edit_tag(tag, Node):
     """
     def tag_parser(parser, token):
         try:
-            results = _inline_edit_parser.parse_string(token.contents,
-                                                       reset=True, eof=True)
+            results = _inline_edit_parser.parse_text(token.contents,
+                                                     reset=True, eof=True)
         except ParseError as e:
             raise template.TemplateSyntaxError(
                 'expected format: %s [{label}] from {model.property}'
@@ -224,7 +224,7 @@ def _token_to_variable(token):
     elif token[0] == '"' and token[0] == token[-1] and len(token) >= 2:
         return token[1:-1]
     else:
-        return template.Variable(token)
+        return template.Variable(token.strip())
 
 
 def _resolve_variable(variable, context):
