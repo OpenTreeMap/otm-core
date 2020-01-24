@@ -1569,7 +1569,7 @@ class TreePhotoTest(LocalMediaTestCase):
                                                       self.instance.url_name,
                                                       plot_id)
 
-        with open(path) as img:
+        with open(path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1622,7 +1622,7 @@ class UserTest(LocalMediaTestCase):
         url = reverse('update_user_photo', kwargs={'version': 3,
                                                    'user_id': peon.pk})
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1649,7 +1649,7 @@ class UserTest(LocalMediaTestCase):
         grunt = make_user(username='grunt', password='pw')
         grunt.save()
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1903,7 +1903,7 @@ class SigningTest(OTMTestCase):
         url = "%s/i/plots/1/tree/photo" % API_PFX
 
         def get_sig(path):
-            with open(path) as img:
+            with open(path, 'rb') as img:
                 req = self.factory.post(
                     url, {'name': 'afile', 'file': img})
 
