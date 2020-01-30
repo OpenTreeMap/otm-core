@@ -282,9 +282,9 @@ class ResourceEcoBenefitsTest(EcoTestCase):
             for cat, benefit in list(plot_benefits.items())}
         self.assertIsNotNone(min(plot_currencies.values()))
 
-        plot_benefits = [
+        benefit_currency = [
             benefit['currency'] for benefit in list(plot_benefits.values())]
-        expected_total_currency = sum(plot_benefits) - \
+        expected_total_currency = sum(benefit_currency) - \
             plot_benefits[BenefitCategory.CO2STORAGE]['currency'] + \
             benefits['resource'][BenefitCategory.STORMWATER]['currency']
 
