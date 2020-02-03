@@ -138,7 +138,7 @@ def transform_user_request(user_view_fn):
             # You can't directly set a new request body
             # (http://stackoverflow.com/a/22745559)
             request._body = body
-            request._stream = BytesIO(body)
+            request._stream = BytesIO(body.encode())
 
         return user_view_fn(request, *args, **kwargs)
 
