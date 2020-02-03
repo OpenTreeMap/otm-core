@@ -78,7 +78,7 @@ def _check_signature(view_f, require_login):
         if not cred.enabled:
             return create_401unauthorized()
 
-        signed = get_signature_for_request(request, cred.secret_key).decode()
+        signed = get_signature_for_request(request, cred.secret_key)
 
         if len(signed) != len(sig):
             return _bad_request
