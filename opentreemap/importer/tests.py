@@ -461,7 +461,7 @@ class TreeUdfValidationTest(TreeValidationTestBase):
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
-                            data="[u'Test date must be formatted as YYYY-MM-DD']")
+                            data="['Test date must be formatted as YYYY-MM-DD']")
 
     def test_choice_udf(self):
         UserDefinedFieldDefinition.objects.create(
@@ -534,13 +534,13 @@ class TreeUdfValidationTest(TreeValidationTestBase):
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
-                            data="[u'Test multichoice must be valid JSON']")
+                            data="['Test multichoice must be valid JSON']")
 
         row['planting site: test multichoice'] = '"a","b"'
         i = self.mkrow(row)
         i.validate_row()
         self.assertHasError(i, errors.INVALID_UDF_VALUE,
-                            data="[u'Test multichoice must be valid JSON']")
+                            data="['Test multichoice must be valid JSON']")
 
 
 class SpeciesValidationTest(ValidationTest):
