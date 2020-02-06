@@ -3,7 +3,7 @@
 
 import codecs
 import csv
-
+from io import StringIO
 
 def _clean_string(s):
     s = s.strip()
@@ -34,7 +34,7 @@ def _as_utf8(f):
 
 
 def _guess_dialect_and_reset_read_pointer(f):
-    dialect = csv.Sniffer().sniff(_as_utf8(f).read(4096), delimiters=',\t')
+    dialect = csv.Sniffer().sniff(_as_utf8(f).read(4096).decode(), delimiters=',\t')
     f.seek(0)
     return dialect
 
@@ -45,5 +45,11 @@ def utf8_file_to_csv_dictreader(f):
     # CSV standard "" to escape a double quote. Excel and LibreOffice
     # use this escape by default when saving as CSV.
     dialect.doublequote = True
-    return csv.DictReader(_as_utf8(f),
+
+    # at this point, the binary filestream must be repackaged to the csv spec,
+    # that is an iterator of unicode strings. time limited a more elegant solution
+    # than allocating memory for up to two copies of the data but we anticipate having
+    # sufficient RAM
+    csv_body = StringIO(f.read().decode())
+    return csv.DictReader(csv_body,
                           dialect=dialect)

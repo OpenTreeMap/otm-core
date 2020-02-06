@@ -371,7 +371,8 @@ def map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     if request.user:
         pk = request.user.pk or ''
 
-    return hashlib.md5(feature.hash + ':' + str(pk)).hexdigest()
+    string_to_hash = feature.hash + ':' + str(pk)
+    return hashlib.md5(string_to_hash.encode()).hexdigest()
 
 
 @get_photo_context_and_errors
