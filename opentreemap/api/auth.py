@@ -59,7 +59,10 @@ def get_signature_for_request(request, secret_key):
         ).digest()
     )
 
-    return sig
+    if sig is None:
+        return sig
+
+    return sig.decode()
 
 
 def create_401unauthorized(body="Unauthorized"):

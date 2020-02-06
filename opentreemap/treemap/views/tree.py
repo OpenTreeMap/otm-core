@@ -132,4 +132,4 @@ def ecobenefits_hash(request, instance):
 
     string_to_hash = universal_rev + ":" + eco_str + ":" + map_features
 
-    return hashlib.md5(string_to_hash).hexdigest()
+    return hashlib.md5(string_to_hash.encode()).hexdigest()

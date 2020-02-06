@@ -822,7 +822,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         for feature in self.nearby_map_features():
             string_to_hash += "," + str(feature.pk)
 
-        return hashlib.md5(string_to_hash).hexdigest()
+        return hashlib.md5(string_to_hash.encode()).hexdigest()
 
     def title(self):
         # Cast allows the map feature subclass to handle generating
@@ -1202,7 +1202,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         photos = [str(photo.pk) for photo in self.treephoto_set.all()]
         string_to_hash += ":" + ",".join(photos)
 
-        return hashlib.md5(string_to_hash).hexdigest()
+        return hashlib.md5(string_to_hash.encode()).hexdigest()
 
     def add_photo(self, image, user):
         tp = TreePhoto(tree=self, instance=self.instance)

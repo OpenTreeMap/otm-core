@@ -1569,7 +1569,7 @@ class TreePhotoTest(LocalMediaTestCase):
                                                       self.instance.url_name,
                                                       plot_id)
 
-        with open(path) as img:
+        with open(path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1622,7 +1622,7 @@ class UserTest(LocalMediaTestCase):
         url = reverse('update_user_photo', kwargs={'version': 3,
                                                    'user_id': peon.pk})
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1649,7 +1649,7 @@ class UserTest(LocalMediaTestCase):
         grunt = make_user(username='grunt', password='pw')
         grunt.save()
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1884,7 +1884,7 @@ class SigningTest(OTMTestCase):
         acred = APIAccessCredential.create()
         url = ('http://testserver.com/test/blah?'
                'timestamp=%%s&'
-               'k1=4&k2=a&access_key=%s' % acred.access_key)
+               'k1=4&k2=a&access_key=%s' % acred.access_key.decode())
 
         curtime = datetime.datetime.now()
         invalid = curtime - datetime.timedelta(minutes=100)
@@ -1903,7 +1903,7 @@ class SigningTest(OTMTestCase):
         url = "%s/i/plots/1/tree/photo" % API_PFX
 
         def get_sig(path):
-            with open(path) as img:
+            with open(path, 'rb') as img:
                 req = self.factory.post(
                     url, {'name': 'afile', 'file': img})
 
@@ -1950,14 +1950,14 @@ class SigningTest(OTMTestCase):
 
         url = ('http://testserver.com/test/blah?'
                'timestamp=%%s&'
-               'k1=4&k2=a&access_key=%s' % acred.access_key)
+               'k1=4&k2=a&access_key=%s' % acred.access_key.decode())
 
         req = self.sign_and_send(url % ('%sFAIL' % timestamp),
                                  acred.secret_key)
 
         self.assertEqual(req.status_code, 400)
 
-        req = self.sign_and_send(url % timestamp, acred.secret_key)
+        req = self.sign_and_send(url % timestamp, acred.secret_key.decode())
 
         self.assertRequestWasSuccess(req)
 
@@ -1973,7 +1973,7 @@ class SigningTest(OTMTestCase):
 
         self.assertEqual(req.status_code, 400)
 
-        req = self.sign_and_send('%s&access_key=%s' % (url, acred.access_key),
+        req = self.sign_and_send('%s&access_key=%s' % (url, acred.access_key.decode()),
                                  acred.secret_key)
 
         self.assertRequestWasSuccess(req)
@@ -1988,9 +1988,8 @@ class SigningTest(OTMTestCase):
         req = self.sign_and_send('http://testserver.com/test/blah?'
                                  'timestamp=%s&'
                                  'k1=4&k2=a&access_key=%s' %
-                                 (timestamp, acred.access_key),
-                                 acred.secret_key)
-
+                                 (timestamp, acred.access_key.decode()),
+                                 acred.secret_key.decode())
         self.assertEqual(req.user.pk, peon.pk)
 
 
