@@ -1506,3 +1506,17 @@ class ITreeCodeOverride(models.Model, Auditable):
     def __init__(self, *args, **kwargs):
         super(ITreeCodeOverride, self).__init__(*args, **kwargs)
         self.populate_previous_state()
+
+
+class INaturalistObservation(models.Model):
+    # this is the observation_id from iNaturalist
+    observation_id = models.IntegerField()
+    map_feature = models.ForeignKey(MapFeature)
+    tree = models.ForeignKey(Tree)
+
+
+class INaturalistPhoto(models.Model):
+    tree_photo = models.ForeignKey(TreePhoto)
+    observation = models.ForeignKey(INaturalistObservation)
+    inaturalist_photo_id = models.IntegerField()
+

@@ -279,3 +279,12 @@ users = do(
     json_api_call,
     return_400_if_validation_errors,
     user_views.users)
+
+
+### INATURALIST
+inaturalist = feature_views.inaturalist
+inaturalist_add = do(
+    instance_request,
+    require_http_method('POST'),
+    json_api_call,
+    feature_views.inaturalist_add)

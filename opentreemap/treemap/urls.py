@@ -78,4 +78,10 @@ urlpatterns = [
     url(r'^users/%s/edits/$' % USERNAME_PATTERN, routes.instance_user_audits),
 
     url(r'^users/$', routes.users, name="users"),
+
+    url(r'^inaturalist/$',
+        routes.inaturalist, name='inaturalist'),
+
+    url(r'^inaturalist-add/$',
+        routes.inaturalist_add, name='inaturalist_add'),
 ]

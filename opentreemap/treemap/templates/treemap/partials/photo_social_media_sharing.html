@@ -24,7 +24,13 @@
            target="_blank"><img src="/static/img/pinterest_32.png"></a>
       </div>
       <div class="modal-footer">
-        <label class="pull-left"><input data-class="social-media-sharing-dont-show-again" type="checkbox"/>{% trans "Don't show me again" %}</label>
+          <div class="pull-left">
+            <label><input data-class="social-media-sharing-dont-show-again" type="checkbox"/>{% trans "Don't show me again" %}</label>
+            <br>
+            <a data-class="social-media-login-to-inaturalist" class="btn"/>{% trans "Login to iNaturalist" %}</a>
+            <br>
+            <a data-class="social-media-submit-to-inaturalist" class="btn"/>{% trans "Submit to iNaturalist" %}</a>
+          </div>
         <a href="javascript:;" class="btn" data-dismiss="modal">{% trans "No Thanks" %}</a>
       </div>
     </div>
