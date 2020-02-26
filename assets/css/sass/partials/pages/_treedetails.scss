@@ -200,6 +200,21 @@
                 display: block;
                 opacity: .9;
             }
+            .photo-label {
+                position: absolute;
+                left: 6px;
+                top: 6px;
+                opacity: 0.85;
+                width: auto;
+                background: black;
+                color: white;
+                border: none;
+                transition: opacity 0.3s;
+                z-index: 999;
+                padding: 5px 12px;
+                font-size: 1.2rem !important;
+                border-radius: 6px;
+            }
         }
     }
     > a.carousel-control {

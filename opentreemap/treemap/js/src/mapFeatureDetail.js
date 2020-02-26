@@ -66,6 +66,7 @@ function init() {
         dataType: 'html'
     });
 
+    // tzinckgraf
     imageLightbox.init({
         imageFinishedStream: imageFinishedStream,
         imageContainer: '#photo-carousel',
@@ -192,18 +193,20 @@ function init() {
     if (config.instance.basemap.type === 'google') {
         var $streetViewContainer = $(dom.streetView);
         $streetViewContainer.show();
+        /*
         var panorama = streetView.create({
             streetViewElem: $streetViewContainer[0],
             noStreetViewText: config.trans.noStreetViewText,
             location: window.otm.mapFeature.location.point
         });
+        */
         form.saveOkStream
             .onValue(function () {
                 // If location is an array, we are editing a polygonal map
                 // feature. The page triggers a full postback after editing a
                 // polygon map feature.
                 if (!_.isArray(currentMover.location)) {
-                    panorama.update(currentMover.location);
+                    //panorama.update(currentMover.location);
                 }
             });
     }

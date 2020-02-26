@@ -91,7 +91,14 @@ module.exports.init = function(options) {
             endpoint = $endpointEl.attr('data-endpoint'),
             modeSelector = '[data-class="' + mode + '"]',
             notModeSelector = '[data-class]:not(' + modeSelector + ')',
-            $keepControl = $lightbox.find('[data-photo-keep]');
+            $keepControl = $lightbox.find('[data-photo-keep]'),
+
+            label = $endpointEl.attr('data-label'),
+            photoId = $endpointEl.attr('data-map-feature-photo-id'),
+            featureId = $endpointEl.attr('data-map-feature-id'),
+            labelSelector = '[data-class="label"]',
+            labelViewSelector = '.photo-label-view',
+            labelEditSelectSelector = '#photo-label';
 
         $keepControl.off('click.delete-mode');
         currentRotation = 0;
@@ -104,6 +111,27 @@ module.exports.init = function(options) {
         $lightbox.find(notModeSelector).hide();
         $lightbox.find('[data-photo-save]').attr('data-photo-save', endpoint);
 
+        var labelEl = $lightbox.find(labelSelector);
+        // set the label if it exists
+        if(label !== undefined && label !== "") {
+            console.log(mode);
+            var labelViewEl = $lightbox.find(labelViewSelector);
+            labelViewEl.html(label);
+            $lightbox.find(labelEditSelectSelector).val(label);
+
+            if (mode === 'edit'){
+                labelViewEl.hide();
+            } else {
+                labelViewEl.show();
+            }
+
+            labelEl.show();
+
+        } else {
+            labelEl.hide();
+        }
+
+        // tzinckgraf
         if (1 === $deleteToggleEl.length) {
             $lightbox.find('[data-photo-confirm]').attr('data-photo-confirm', endpoint);
             $lightbox.find('[data-class="delete"] button').prop('disabled', false);
@@ -122,6 +150,11 @@ module.exports.init = function(options) {
     $lightbox.on('click', '[data-photo-edit]', function() {
         $lightbox.find('[data-class]:not([data-class="edit"])').hide();
         $lightbox.find('[data-class="edit"]').show();
+    });
+
+    $lightbox.on('click', '[data-photo-save-cancel]', function() {
+        $lightbox.find('[data-class]:not([data-class="view"])').hide();
+        $lightbox.find('[data-class="view"]').show();
     });
 
     $lightbox.on('click', '[data-photo-rotate]', function(e) {

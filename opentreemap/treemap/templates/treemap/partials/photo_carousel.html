@@ -10,6 +10,9 @@
         data-photo-src="{{ photo.image }}"
         {% if forloop.first %}
         {# this is the *actual* photo for the map feature and will be used by the sharing code when a new upload takes place #}
+        data-map-feature-photo-id="{{ photo.id }}"
+        data-map-feature-id="{{ photo.map_feature_id }}"
+        data-label="{{ photo.label }}"
         data-map-feature-photo-detail-absolute-url="{{ photo.absolute_detail_url }}"
         data-map-feature-photo-image-absolute-url="{{ photo.absolute_image }}"
         data-map-feature-photo-thumbnail="{{ photo.thumbnail }}"
@@ -18,9 +21,14 @@
       <img src="{{ photo.thumbnail }}" alt="{% trans 'Photo number' %} {{ forloop.counter }}">
     </a>
     {% if last_effective_instance_user|photo_is_deletable:photo.raw %}
+    <!-- tzinckgraf -->
     <a class="delete-photo" title="{% trans 'Delete photo number' %} {{ forloop.counter }}"
         data-toggle="modal" href="#photo-lightbox"><i class="icon-trash-1"></i>
     </a>
+
+    {% endif %}
+    {% if photo.has_label %}
+    <button class="btn btn-xs photo-label" disabled="true">{{ photo.label }}</button>
     {% endif %}
   </div>
   {% empty %}

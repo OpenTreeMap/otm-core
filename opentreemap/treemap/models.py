@@ -1506,3 +1506,15 @@ class ITreeCodeOverride(models.Model, Auditable):
     def __init__(self, *args, **kwargs):
         super(ITreeCodeOverride, self).__init__(*args, **kwargs)
         self.populate_previous_state()
+
+
+class MapFeaturePhotoLabel(models.Model):
+    """
+    Provide a tag for a phot
+    """
+    map_feature_photo = models.ForeignKey(MapFeaturePhoto)
+    name = models.CharField(max_length=40)
+
+    class Meta:
+        unique_together = ('map_feature_photo', 'name')
+

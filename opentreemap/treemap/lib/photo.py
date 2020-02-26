@@ -34,6 +34,16 @@ def context_dict_for_photo(request, photo):
     photo_dict['thumbnail'] = thumbnail_url
     photo_dict['raw'] = photo
 
+    # add the label
+    # TODO use a OneToOne mapping
+    labels = photo.mapfeaturephotolabel_set.all()
+    if labels:
+        photo_dict['has_label'] = True
+        photo_dict['label'] = labels[0].name
+        photo_dict['label_id'] = labels[0].id
+    else:
+        photo_dict['has_label'] = False
+
     url = reverse(
         'map_feature_photo_detail',
         kwargs={'instance_url_name': photo.map_feature.instance.url_name,

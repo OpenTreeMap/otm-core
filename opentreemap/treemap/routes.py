@@ -173,6 +173,24 @@ map_feature_photo = route(
     POST=add_map_feature_photo_do(feature_views.rotate_map_feature_photo),
     DELETE=delete_photo)
 
+add_map_feature_photo_label = add_map_feature_photo_do(
+    feature_views.add_map_feature_photo_label)
+
+add_map_feature_photo_do = partial(
+    do,
+    require_http_method("POST"),
+    login_or_401,
+    instance_request,
+    creates_instance_user,
+    render_template('treemap/partials/photo_carousel.html'))
+
+map_feature_photo_detail = do(
+    instance_request,
+    require_http_method('GET'),
+    render_template('treemap/map_feature_photo_detail.html'),
+    feature_views.map_feature_photo_detail)
+
+# tzinckgraf
 map_feature_photo_detail = do(
     instance_request,
     require_http_method('GET'),

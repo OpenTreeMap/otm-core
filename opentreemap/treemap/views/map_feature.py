@@ -22,7 +22,8 @@ from treemap.lib.hide_at_zoom import (update_hide_at_zoom_after_move,
 
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, MapFeature,
-                            MapFeaturePhoto, TreePhoto, Favorite)
+                            MapFeaturePhoto, TreePhoto, Favorite,
+                            MapFeaturePhotoLabel)
 from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
@@ -396,6 +397,19 @@ def rotate_map_feature_photo(request, instance, feature_id, photo_id):
     image_data = mf_photo.image.read(settings.MAXIMUM_IMAGE_SIZE)
     mf_photo.set_image(image_data, degrees_to_rotate=degrees)
     mf_photo.save_with_user(request.user)
+
+
+@get_photo_context_and_errors
+def add_map_feature_photo_label(request, instance, feature_id, photo_id):
+    feature = get_map_feature_or_404(feature_id, instance)
+    photo_class = TreePhoto if feature.is_plot else MapFeaturePhoto
+    mf_photo = get_object_or_404(photo_class, pk=photo_id, map_feature=feature)
+    label_dict = json.loads(request.body)
+    map_feature_photo_label = MapFeaturePhotoLabel()
+    map_feature_photo_label.map_feature_photo = mf_photo
+    map_feature_photo_label.name = label_dict['label']
+    map_feature_photo_label.save()
+    return
 
 
 @get_photo_context_and_errors

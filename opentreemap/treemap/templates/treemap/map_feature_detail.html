@@ -53,9 +53,26 @@
                     <div class="pull-left" data-class="edit">
                         <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="-90"><i class="icon-ccw"></i></a>
                         <a class="btn btn-small pull-left btn-rotate" data-class="edit" data-photo-rotate="90"><i class="icon-cw"></i></a>
+
+                        {# Button and dropdown for label, depending on edit or view #}
+                        <div class="pull-left">
+                            <label for="photo-label">Choose a photo label</label>
+                            <select id="photo-label">
+                                <option value=""></value>
+                                <option value="leaf">Leaf</value>
+                                <option value="bark">Bark</value>
+                                <option value="shape">Shape</value>
+                            </select>
+                        </div>
                     </div>
-                    <button data-class="edit" disabled="disabled" class="btn btn-small pull-right"
-                            data-photo-save="">{% trans "Save" %}</button>
+
+                    <button class="btn btn-xs photo-label-view pull-left" data-class="view" disabled="true"></button>
+                    <div class="pull-right" data-class="edit">
+                        <button disabled="disabled" class="btn btn-small pull-right"
+                                data-photo-save="">{% trans "Save" %}</button>
+                        <button class="btn btn-small pull-right"
+                                data-photo-keep="">{% trans "Cancel" %}</button>
+                    </div>
                     <div class="pull-right" data-class="delete">
                         <button disabled="disabled" class="btn btn-small btn-danger" data-photo-confirm="">{% trans "Yes" %}</button>
                         <button class="btn btn-small" data-photo-keep="">{% trans "No" %}</button>

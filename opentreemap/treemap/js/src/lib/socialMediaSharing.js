@@ -6,8 +6,11 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
+    BU = require('treemap/lib/baconUtils.js'),
     R = require('ramda'),
     _ = require('lodash'),
+    reverse = require('reverse'),
+    config = require('treemap/lib/config.js'),
 
     _DONT_SHOW_AGAIN_KEY = 'social-media-sharing-dont-show-again',
     _SHARE_CONTAINER_SIZE = 300,
@@ -15,19 +18,24 @@ var $ = require('jquery'),
     attrs = {
         dataUrlTemplate: 'data-url-template',
         dataClass: 'data-class',
+        mapFeatureId: 'data-map-feature-id',
+        mapFeaturePhotoId: 'data-map-feature-photo-id',
         mapFeaturePhotoDetailAbsoluteUrl: 'data-map-feature-photo-detail-absolute-url',
         mapFeaturePhotoImageAbsoluteUrl: 'data-map-feature-photo-image-absolute-url',
-        mapFeaturePhotoPreview: 'data-map-feature-photo-thumbnail'
+        mapFeaturePhotoPreview: 'data-map-feature-photo-thumbnail',
     },
 
     dom = {
         dontShowAgain: '[' + attrs.dataClass + '="' + _DONT_SHOW_AGAIN_KEY + '"]',
         photoModal: '#social-media-sharing-photo-upload-modal',
-        photoPreview: '#social-media-sharing-photo-upload-preview',
+        photoPreview: '#label-photo-upload-preview',
         shareLinkSelector: '[' + attrs.dataUrlTemplate + ']',
+        mapFeatureId: '[' + attrs.mapFeatureId + ']',
+        mapFeaturePhotoId: '[' + attrs.mapFeaturePhotoId + ']',
         mapFeaturePhotoDetailAbsoluteUrl: '[' + attrs.mapFeaturePhotoDetailAbsoluteUrl + ']',
         toggle: '.share',
-        container: '.js-container'
+        container: '.js-container',
+        photoLabel: '#photo-label'
     },
 
     generateHref = R.curry(
@@ -60,17 +68,48 @@ function renderPhotoModal (imageData) {
         $photo = $carousel.find(dom.mapFeaturePhotoDetailAbsoluteUrl),
         photoDetailUrl = $photo.attr(attrs.mapFeaturePhotoDetailAbsoluteUrl),
         photoUrl = $photo.attr(attrs.mapFeaturePhotoImageAbsoluteUrl),
+
+        mapFeatureId = $photo.attr(attrs.mapFeatureId),
+        mapFeaturePhotoId = $photo.attr(attrs.mapFeaturePhotoId),
+
         $photoPreview = $(dom.photoPreview);
 
     // Validation errors (image invalid, image too big) are only returned as DOM
     // elements. In order to skip showing the share dialog we need to check the
     // dialog markup for the error message element.
-    if ($(imageData.data.result).filter('[data-photo-upload-failed]').length > 0) {
-        return;
-    }
+    //if ($(imageData.data.result).filter('[data-photo-upload-failed]').length > 0) {
+    //    return;
+    //}
     $photoModal.modal('show');
     $photoPreview.attr('src', $photo.attr(attrs.mapFeaturePhotoPreview));
     _.each($anchors, generateHref(photoDetailUrl, photoUrl));
+
+    $(dom.photoLabel).on('change', function(e) {
+        console.log(e);
+        var value = e.target.value;
+        var url = reverse.map_feature_photo({
+            instance_url_name: config.instance.url_name,
+            feature_id: window.otm.mapFeature.featureId,
+            photo_id: mapFeaturePhotoId
+        }) + '/label';
+
+        var stream = BU.jsonRequest('POST', url)({'label': value});
+        stream.onValue(function() {
+            console.log("done");
+            debugger;
+        });
+
+        /*
+        var addStream = $addUser
+            .asEventStream('click')
+            .map(function () {
+                return {'email': $addUserEmail.val()};
+            })
+            .flatMap(BU.jsonRequest('POST', url));
+        */
+
+        debugger;
+    });
 }
 
 module.exports.init = function(options) {
@@ -79,9 +118,9 @@ module.exports.init = function(options) {
         $(dom.container).toggle(_SHARE_CONTAINER_SIZE);
     });
 
-    imageFinishedStream
-        .filter(shouldShowSharingModal)
-        .onValue(renderPhotoModal);
+    imageFinishedStream.onValue(renderPhotoModal);
+    //.filter(shouldShowSharingModal)
 
     $(dom.dontShowAgain).on('click', setDontShowAgainVal);
+
 };
