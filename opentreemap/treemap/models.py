@@ -1510,7 +1510,7 @@ class ITreeCodeOverride(models.Model, Auditable):
 
 class MapFeaturePhotoLabel(models.Model):
     """
-    Provide a tag for a phot
+    Provide a tag for a photo
     """
     map_feature_photo = models.ForeignKey(MapFeaturePhoto)
     name = models.CharField(max_length=40)
