@@ -1518,3 +1518,22 @@ class MapFeaturePhotoLabel(models.Model):
     class Meta:
         unique_together = ('map_feature_photo', 'name')
 
+
+class INaturalistObservation(models.Model):
+    # this is the observation_id from iNaturalist
+    observation_id = models.IntegerField()
+
+    map_feature = models.ForeignKey(MapFeature)
+    tree = models.ForeignKey(Tree)
+
+    is_identified = models.BooleanField(default=False)
+    submitted_at = models.DateTimeField(default=timezone.now)
+    identified_at = models.DateTimeField(null=True)
+
+
+class INaturalistPhoto(models.Model):
+    tree_photo = models.ForeignKey(TreePhoto)
+    observation = models.ForeignKey(INaturalistObservation)
+    inaturalist_photo_id = models.IntegerField()
+
+

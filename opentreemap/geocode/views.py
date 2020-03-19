@@ -94,6 +94,8 @@ def geocode(request):
         # See settings.OMGEO_SETTINGS for configuration
         pq = PlaceQuery(query=address, key=key, for_storage=for_storage)
         geocode_result = geocoder.geocode(pq)
+        g = Geocoder()
+        geocode_result = g.geocode(address)
         candidates = geocode_result.get('candidates', None)
         if candidates:
             # There should only be one candidate since the user already chose a

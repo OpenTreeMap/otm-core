@@ -3,15 +3,18 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import datetime
 import json
 import hashlib
+import re
+import requests
 from functools import wraps
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.db import transaction
+from django.db import connection, transaction
 from django.contrib.gis.geos import Point, MultiPolygon, Polygon
 from django.contrib.gis.db.models import GeometryField
 from django.utils.translation import ugettext as _
@@ -23,7 +26,7 @@ from treemap.lib.hide_at_zoom import (update_hide_at_zoom_after_move,
 from treemap.units import Convertible
 from treemap.models import (Tree, Species, MapFeature,
                             MapFeaturePhoto, TreePhoto, Favorite,
-                            MapFeaturePhotoLabel)
+                            MapFeaturePhotoLabel, INaturalistPhoto, INaturalistObservation)
 from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
@@ -464,3 +467,242 @@ def unfavorite_map_feature(request, instance, feature_id):
     Favorite.objects.filter(user=request.user, map_feature=feature).delete()
 
     return {'success': True}
+
+
+def get_photo_id_from_photo_detail_url(url, feature_id):
+    """
+    """
+    return int(re.match(r'.*/{}/photo/(\d+)/detail'.format(feature_id), url).groups()[0])
+
+
+def create_observation(token, latitude, longitude):
+    """
+    """
+    base_url = "https://www.inaturalist.org"
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+    params = {'observation': {
+            'observed_on_string': datetime.datetime.now().isoformat(),
+            'latitude': latitude,
+            'longitude': longitude
+        }
+    }
+
+    response = requests.post(
+        url="{base_url}/observations.json".format(base_url=base_url),
+        json=params,
+        headers=headers
+    )
+    '''
+    return {
+        u'cached_votes_total': 0,
+        u'captive': False,
+        u'comments_count': 0,
+        u'community_taxon_id': None,
+        u'created_at': u'2020-01-07T22:04:44.757-05:00',
+        u'created_at_utc': u'2020-01-08T03:04:44.757Z',
+        u'delta': False,
+        u'description': None,
+        u'faves_count': 0,
+        u'geoprivacy': None,
+        u'iconic_taxon_id': None,
+        u'iconic_taxon_name': None,
+        u'id': 37388076,
+        u'id_please': False,
+        u'identifications_count': 0,
+        u'last_indexed_at': u'2020-01-07T19:04:49.322-08:00',
+        u'latitude': u'40.7083055556',
+        u'license': u'CC-BY-NC',
+        u'location_is_exact': False,
+        u'longitude': u'-74.0893888889',
+        u'map_scale': None,
+        u'mappable': True,
+        u'num_identification_agreements': 0,
+        u'num_identification_disagreements': 0,
+        u'oauth_application_id': 385,
+        u'observation_photos_count': 0,
+        u'observation_sounds_count': 0,
+        u'observed_on': u'2020-01-07',
+        u'observed_on_string': u'2020-01-07T21:04:44.393925',
+        u'old_uuid': None,
+        u'out_of_range': None,
+        u'owners_identification_from_vision': None,
+        u'place_guess': u'Hudson County, US-NJ, US',
+        u'positional_accuracy': None,
+        u'positioning_device': None,
+        u'positioning_method': None,
+        u'private_latitude': None,
+        u'private_longitude': None,
+        u'private_place_guess': None,
+        u'private_positional_accuracy': None,
+        u'project_observations': [],
+        u'public_positional_accuracy': None,
+        u'quality_grade': u'casual',
+        u'site_id': 1,
+        u'species_guess': None,
+        u'taxon_geoprivacy': None,
+        u'taxon_id': None,
+        u'time_observed_at': u'2020-01-07T21:04:44.000-05:00',
+        u'time_observed_at_utc': u'2020-01-08T02:04:44.000Z',
+        u'time_zone': u'America/New_York',
+        u'timeframe': None,
+        u'updated_at': u'2020-01-07T22:04:44.757-05:00',
+        u'updated_at_utc': u'2020-01-08T03:04:44.757Z',
+        u'uri': None,
+        u'user_id': 2384052,
+        u'user_login': u'tzinckgraf',
+        u'uuid': u'0e26bafc-bd23-48d0-9bda-806450093c88',
+        u'zic_time_zone': None
+    }
+    '''
+    return response.json()[0]
+
+
+def add_photo_to_observation(token, observation_id, photo):
+    base_url = "https://www.inaturalist.org"
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+    data = {'observation_photo[observation_id]': observation_id}
+    file_data = {'file': photo.image.file.file}
+
+    response = requests.post(
+        url="{base_url}/observation_photos".format(base_url=base_url),
+        headers=headers,
+        data=data,
+        files=file_data
+    )
+    '''
+    return {
+        u'created_at': u'2020-01-07T22:17:04.531-05:00',
+        u'created_at_utc': u'2020-01-08T03:17:04.531Z',
+        u'id': 54883602,
+        u'observation_id': 37388076,
+        u'old_uuid': None,
+        u'photo': {u'attribution': u'(c) Thomas Zinckgraf, some rights reserved (CC BY-NC)',
+                    u'created_at': u'2020-01-07T22:17:02.709-05:00',
+                    u'id': 59263063,
+                    u'large_url': None,
+                    u'license': 2,
+                    u'license_name': u'Creative Commons Attribution-NonCommercial License',
+                    u'license_url': u'http://creativecommons.org/licenses/by-nc/4.0/',
+                    u'medium_url': None,
+                    u'native_original_image_url': None,
+                    u'native_page_url': None,
+                    u'native_photo_id': u'59263063',
+                    u'native_realname': u'Thomas Zinckgraf',
+                    u'native_username': u'tzinckgraf',
+                    u'small_url': None,
+                    u'square_url': None,
+                    u'subtype': None,
+                    u'thumb_url': None,
+                    u'type': u'LocalPhoto',
+                    u'updated_at': u'2020-01-07T22:17:02.709-05:00',
+                    u'user_id': 2384052},
+        u'photo_id': 59263063,
+        u'position': None,
+        u'updated_at': u'2020-01-07T22:17:04.531-05:00',
+        u'updated_at_utc': u'2020-01-08T03:17:04.531Z',
+        u'uuid': u'db6b5a49-eb92-4b12-8d3f-83f388ac55f0'}
+    '''
+
+
+def inaturalist_add(request, instance, *args, **kwargs):
+    try:
+        token = request.session['inaturalist_token']
+    except KeyError:
+        return {'success': False}
+
+    # INaturalistPhoto, INaturalistObservation
+
+    body = json.loads(request.body)
+    feature_id = body['featureId']
+    feature = get_map_feature_or_404(feature_id, instance)
+    tree = feature.safe_get_current_tree()
+    photo_id = get_photo_id_from_photo_detail_url(body['photoDetailUrl'], feature_id)
+    photo_class = TreePhoto if feature.is_plot else MapFeaturePhoto
+    photo = get_object_or_404(photo_class, pk=photo_id, map_feature=feature)
+
+    (longitude, latitude) = feature.latlon.coords
+
+    observation = create_observation(token, latitude, longitude)
+    photo_info = add_photo_to_observation(token, observation['id'], photo)
+
+    return {'success': True}
+
+
+def get_features_for_inaturalist():
+    """
+    Get all the features that have a label and can be submitted to iNaturalist
+    """
+    query = """
+        SELECT  photo.id, photo.map_feature_id, photo.instance_id
+        FROM    treemap_mapfeaturephoto photo
+        JOIN    treemap_mapfeaturephotolabel label on label.map_feature_photo_id = photo.id
+        LEFT JOIN treemap_inaturalistobservation inat on inat.map_feature_id = photo.map_feature_id
+        where   1=1
+        and     inat.id is null
+        group by photo.id, photo.map_feature_id, photo.instance_id
+        having sum(case when label.name = 'shape' then 1 else 0 end) > 0
+        and sum(case when label.name = 'bark'  then 1 else 0 end) > 0
+        and sum(case when label.name = 'leaf'  then 1 else 0 end) > 0
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+    return [{'photo_id': r[0],
+             'feature_id': r[1],
+             'instance_id': r[2]}
+             for r in results]
+
+
+def get_inaturalist_auth_token():
+    base_url = "https://www.inaturalist.org"
+
+    payload = {
+        'client_id': settings.INATURALIST_APP_ID,
+        'client_secret': settings.INATURALIST_APP_SECRET,
+        'grant_type': 'password',
+        'username': settings.USERNAME,
+        'password': settings.PASSWORD
+    }
+
+    r = requests.post(
+        url="{base_url}/oauth/token".format(base_url=base_url),
+        data=payload
+    )
+    token = r.json()['access_token']
+    return token
+
+
+def inaturalist_create_observations(request, instance, *args, **kwargs):
+
+    features = get_features_for_inaturalist()
+    if not features:
+        return
+
+    token = get_inaturalist_auth_token()
+
+    for feature in features:
+        feature = get_map_feature_or_404(feature['feature_id'], instance)
+        tree = feature.safe_get_current_tree()
+
+        observation = INaturalistObservation(
+            observation_id=1,
+            map_feature=feature,
+            tree=tree,
+            submitted_at=datetime.datetime.now()
+        )
+
+        observation.save()
+        pass
+
+    #observation_id = models.IntegerField()
+
+    #map_feature = models.ForeignKey(MapFeature)
+    #tree = models.ForeignKey(Tree)
+
+    #is_identified = models.BooleanField(default=False)
+    #submitted_at = models.DateTimeField()
+    #identified_at = models.DateTimeField()
+    #feature.safe_get_current_tree() or
+    return

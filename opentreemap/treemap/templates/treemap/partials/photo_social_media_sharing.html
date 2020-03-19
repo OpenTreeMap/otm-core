@@ -10,15 +10,15 @@
       <div class="modal-body">
         <p>{% trans "Would you to label this photo?" %}</p>
         <img id="label-photo-upload-preview"/>
-        <label for="photo-label">Choose a photo label</label>
-        <select id="photo-label">
+      </div>
+      <div class="modal-footer">
+        <label class="pull-left" for="photo-label">Choose a photo label</label>
+        <select class="pull-left" id="photo-label">
             <option value=""></value>
             <option value="leaf">Leaf</value>
             <option value="bark">Bark</value>
             <option value="shape">Shape</value>
         </select>
-      </div>
-      <div class="modal-footer">
         <a href="javascript:;" class="btn" data-dismiss="modal">{% trans "Done" %}</a>
       </div>
     </div>

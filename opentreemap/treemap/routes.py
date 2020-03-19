@@ -8,7 +8,7 @@ from functools import partial
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import etag
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import (route, json_api_call, render_template,
@@ -297,3 +297,18 @@ users = do(
     json_api_call,
     return_400_if_validation_errors,
     user_views.users)
+
+
+### INATURALIST
+inaturalist_create_observations = do(
+    csrf_exempt,
+    instance_request,
+    require_http_method('POST'),
+    json_api_call,
+    feature_views.inaturalist_create_observations)
+
+inaturalist_add = do(
+    instance_request,
+    require_http_method('POST'),
+    json_api_call,
+    feature_views.inaturalist_add)

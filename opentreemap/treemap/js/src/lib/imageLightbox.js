@@ -1,10 +1,12 @@
 "use strict";
 
 var $ = require('jquery'),
+    BU = require('treemap/lib/baconUtils.js'),
     toastr = require('toastr'),
     format = require('util').format,
     _ = require('lodash'),
     config = require('treemap/lib/config.js'),
+    reverse = require('reverse'),
     photoCarousel = require('treemap/lib/photoCarousel.js');
 
 
@@ -114,10 +116,23 @@ module.exports.init = function(options) {
         var labelEl = $lightbox.find(labelSelector);
         // set the label if it exists
         if(label !== undefined && label !== "") {
-            console.log(mode);
             var labelViewEl = $lightbox.find(labelViewSelector);
             labelViewEl.html(label);
             $lightbox.find(labelEditSelectSelector).val(label);
+
+            $lightbox.find(labelEditSelectSelector).on('change', function(e) {
+                var value = e.target.value;
+                var url = reverse.map_feature_photo({
+                    instance_url_name: config.instance.url_name,
+                    feature_id: featureId,
+                    photo_id: photId
+                }) + '/label';
+
+                var stream = BU.jsonRequest('POST', url)({'label': value});
+                stream.onValue(function() {
+                    console.log("done");
+                });
+            });
 
             if (mode === 'edit'){
                 labelViewEl.hide();

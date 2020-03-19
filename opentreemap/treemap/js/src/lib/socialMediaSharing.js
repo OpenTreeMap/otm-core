@@ -15,6 +15,14 @@ var $ = require('jquery'),
     _DONT_SHOW_AGAIN_KEY = 'social-media-sharing-dont-show-again',
     _SHARE_CONTAINER_SIZE = 300,
 
+    // for iNaturalist
+    _APP_ID = 'db6db69ef86d5a21a4c9876bcaebad059db3b1ed90f30255c6d9e8bdaebf0513',
+
+    photoInfo = {
+        PhotoDetailUrl: '',
+        PhotoUrl: ''
+    },
+
     attrs = {
         dataUrlTemplate: 'data-url-template',
         dataClass: 'data-class',
@@ -74,6 +82,9 @@ function renderPhotoModal (imageData) {
 
         $photoPreview = $(dom.photoPreview);
 
+    photoInfo.PhotoDetailUrl = photoDetailUrl;
+    photoInfo.PhotoUrl = photoUrl;
+
     // Validation errors (image invalid, image too big) are only returned as DOM
     // elements. In order to skip showing the share dialog we need to check the
     // dialog markup for the error message element.
@@ -112,6 +123,7 @@ function renderPhotoModal (imageData) {
     });
 }
 
+
 module.exports.init = function(options) {
     var imageFinishedStream = options.imageFinishedStream || Bacon.never();
     $(dom.toggle).on('click', function () {
@@ -122,5 +134,4 @@ module.exports.init = function(options) {
     //.filter(shouldShowSharingModal)
 
     $(dom.dontShowAgain).on('click', setDontShowAgainVal);
-
 };
