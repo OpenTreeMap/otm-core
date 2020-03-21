@@ -47,7 +47,7 @@ def get_signature_for_request(request, secret_key):
         sign_string += body_encoded
 
     sig = base64.b64encode(
-        hmac.new(secret_key, sign_string, hashlib.sha256).digest())
+        hmac.new(str(secret_key), str(sign_string), hashlib.sha256).digest())
 
     return sig
 
