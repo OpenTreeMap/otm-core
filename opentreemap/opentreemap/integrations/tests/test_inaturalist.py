@@ -20,7 +20,7 @@ class TestINaturalist(OTMTestCase):
         tree.save_with_user(self.commander_user)
 
         o = INaturalistObservation(is_identified=is_identified,
-                                   observation_id=1,
+                                   observation_id=39496756,
                                    map_feature=plot,
                                    tree=tree)
         o.save()
@@ -35,7 +35,9 @@ class TestINaturalist(OTMTestCase):
 
     def test_unidentified(self):
         self._createObservation()
+        self.assertEqual(INaturalistObservation.objects.filter(is_identified=False).count(), 1)
         inaturalist.sync_identifications()
+        self.assertEqual(INaturalistObservation.objects.filter(is_identified=False).count(), 0)
 
 
 

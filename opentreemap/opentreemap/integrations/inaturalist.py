@@ -1,3 +1,4 @@
+import dateutil.parser
 from datetime import timedelta
 
 import requests
@@ -5,7 +6,7 @@ from django.conf import settings
 from django.db import connection
 from background_task import background
 
-from treemap.models import INaturalistObservation
+from treemap.models import INaturalistObservation, Species
 
 base_url = "https://www.inaturalist.org"
 
@@ -68,27 +69,28 @@ def sync_identifications_routine():
     """
     sync_identifications()
 
-def get_o9n(o9n_id):
-    token = get_inaturalist_auth_token()
-    headers = {'Authorization': 'Bearer {}'.format(token)}
 
-    response = requests.get(
-        url="{base_url}/observations/{o9n_id}".format(
-            base_url=base_url, o9n_id=o9n_id),
-        headers=headers
-    )
-    import pdb; pdb.set_trace()
+def get_o9n(o9n_id):
+    return requests.get(
+        url="{base_url}/observations/{o9n_id}.json".format(
+            base_url=base_url, o9n_id=o9n_id)
+    ).json()
+
+
+def _set_identification(o9n_model, taxon):
+    o9n_model.tree.species = Species(common_name=taxon['common_name']['name'])
+    o9n_model.identified_at = dateutil.parser.parse(taxon['updated_at'])
+    o9n_model.is_identified = True
+    o9n_model.save()
 
 
 def sync_identifications():
-    o9n_attr = INaturalistObservation.observation_id.field_name
+    o9n_models = INaturalistObservation.objects.filter(is_identified=False)
 
-    o9n_ids = INaturalistObservation.objects.filter(
-        is_identified=False).values(o9n_attr)
-
-    for o9n_id in o9n_ids:
-        get_o9n(o9n_id[o9n_attr])
-
+    for o9n_model in o9n_models:
+        o9n_json = get_o9n(o9n_model.observation_id)
+        if 'taxon' in o9n_json:
+            _set_identification(o9n_model, o9n_json['taxon'])
 
 
 def get_features_for_inaturalist():
