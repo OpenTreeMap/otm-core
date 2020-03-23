@@ -294,7 +294,6 @@ INSTALLED_APPS = (
     'django.contrib.postgres',
     'django_js_reverse',
     'webpack_loader',
-    'background_task'
 )
 
 I18N_APPS = (

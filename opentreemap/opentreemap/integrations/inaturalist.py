@@ -4,7 +4,6 @@ from datetime import timedelta
 import requests
 from django.conf import settings
 from django.db import connection
-from background_task import background
 
 from treemap.models import INaturalistObservation, Species
 
@@ -62,15 +61,25 @@ def add_photo_to_observation(token, observation_id, photo):
     )
 
 
-@background(schedule=timedelta(hours=24))
-def sync_identifications_routine():
+def sync_identifications():
     """
-    This helper function exists to make testing of the routine possible.
+    Goes through all unidentified observations and updates them with taxonomy on iNaturalist
     """
-    sync_identifications()
+    o9n_models = INaturalistObservation.objects.filter(is_identified=False)
+
+    for o9n_model in o9n_models:
+        taxonomy = get_o9n(o9n_model.observation_id).get('taxon')
+        if taxonomy:
+            _set_identification(o9n_model, taxonomy)
 
 
 def get_o9n(o9n_id):
+    """
+    Retrieve iNaturalist observation by ID
+    API docs: https://www.inaturalist.org/pages/api+reference#get-observations-id
+    :param o9n_id: observation ID
+    :return: observation JSON as a dict
+    """
     return requests.get(
         url="{base_url}/observations/{o9n_id}.json".format(
             base_url=base_url, o9n_id=o9n_id)
@@ -82,15 +91,6 @@ def _set_identification(o9n_model, taxon):
     o9n_model.identified_at = dateutil.parser.parse(taxon['updated_at'])
     o9n_model.is_identified = True
     o9n_model.save()
-
-
-def sync_identifications():
-    o9n_models = INaturalistObservation.objects.filter(is_identified=False)
-
-    for o9n_model in o9n_models:
-        o9n_json = get_o9n(o9n_model.observation_id)
-        if 'taxon' in o9n_json:
-            _set_identification(o9n_model, o9n_json['taxon'])
 
 
 def get_features_for_inaturalist():
