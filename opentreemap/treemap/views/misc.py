@@ -18,13 +18,14 @@ from django.shortcuts import render, get_object_or_404
 
 from stormwater.models import PolygonalMapFeature
 
-from treemap.models import User, Species, StaticPage, Instance, Boundary
+from treemap.models import User, Species, StaticPage, Instance, Boundary, Tree, Plot
 
 from treemap.plugin import get_viewable_instances_filter
 
 from treemap.lib.user import get_audits, get_audits_params
 from treemap.lib import COLOR_RE
 from treemap.lib.perms import model_is_creatable
+from treemap.lib.object_caches import udf_defs
 from treemap.units import get_unit_abbreviation, get_units
 from treemap.util import leaf_models_of_class
 
@@ -79,15 +80,17 @@ def get_map_view_context(request, instance):
         resource_classes = []
 
     context = {
-        'fields_for_add_tree': [
-            (_('Tree Height'), 'Tree.height')
-        ],
         'resource_classes': resource_classes,
         'only_one_resource_class': len(resource_classes) == 1,
         'polygon_area_units': get_unit_abbreviation(
             get_units(instance, 'greenInfrastructure', 'area')),
         'q': request.GET.get('q'),
     }
+    add_plot_field_groups(
+        context,
+        instance,
+        filter_fields=['tree.id', 'tree.species', 'tree.diameter']
+    )
     add_map_info_to_context(context, instance)
     return context
 
@@ -269,3 +272,46 @@ def error_page(status_code):
         return response
 
     return inner_fn
+
+
+def add_plot_field_groups(context, instance, filter_fields=None):
+    _filter_fields = filter_fields or []
+    templates = {
+        "tree.id": "treemap/field/tree_id_tr.html",
+        "tree.species": "treemap/field/species_tr.html",
+        "tree.diameter": "treemap/field/diameter_tr.html"
+    }
+
+    labels = {
+        # 'plot-species' is used as the "label" in the 'field' tag,
+        # but ulitmately gets used as an identifier in the template
+        "tree.species": "plot-species",
+        "tree.diameter": _("Trunk Diameter")
+    }
+
+    # use the tree if it exists to get the UDF fields, otherwise use a blank tree
+    _tree = context.get('tree', Tree())
+    labels.update({
+        v: k for k, v in _tree.scalar_udf_names_and_fields})
+
+    # use the plot if it exists to get the UDF fields, otherwise use a blank plot
+    _plot = context.get('plot', Plot())
+    labels.update({
+        v: k for k, v in _plot.scalar_udf_names_and_fields})
+
+    def info(group):
+        group['fields'] = [
+            (field, labels.get(field),
+             templates.get(field, "treemap/field/tr.html"))
+            for field in group.get('field_keys', []) if field not in _filter_fields
+        ]
+        group['collection_udfs'] = [
+            next(udf for udf in udf_defs(instance)
+                 if udf.full_name == udf_name)
+            for udf_name in group.get('collection_udf_keys', [])
+        ]
+
+        return group
+
+    context['field_groups'] = [
+        info(group) for group in instance.web_detail_fields]
