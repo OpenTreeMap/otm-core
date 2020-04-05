@@ -13,6 +13,10 @@
     <label>{% trans "Species" %}</label>
     <div>
       {% include "treemap/field/species_typeahead.html" %}
+
+    <input name="is_empty_site"
+        id="is-empty-site"
+        type="checkbox" /> <label for="is-empty-site">Is Empty Site</label>
     </div>
     <div class="alert alert-danger text-danger"
         style="display: none;"

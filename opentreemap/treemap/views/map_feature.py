@@ -251,6 +251,21 @@ def update_map_feature(request_dict, user, feature):
         except ValidationError as e:
             return package_field_errors(thing._model_name, e)
 
+    def check_if_species_is_set(request_dict):
+        # If we have a field that explicitly checks for empty site,
+        # called is_empty_site, and that is False, and either
+        # tree.species is empty or not set, then we have a problem
+        if 'is_empty_site' not in request_dict:
+            return
+
+        # if we don't remove it, we will get failures as OTM tries to find
+        # this field on the model
+        is_empty_site = request_dict.pop('is_empty_site')
+        if not is_empty_site and not request_dict.get('tree.species'):
+            raise ValidationError(
+                {'tree.species': 'Either set a species or set to an empty planting site'}
+            )
+
     def skip_setting_value_on_tree(value, tree):
         # If the tree is not None, we always set a value.  If the tree
         # is None (meaning that we would be creating a new Tree
@@ -260,6 +275,9 @@ def update_map_feature(request_dict, user, feature):
 
     tree = None
     errors = {}
+
+    # validate species before checking any fields
+    check_if_species_is_set(request_dict)
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom

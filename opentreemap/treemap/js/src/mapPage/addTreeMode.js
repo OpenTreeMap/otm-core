@@ -11,13 +11,15 @@ var $ = require('jquery'),
 var activateMode = _.identity,
     deactivateMode = _.identity,
     STEP_LOCATE = 0,
-    STEP_DETAILS = 1,
-    STEP_FINAL = 2;
+    STEP_PHOTO = 1,
+    STEP_DETAILS = 2,
+    STEP_FINAL = 3;
 
 function init(options) {
     var $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
+        $isEmptySite = U.$find('#is-empty-site', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar),
         typeahead = otmTypeahead.create(options.typeahead),
         clearEditControls = function() {
@@ -55,9 +57,13 @@ function init(options) {
 
     function aTreeFieldIsSet() {
         var data = manager.getFormData();
-        return _.some(data, function (value, key) {
+        var treeValueSet = _.some(data, function (value, key) {
             return key && key.indexOf('tree') === 0 && value;
         });
+
+        // either we have a tree value set, or we have not explicitly
+        // said this is an empty site
+        return treeValueSet || !$isEmptySite.is(":checked");
     }
 
     // In case we're adding another tree, make user move the marker
