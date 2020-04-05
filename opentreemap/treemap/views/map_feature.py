@@ -31,12 +31,11 @@ from treemap.util import (package_field_errors, to_object_name)
 
 from treemap.images import get_image_from_request
 from treemap.lib.photo import context_dict_for_photo
-from treemap.lib.object_caches import udf_defs
 from treemap.lib.map_feature import (get_map_feature_or_404,
                                      raise_non_instance_404,
                                      context_dict_for_plot,
                                      context_dict_for_resource)
-from treemap.views.misc import add_map_info_to_context
+from treemap.views.misc import add_map_info_to_context, add_plot_field_groups
 
 
 def _request_to_update_map_feature(request, feature):
@@ -108,48 +107,12 @@ def _map_feature_detail_context(request, instance, feature_id, edit=False):
 
     if feature.is_plot:
         partial = 'treemap/partials/plot_detail.html'
-        _add_plot_field_groups(context, instance)
+        add_plot_field_groups(context, instance)
     else:
         app = feature.__module__.split('.')[0]
         partial = '%s/%s_detail.html' % (app, feature.feature_type)
 
     return context, partial
-
-
-def _add_plot_field_groups(context, instance):
-    templates = {
-        "tree.id": "treemap/field/tree_id_tr.html",
-        "tree.species": "treemap/field/species_tr.html",
-        "tree.diameter": "treemap/field/diameter_tr.html"
-    }
-
-    labels = {
-        # 'plot-species' is used as the "label" in the 'field' tag,
-        # but ulitmately gets used as an identifier in the template
-        "tree.species": "plot-species",
-        "tree.diameter": _("Trunk Diameter")
-    }
-    labels.update({
-        v: k for k, v in context['tree'].scalar_udf_names_and_fields})
-    labels.update({
-        v: k for k, v in context['plot'].scalar_udf_names_and_fields})
-
-    def info(group):
-        group['fields'] = [
-            (field, labels.get(field),
-             templates.get(field, "treemap/field/tr.html"))
-            for field in group.get('field_keys', [])
-        ]
-        group['collection_udfs'] = [
-            next(udf for udf in udf_defs(instance)
-                 if udf.full_name == udf_name)
-            for udf_name in group.get('collection_udf_keys', [])
-        ]
-
-        return group
-
-    context['field_groups'] = [
-        info(group) for group in instance.web_detail_fields]
 
 
 def render_map_feature_detail_partial(request, instance, feature_id, **kwargs):
