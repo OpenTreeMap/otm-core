@@ -100,7 +100,7 @@ module.exports.init = function(options) {
             featureId = $endpointEl.attr('data-map-feature-id'),
             labelSelector = '[data-class="label"]',
             labelViewSelector = '.photo-label-view',
-            labelEditSelectSelector = '#photo-label';
+            labelEditSelectSelector = '#photo-label-btn';
 
         $keepControl.off('click.delete-mode');
         currentRotation = 0;

@@ -1,5 +1,5 @@
 import dateutil.parser
-from datetime import timedelta
+import datetime
 
 import requests
 from django.conf import settings
@@ -28,13 +28,14 @@ def get_inaturalist_auth_token():
     return token
 
 
-def create_observation(token, latitude, longitude):
+def create_observation(token, latitude, longitude, species):
 
     headers = {'Authorization': 'Bearer {}'.format(token)}
     params = {'observation': {
         'observed_on_string': datetime.datetime.now().isoformat(),
         'latitude': latitude,
-        'longitude': longitude
+        'longitude': longitude,
+        'species_guess': species
     }
     }
 
@@ -53,12 +54,13 @@ def add_photo_to_observation(token, observation_id, photo):
     data = {'observation_photo[observation_id]': observation_id}
     file_data = {'file': photo.image.file.file}
 
-    requests.post(
+    response = requests.post(
         url="{base_url}/observation_photos".format(base_url=base_url),
         headers=headers,
         data=data,
         files=file_data
     )
+    return response.json()
 
 
 def sync_identifications():
@@ -98,13 +100,13 @@ def get_features_for_inaturalist():
     Get all the features that have a label and can be submitted to iNaturalist
     """
     query = """
-        SELECT  photo.id, photo.map_feature_id, photo.instance_id
+        SELECT  photo.map_feature_id, photo.instance_id
         FROM    treemap_mapfeaturephoto photo
         JOIN    treemap_mapfeaturephotolabel label on label.map_feature_photo_id = photo.id
         LEFT JOIN treemap_inaturalistobservation inat on inat.map_feature_id = photo.map_feature_id
         where   1=1
         and     inat.id is null
-        group by photo.id, photo.map_feature_id, photo.instance_id
+        group by photo.map_feature_id, photo.instance_id
         having sum(case when label.name = 'shape' then 1 else 0 end) > 0
         and sum(case when label.name = 'bark'  then 1 else 0 end) > 0
         and sum(case when label.name = 'leaf'  then 1 else 0 end) > 0
@@ -114,7 +116,6 @@ def get_features_for_inaturalist():
         cursor.execute(query)
         results = cursor.fetchall()
 
-    return [{'photo_id': r[0],
-             'feature_id': r[1],
-             'instance_id': r[2]}
+    return [{'feature_id': r[0],
+             'instance_id': r[1]}
             for r in results]

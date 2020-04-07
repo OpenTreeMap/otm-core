@@ -482,7 +482,7 @@ def inaturalist_add(request, instance, *args, **kwargs):
 
 def inaturalist_create_observations(request, instance, *args, **kwargs):
 
-    features = get_features_for_inaturalist()
+    features = inaturalist.get_features_for_inaturalist()
     if not features:
         return
 
@@ -492,23 +492,36 @@ def inaturalist_create_observations(request, instance, *args, **kwargs):
         feature = get_map_feature_or_404(feature['feature_id'], instance)
         tree = feature.safe_get_current_tree()
 
+        photos = feature.photos()
+        (longitude, latitude) = feature.latlon.coords
+
+        # create the observation
+        _observation = inaturalist.create_observation(
+            token,
+            latitude,
+            longitude,
+            tree.species.common_name
+        )
         observation = INaturalistObservation(
-            observation_id=1,
+            observation_id=_observation['id'],
             map_feature=feature,
             tree=tree,
             submitted_at=datetime.datetime.now()
         )
-
         observation.save()
-        pass
 
-    #observation_id = models.IntegerField()
+        for photo in tree.photos():
+            photo_info = inaturalist.add_photo_to_observation(token, _observation['id'], photo)
 
-    #map_feature = models.ForeignKey(MapFeature)
-    #tree = models.ForeignKey(Tree)
+            photo_observation = INaturalistPhoto(
+                tree_photo=photo,
+                observation=observation,
+                inaturalist_photo_id=photo_info['photo_id']
+            )
+            photo_observation.save()
 
-    #is_identified = models.BooleanField(default=False)
-    #submitted_at = models.DateTimeField()
-    #identified_at = models.DateTimeField()
-    #feature.safe_get_current_tree() or
     return
+
+
+def inaturalist_sync(request, instance):
+    inaturalist.sync_identifications()
