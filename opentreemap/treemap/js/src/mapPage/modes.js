@@ -209,7 +209,7 @@ function getSpeciesTypeaheadOptions(idPrefix) {
         hidden: "#" + idPrefix + "-hidden",
         reverse: "id",
         forceMatch: true,
-        minLength: 1
+        minLength: 0
     };
 }
 

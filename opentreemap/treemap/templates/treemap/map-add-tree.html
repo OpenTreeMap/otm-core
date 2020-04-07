@@ -1,12 +1,39 @@
 {% load form_extras %}
 {% load i18n %}
 
-{% with nsteps=3 %}
+{% with nsteps=4 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
     <h3>{% trans "Add a Tree" %}</h3>
     <div class="add-step-container" id="add-tree-container">
         {% include "treemap/partials/step_set_location.html" with first=True feature_name="tree" %}
+
+        <div class="add-step">
+            <div class="add-step-header">
+                {% trans "Add tree photos" %}
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+            </div>
+            <div class="add-step-content">
+                <table class="table table-hover">
+                    <tbody>
+                        <tr>
+                            <td>Add photo of tree shape</td>
+                            <td><button class="btn">Upload</button></td>
+                        </tr>
+                        <tr>
+                            <td>Add photo of tree leaf</td>
+                            <td><button class="btn">Upload</button></td>
+                        </tr>
+                        <tr>
+                            <td>Add photo of tree bark</td>
+                            <td><button class="btn">Upload</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% include 'treemap/partials/step_controls.html' %}
+        </div>
+
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Add species and additional info" %}
@@ -16,12 +43,13 @@
                 <form id="add-tree-form" onsubmit="return false;">
                     {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
                     {% create "add-tree-species" from "Tree.species" in request.instance withtemplate "treemap/field/species_div.html" %}
+
                     {% trans "Trunk Diameter" as diameter %}
                     {% create diameter from "Tree.diameter" in request.instance withtemplate "treemap/field/diameter_div.html" %}
 
                 {% for group in field_groups %}
                     {% if group.model == "plot" %}
-                        <h3>{% trans "Plot Information" %}</h3>
+                        <h3>{% trans "Planting Site Information" %}</h3>
                         <table class="table table-hover">
                             <tbody>
                             {% for tuple in group.fields %}
