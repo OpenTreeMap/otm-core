@@ -85,6 +85,7 @@ function renderPhotoModal (imageData) {
     photoInfo.PhotoDetailUrl = photoDetailUrl;
     photoInfo.PhotoUrl = photoUrl;
 
+
     // Validation errors (image invalid, image too big) are only returned as DOM
     // elements. In order to skip showing the share dialog we need to check the
     // dialog markup for the error message element.
@@ -95,8 +96,11 @@ function renderPhotoModal (imageData) {
     $photoPreview.attr('src', $photo.attr(attrs.mapFeaturePhotoPreview));
     _.each($anchors, generateHref(photoDetailUrl, photoUrl));
 
+    // remove the old handlers and reset the value
+    $(dom.photoLabel).off('change');
+    $(dom.photoLabel).val('');
+
     $(dom.photoLabel).on('change', function(e) {
-        console.log(e);
         var value = e.target.value;
         var url = reverse.map_feature_photo({
             instance_url_name: config.instance.url_name,
@@ -107,7 +111,6 @@ function renderPhotoModal (imageData) {
         var stream = BU.jsonRequest('POST', url)({'label': value});
         stream.onValue(function() {
             console.log("done");
-            debugger;
         });
 
         /*
@@ -119,7 +122,6 @@ function renderPhotoModal (imageData) {
             .flatMap(BU.jsonRequest('POST', url));
         */
 
-        debugger;
     });
 }
 

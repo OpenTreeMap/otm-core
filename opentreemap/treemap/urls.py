@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^boundaries/$', routes.boundary_autocomplete, name='boundary_list'),
     url(r'^edits/$', routes.edits_page, name='edits'),
     url(r'^species/$', routes.species_list, name="species_list_view"),
+
     url(r'^map/$', routes.map_page, name='map'),
 
     url(r'^features/(?P<feature_id>\d+)/$',
@@ -40,8 +41,10 @@ urlpatterns = [
         routes.delete_tree, name='delete_tree'),
     url(r'^features/(?P<feature_id>\d+)/sidebar$',
         routes.get_map_feature_sidebar, name='map_feature_sidebar'),
+
     url(r'^features/(?P<feature_id>\d+)/photo$',
         routes.add_map_feature_photo, name='add_photo_to_map_feature'),
+
     url(r'^features/(?P<feature_id>\d+)/accordion$',
         routes.map_feature_accordion, name='map_feature_accordion'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/detail$',
@@ -90,4 +93,7 @@ urlpatterns = [
 
     url(r'^inaturalist-add/$',
         routes.inaturalist_add, name='inaturalist_add'),
+
+    url(r'^inaturalist/sync$',
+        routes.inaturalist_sync, name='inaturalist_add'),
 ]
