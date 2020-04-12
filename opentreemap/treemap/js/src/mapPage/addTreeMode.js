@@ -1,27 +1,32 @@
 "use strict";
 
 var $ = require('jquery'),
+    Bacon = require('baconjs'),
     _ = require('lodash'),
     U = require('treemap/lib/utility.js'),
     addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
+    uploadPanel = require('treemap/lib/uploadPanelAddTreePhoto.js'),
     diameterCalculator = require('treemap/lib/diameterCalculator.js');
 
 var activateMode = _.identity,
     deactivateMode = _.identity,
     STEP_LOCATE = 0,
-    STEP_PHOTO = 1,
-    STEP_DETAILS = 2,
-    STEP_FINAL = 3;
+    STEP_DETAILS = 1,
+    STEP_FINAL = 2;
 
 function init(options) {
+    var mapFeatureBus = new Bacon.Bus();
+    options.addMapFeatureBus = mapFeatureBus;
+
     var $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
         $isEmptySite = U.$find('#is-empty-site', $sidebar),
         $summarySubhead = U.$find('.summarySubhead', $sidebar),
         typeahead = otmTypeahead.create(options.typeahead),
+
         clearEditControls = function() {
             typeahead.clear();
         },
@@ -39,6 +44,13 @@ function init(options) {
         typeahead.clear();
         manager.deactivate();
     };
+
+
+    var imageFinishedStream = uploadPanel.init({
+        panelId: '#shape-photo-upload',
+        dataType: 'html',
+        addMapFeatureBus: mapFeatureBus
+    });
 
     diameterCalculator({ formSelector: options.formSelector,
                          cancelStream: manager.deactivateStream,

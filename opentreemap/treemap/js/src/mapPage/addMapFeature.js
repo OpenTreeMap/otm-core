@@ -43,6 +43,7 @@ function init(options) {
         $geolocateError = U.$find('.geolocate-error', $sidebar),
         $pointInStreamError = U.$find('.pointnotinmap-error', $sidebar),
         triggerSearchBus = options.triggerSearchBus,
+        addMapFeatureBus = options.addMapFeatureBus,
 
         $form = U.$find(formSelector, $sidebar),
         editFields = formSelector + ' [data-class="edit"]',
@@ -248,7 +249,7 @@ function init(options) {
             type: 'POST',
             contentType: "application/json",
             data: JSON.stringify(data),
-            success: [onAddFeatureSuccess, triggerSearchBus.push],
+            success: [onAddFeatureSuccess, triggerSearchBus.push, addMapFeatureBus.push],
             error: onAddFeatureError
         });
     }

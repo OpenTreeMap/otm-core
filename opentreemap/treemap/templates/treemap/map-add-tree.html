@@ -1,7 +1,9 @@
 {% load form_extras %}
 {% load i18n %}
 
-{% with nsteps=4 %}
+{% trans "Add a Photo" as upload_title %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="shape-photo-upload" label="shape" button_id="add-shape" %}
+{% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
     <h3>{% trans "Add a Tree" %}</h3>
@@ -10,7 +12,7 @@
 
         <div class="add-step">
             <div class="add-step-header">
-                {% trans "Add tree photos" %}
+                {% trans "Add species and additional info" %}
                 <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
@@ -18,6 +20,11 @@
                     <tbody>
                         <tr>
                             <td>Add photo of tree shape</td>
+                            <!--<td><button data-toggle="modal"
+                                    id="add-shape"
+                                    data-target="#shape-photo-upload"
+                                    class="btn add-photos">{% trans "Add Shape" %}</button>
+                            </td>-->
                             <td><button class="btn">Upload</button></td>
                         </tr>
                         <tr>
@@ -30,16 +37,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
-            {% include 'treemap/partials/step_controls.html' %}
-        </div>
-
-        <div class="add-step">
-            <div class="add-step-header">
-                {% trans "Add species and additional info" %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
-            </div>
-            <div class="add-step-content">
                 <form id="add-tree-form" onsubmit="return false;">
                     {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
                     {% create "add-tree-species" from "Tree.species" in request.instance withtemplate "treemap/field/species_div.html" %}

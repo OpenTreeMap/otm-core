@@ -44,6 +44,7 @@
 </div>
 <div class="col-md-8">
     <p>
+    {% if request.user.is_authenticated %}
         {% if feature.is_plot or feature.is_editable %}
             <button id="edit-map-feature"
                     data-class="display"
@@ -78,6 +79,7 @@
                 data-href="{{ request.get_full_path }}"
                 class="btn btn-sm btn-danger">{% trans "Delete" %}</button>
         <img class="spinner" src="{% static "img/spinner.gif" %}" style="display: none;">
+    {% endif %}
     </p>
 
     <!-- Alerts -->
