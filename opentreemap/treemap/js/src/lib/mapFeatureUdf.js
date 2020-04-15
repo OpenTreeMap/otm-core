@@ -67,6 +67,8 @@ exports.init = function(form) {
         $(this).closest('table').append(udfRowTemplate({ fields: data }));
     });
 
-    form.inEditModeProperty.filter(R.equals(true)).onValue(addResolveAlertButtons);
+    if (form != null && form.hasOwnProperty('inEditModeProperty')) {
+        form.inEditModeProperty.filter(R.equals(true)).onValue(addResolveAlertButtons);
+    }
 
 };

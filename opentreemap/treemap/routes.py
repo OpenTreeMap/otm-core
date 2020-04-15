@@ -245,6 +245,7 @@ search_tree_benefits = do(
     tree_views.search_tree_benefits)
 
 add_tree_photo = add_map_feature_photo_do(tree_views.add_tree_photo)
+add_tree_photo_with_label = add_map_feature_photo_do(tree_views.add_tree_photo_with_label)
 
 #####################################
 # user

@@ -3,6 +3,8 @@
 
 {% trans "Add a Photo" as upload_title %}
 {% include "treemap/partials/upload_file.html" with title=upload_title panel_id="shape-photo-upload" label="shape" button_id="add-shape" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="bark-photo-upload" label="bark" button_id="add-bark" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="leaf-photo-upload" label="leaf" button_id="add-leaf" %}
 {% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
@@ -20,20 +22,27 @@
                     <tbody>
                         <tr>
                             <td>Add photo of tree shape</td>
-                            <!--<td><button data-toggle="modal"
+                            <td><button data-toggle="modal"
                                     id="add-shape"
                                     data-target="#shape-photo-upload"
                                     class="btn add-photos">{% trans "Add Shape" %}</button>
-                            </td>-->
-                            <td><button class="btn">Upload</button></td>
+                            </td>
                         </tr>
                         <tr>
                             <td>Add photo of tree leaf</td>
-                            <td><button class="btn">Upload</button></td>
+                            <td><button data-toggle="modal"
+                                    id="add-leaf"
+                                    data-target="#leaf-photo-upload"
+                                    class="btn add-photos">{% trans "Add Leaf" %}</button>
+                            </td>
                         </tr>
                         <tr>
                             <td>Add photo of tree bark</td>
-                            <td><button class="btn">Upload</button></td>
+                            <td><button data-toggle="modal"
+                                    id="add-bark"
+                                    data-target="#bark-photo-upload"
+                                    class="btn add-photos">{% trans "Add Bark" %}</button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -57,6 +66,12 @@
                             </tbody>
                         </table>
 
+                        {% for udf in group.collection_udfs %}
+                            {% with title_prefix=udf.model_type %}
+                                {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=tree values=values %}
+                            {% endwith %}
+                        {% endfor %}
+
                     {% elif group.model == "tree" %}
                         <h3>{% trans "Tree Information" %}</h3>
                         <table class="table table-hover">
@@ -68,7 +83,15 @@
                             {% endfor %}
                             </tbody>
                         </table>
+
+                        {% for udf in group.collection_udfs %}
+                            {% with title_prefix=udf.model_type %}
+                                {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=tree values=values %}
+                            {% endwith %}
+                        {% endfor %}
+
                     {% endif %}
+
                 {% endfor %}
 
                     {% include 'treemap/partials/hidden_address.html' with object_name='plot' %}

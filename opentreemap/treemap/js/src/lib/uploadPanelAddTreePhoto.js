@@ -5,6 +5,7 @@ var $ = require('jquery'),
     toastr = require('toastr'),
     Bacon = require('baconjs'),
     U = require('treemap/lib/utility.js'),
+    reverse = require('reverse'),
     _ = require('lodash'),
     config = require('treemap/lib/config.js');
 
@@ -41,16 +42,19 @@ module.exports.init = function(options) {
             $error.hide();
         },
         add: function(e, data) {
-            console.log('out stream');
+            var input = $(this).closest(".fileChooser");
+            // once we finish adding the tree, we can use that
+            // result to send the photo and label
             addMapFeatureBus.onValue(function (result) {
-                var t = data;
-                var _this = $(this);
-                console.log('in stream');
-                //debugger;
+                var url = reverse.add_photo_to_tree_with_label({
+                    instance_url_name: config.instance.url_name,
+                    feature_id: result.featureId,
+                    tree_id: result.treeId
+                });
+                data.formData = {'label': input.data('label')}
+                data.url = url;
+                data.submit();
             });
-            console.log($(this));
-            $(this).html("testChild");
-            $(this).parent().html("test");
             $panel.modal('hide');
         },
         progressall: function (e, data) {

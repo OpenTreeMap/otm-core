@@ -28,6 +28,7 @@ from treemap.lib.perms import model_is_creatable
 from treemap.lib.object_caches import udf_defs
 from treemap.units import get_unit_abbreviation, get_units
 from treemap.util import leaf_models_of_class
+from treemap.images import get_image_from_request
 
 
 _SCSS_VAR_NAME_RE = re.compile('^[_a-zA-Z][-_a-zA-Z0-9]*$')
@@ -91,8 +92,19 @@ def get_map_view_context(request, instance):
         instance,
         filter_fields=['tree.id', 'tree.species', 'tree.diameter']
     )
+
     add_map_info_to_context(context, instance)
     return context
+
+
+def map_save_image_with_label(request, instance, label):
+    """
+    Save an image with this label in the session.
+    This is needed when a user is creating a new tree from the website
+    """
+    data = get_image_from_request(request)
+    request.session[label] = data
+    return
 
 
 def add_map_info_to_context(context, instance):

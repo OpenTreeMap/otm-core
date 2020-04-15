@@ -3,8 +3,10 @@
 var $ = require('jquery'),
     Bacon = require('baconjs'),
     _ = require('lodash'),
+    FH = require('treemap/lib/fieldHelpers.js'),
     U = require('treemap/lib/utility.js'),
     addMapFeature = require('treemap/mapPage/addMapFeature.js'),
+    mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     uploadPanel = require('treemap/lib/uploadPanelAddTreePhoto.js'),
@@ -30,7 +32,11 @@ function init(options) {
         clearEditControls = function() {
             typeahead.clear();
         },
-        manager = addMapFeature.init(_.extend({clearEditControls: clearEditControls}, options));
+        manager = addMapFeature.init(
+            _.extend({
+                clearEditControls: clearEditControls,
+                onSaveBefore: onSaveBefore}, options)
+        );
 
     activateMode = function() {
         manager.activate();
@@ -46,11 +52,25 @@ function init(options) {
     };
 
 
-    var imageFinishedStream = uploadPanel.init({
+    var shapeImageFinishedStream = uploadPanel.init({
         panelId: '#shape-photo-upload',
         dataType: 'html',
         addMapFeatureBus: mapFeatureBus
     });
+
+    var barkImageFinishedStream = uploadPanel.init({
+        panelId: '#bark-photo-upload',
+        dataType: 'html',
+        addMapFeatureBus: mapFeatureBus
+    });
+
+    var leafImageFinishedStream = uploadPanel.init({
+        panelId: '#leaf-photo-upload',
+        dataType: 'html',
+        addMapFeatureBus: mapFeatureBus
+    });
+
+    mapFeatureUdf.init(null);
 
     diameterCalculator({ formSelector: options.formSelector,
                          cancelStream: manager.deactivateStream,
@@ -76,6 +96,49 @@ function init(options) {
         // either we have a tree value set, or we have not explicitly
         // said this is an empty site
         return treeValueSet || !$isEmptySite.is(":checked");
+    }
+
+    /// This is for the Stewardship
+    // By default collection udfs have their input row
+    // hidden, so show that row
+    $("table[data-udf-id] .editrow").css('display', '');
+    // The header row may also be hidden if there are no
+    // items so show that as well
+    $("table[data-udf-id] .headerrow").css('display', '');
+    $("table[data-udf-id] .placeholder").css('display', 'none');
+
+    // before we save the data, grab any UDF data, such s Stewardship
+    function onSaveBefore(data) {
+        // Extract data for all rows of the collection,
+        // whether entered in this session or pre-existing.
+        $('table[data-udf-name]').map(function() {
+            var $table = $(this);
+            var name = $table.data('udf-name');
+
+            var headers = $table.find('tr.headerrow th')
+                    .map(function() {
+                        return $(this).html();
+                    });
+
+            headers = _.compact(headers);
+
+            data[name] =
+                _.map($table.find('tr[data-value-id]').toArray(), function(row) {
+                    var $row = $(row),
+                        $tds = $row.find('td'),
+                        id = $row.attr('data-value-id'),
+
+                        rowData = _.zipObject(headers, $tds
+                                    .map(function() {
+                                        return $.trim($(this).attr('data-value'));
+                                    }));
+                    if (! _.isEmpty(id)) {
+                        rowData.id = id;
+                    }
+                    return rowData;
+                });
+        });
+        return data;
     }
 
     // In case we're adding another tree, make user move the marker

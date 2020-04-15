@@ -16,6 +16,8 @@
         <p>
           <input class="fileChooser" type="file" name="file"
                  data-url="{{ upload_url }}"
+                 data-label="{{ label }}"
+                 data-button-id="#{{ button_id }}"
                  accept={{ accept|default:"image/*" }}>
         </p>
         <div class="progress">

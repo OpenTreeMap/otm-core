@@ -73,6 +73,8 @@ urlpatterns = [
         routes.add_tree_photo, name='add_photo_to_plot'),
     url(r'^plots/(?P<feature_id>\d+)/tree/(?P<tree_id>\d+)/photo$',
         routes.add_tree_photo, name='add_photo_to_tree'),
+    url(r'^plots/(?P<feature_id>\d+)/tree/(?P<tree_id>\d+)/photo/label$',
+        routes.add_tree_photo_with_label, name='add_photo_to_tree_with_label'),
 
     url(r'^config/settings.js$',
         routes.instance_settings_js, name='settings'),

@@ -13,7 +13,7 @@ from django.db import transaction
 from django.http import HttpResponseRedirect
 
 from treemap.search import Filter
-from treemap.models import Tree, Plot
+from treemap.models import Tree, Plot, MapFeaturePhotoLabel
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.ecocache import get_cached_plot_count
 from treemap.lib import format_benefits
@@ -25,6 +25,37 @@ def tree_detail(request, instance, feature_id, tree_id):
     return HttpResponseRedirect(reverse('map_feature_detail', kwargs={
         'instance_url_name': instance.url_name,
         'feature_id': feature_id}))
+
+
+def create_map_feature_photo_label(photo, label):
+    map_feature_photo_label = MapFeaturePhotoLabel()
+    map_feature_photo_label.map_feature_photo = photo
+    map_feature_photo_label.name = label
+    map_feature_photo_label.save()
+    return map_feature_photo_label
+
+
+def add_tree_photo_with_label(request, instance, feature_id, tree_id=None):
+    error = None
+    try:
+        label = request.POST['label']
+        photo, tree = add_tree_photo_helper(
+            request, instance, feature_id, tree_id)
+
+        create_map_feature_photo_label(photo, label)
+
+        photos = tree.photos()
+    except ValidationError as e:
+        trees = Tree.objects.filter(pk=tree_id)
+        if len(trees) == 1:
+            photos = trees[0].photos()
+        else:
+            photos = []
+        # TODO: Better display error messages in the view
+        error = '; '.join(e.messages)
+    return {'photos': [context_dict_for_photo(request, photo)
+                       for photo in photos],
+            'error': error}
 
 
 def add_tree_photo(request, instance, feature_id, tree_id=None):
