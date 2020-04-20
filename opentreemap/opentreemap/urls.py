@@ -28,7 +28,13 @@ instance_pattern = r'^(?P<instance_url_name>' + URL_NAME_PATTERN + r')'
 # For URLs included via <app>.urls, see <app>/tests
 # For "top level" URLs defined here, see treemap/tests/urls.py (RootUrlTests)
 
-urlpatterns = [
+root_url = []
+if hasattr(settings, 'DEFAULT_INSTANCE') and settings.DEFAULT_INSTANCE:
+    root_url.append(url(r'^$', RedirectView.as_view(url='/{}'.format(settings.DEFAULT_INSTANCE))))
+else:
+    root_url.append(url(r'^$', routes.landing_page))
+
+urlpatterns = root_url + [
     url(r'^robots.txt$', RedirectView.as_view(
         url='/static/robots.txt', permanent=True)),
     # Setting permanent=False in case we want to allow customizing favicons
@@ -38,7 +44,7 @@ urlpatterns = [
     url('^comments/', include('django_comments.urls')),
     url(r'^', include('geocode.urls')),
     url(r'^stormwater/', include('stormwater.urls')),
-    url(r'^$', routes.landing_page),
+    #url(r'^$', routes.landing_page),
     url(r'^config/settings.js$', routes.root_settings_js),
     url(r'^users/%s/$' % USERNAME_PATTERN,
         routes.user, name='user'),
@@ -79,6 +85,7 @@ urlpatterns = [
     url(instance_pattern + r'/management/', include('manage_treemap.urls')),
     url(r'', include('modeling.urls')),
 ]
+
 
 if settings.USE_JS_I18N:
     js_i18n_info_dict = {

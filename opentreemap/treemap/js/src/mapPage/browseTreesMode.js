@@ -160,6 +160,7 @@ function makePopup(latLon, html) {
         var $popup = $(html);
         if (embed) {
             $popup.find('a').attr('target', '_blank');
+            $popup.find('.popup-btns').css('display', 'none');
         }
 
         var $popupContents = $($popup[0].outerHTML);

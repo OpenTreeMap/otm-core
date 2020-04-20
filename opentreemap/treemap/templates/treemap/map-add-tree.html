@@ -67,7 +67,7 @@
                         </table>
 
                         {% for udf in group.collection_udfs %}
-                            {% with title_prefix=udf.model_type %}
+                            {% with title_prefix="Planting Site" %}
                                 {% include "treemap/partials/collectionudf.html" with udf=udf title_prefix=title_prefix model=tree values=values %}
                             {% endwith %}
                         {% endfor %}
