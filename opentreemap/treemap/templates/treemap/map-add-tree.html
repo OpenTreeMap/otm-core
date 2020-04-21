@@ -2,9 +2,9 @@
 {% load i18n %}
 
 {% trans "Add a Photo" as upload_title %}
-{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="shape-photo-upload" label="shape" button_id="add-shape" %}
-{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="bark-photo-upload" label="bark" button_id="add-bark" %}
-{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="leaf-photo-upload" label="leaf" button_id="add-leaf" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="shape-photo-upload" label="shape" row_id="add-shape" checkbox_id="has-shape-photo" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="bark-photo-upload" label="bark" row_id="add-bark" checkbox_id="has-bark-photo" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="leaf-photo-upload" label="leaf" row_id="add-leaf" checkbox_id="has-leaf-photo" %}
 {% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
@@ -20,26 +20,24 @@
             <div class="add-step-content">
                 <table class="table table-hover">
                     <tbody>
-                        <tr>
+                        <tr id="add-shape">
                             <td>Add photo of tree shape</td>
-                            <td><button data-toggle="modal"
-                                    id="add-shape"
+                            <td>
+                                <button data-toggle="modal"
                                     data-target="#shape-photo-upload"
                                     class="btn add-photos">{% trans "Add Shape" %}</button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr id="add-leaf">
                             <td>Add photo of tree leaf</td>
                             <td><button data-toggle="modal"
-                                    id="add-leaf"
                                     data-target="#leaf-photo-upload"
                                     class="btn add-photos">{% trans "Add Leaf" %}</button>
                             </td>
                         </tr>
-                        <tr>
+                        <tr id="add-bark">
                             <td>Add photo of tree bark</td>
                             <td><button data-toggle="modal"
-                                    id="add-bark"
                                     data-target="#bark-photo-upload"
                                     class="btn add-photos">{% trans "Add Bark" %}</button>
                             </td>
@@ -47,6 +45,19 @@
                     </tbody>
                 </table>
                 <form id="add-tree-form" onsubmit="return false;">
+                    <div style="display: none;">
+                        <input name="has_shape_photo"
+                            id="has-shape-photo"
+                            type="checkbox" />
+                        <input name="has_bark_photo"
+                            id="has-bark-photo"
+                            type="checkbox" />
+                        <input name="has_leaf_photo"
+                            id="has-leaf-photo"
+                            type="checkbox" />
+                    </div>
+                    <input type="hidden" name="has-all-photos" />
+
                     {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
                     {% create "add-tree-species" from "Tree.species" in request.instance withtemplate "treemap/field/species_div.html" %}
 

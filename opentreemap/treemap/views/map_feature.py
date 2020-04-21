@@ -266,6 +266,18 @@ def update_map_feature(request_dict, user, feature):
                 {'tree.species': 'Either set a species or set to an empty planting site'}
             )
 
+    def check_all_photos(request_dict):
+        # check that we have a shape, bark and leaf photo
+        # we need all to be valid
+        has_shape_photo = request_dict.get('has_shape_photo', False)
+        has_bark_photo = request_dict.get('has_bark_photo', False)
+        has_leaf_photo = request_dict.get('has_leaf_photo', False)
+        if not (has_shape_photo and has_bark_photo and has_leaf_photo):
+            # FIXME eventually, do not put a validation error on the species
+            raise ValidationError(
+                {'tree.species': 'Please submit all photos'}
+            )
+
     def skip_setting_value_on_tree(value, tree):
         # If the tree is not None, we always set a value.  If the tree
         # is None (meaning that we would be creating a new Tree
@@ -278,6 +290,7 @@ def update_map_feature(request_dict, user, feature):
 
     # validate species before checking any fields
     check_if_species_is_set(request_dict)
+    check_all_photos(request_dict)
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom

@@ -55,6 +55,11 @@ module.exports.init = function(options) {
                 data.url = url;
                 data.submit();
             });
+
+            var row = $(input.data('row-id'));
+            row.addClass('bg-success')
+
+            $(input.data('checkbox-id')).prop('checked', true);
             $panel.modal('hide');
         },
         progressall: function (e, data) {
