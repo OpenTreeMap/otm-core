@@ -269,9 +269,9 @@ def update_map_feature(request_dict, user, feature):
     def check_all_photos(request_dict):
         # check that we have a shape, bark and leaf photo
         # we need all to be valid
-        has_shape_photo = request_dict.get('has_shape_photo', False)
-        has_bark_photo = request_dict.get('has_bark_photo', False)
-        has_leaf_photo = request_dict.get('has_leaf_photo', False)
+        has_shape_photo = request_dict.pop('has_shape_photo', False)
+        has_bark_photo = request_dict.pop('has_bark_photo', False)
+        has_leaf_photo = request_dict.pop('has_leaf_photo', False)
         if not (has_shape_photo and has_bark_photo and has_leaf_photo):
             # FIXME eventually, do not put a validation error on the species
             raise ValidationError(
