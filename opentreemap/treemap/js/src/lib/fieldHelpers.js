@@ -128,7 +128,7 @@ exports.formToDictionary = function ($form, $editFields, $displayFields) {
             var name = elem.name,
                 value = $(elem).val() || [],
                 display = getDisplayValue('multichoice', name);
-            display = (display === "null") ? [] : JSON.parse(display);
+            display = (display === undefined) ? [] : JSON.parse(display);
             if (! _.isEqual(value.sort(), display.sort())) {
                 // Value of multichoice field has changed
                 result[name] = value;
