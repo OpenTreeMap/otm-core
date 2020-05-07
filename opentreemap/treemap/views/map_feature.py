@@ -297,8 +297,10 @@ def update_map_feature(request_dict, user, feature):
     errors = {}
 
     # validate species before checking any fields
-    check_if_species_is_set(request_dict)
-    check_all_photos(request_dict)
+    # but only validate on creation, which means the feature.id is not set
+    if (not feature.id):
+        check_if_species_is_set(request_dict)
+        check_all_photos(request_dict)
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom
