@@ -89,6 +89,7 @@ ga('set', 'page', pathname);
 {% endif %}
 {% endblock instancetopnav %}
 
+<!--
 {% block signup %}
 <li class="hidden-xs">
   <a href="{% url 'instance_registration_register' instance_url_name=request.instance.url_name %}">{% trans "Sign Up" %}</a>
@@ -99,6 +100,7 @@ ga('set', 'page', pathname);
   <a href="{% url 'instance_registration_register' instance_url_name=request.instance.url_name %}">{% trans "Sign Up" %}</a>
 </li>
 {% endblock signup_small %}
+--!>
 
 {% block subhead %}
 <div class="subhead">

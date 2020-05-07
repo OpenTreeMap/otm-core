@@ -134,9 +134,11 @@
               </li>
             {% else %}
               <li class="hidden-xs"><a id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
+              <!--
               {% block signup %}
               <li class="hidden-xs"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
               {% endblock signup %}
+              --!>
               <li class="add-menu dropdown visible-xs-inline-block">
               <a class="dropdown-toggle" data-toggle="dropdown">
                   <i class="icon-cog"></i>

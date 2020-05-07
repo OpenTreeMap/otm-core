@@ -18,6 +18,7 @@
                 <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
+                <label>{% trans "Tree Photos" %} *</label>
                 <table class="table table-hover">
                     <tbody>
                         <tr id="add-shape">
@@ -56,12 +57,11 @@
                             id="has-leaf-photo"
                             type="checkbox" />
                     </div>
-                    <input type="hidden" name="has-all-photos" />
 
                     {# The "add-tree-species" label is used as an id prefix in "species_ul.html" #}
                     {% create "add-tree-species" from "Tree.species" in request.instance withtemplate "treemap/field/species_div.html" %}
 
-                    {% trans "Trunk Diameter" as diameter %}
+                    {% trans "Trunk Diameter *" as diameter %}
                     {% create diameter from "Tree.diameter" in request.instance withtemplate "treemap/field/diameter_div.html" %}
 
                 {% for group in field_groups %}

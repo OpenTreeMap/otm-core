@@ -138,8 +138,10 @@
             {% for close in comment.close %}</li></ul>{% endfor %}
         {% endfor %}
         {% if not request.user.is_authenticated %}
-            <p><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
-                {% trans "or" %} <a href="{% url 'auth_login' %}{% login_forward %}">{% trans "log in" %}</a>
+            <p>
+                <!--<a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a>
+                    {% trans "or" %}-->
+                <a href="{% url 'auth_login' %}{% login_forward %}">{% trans "log in" %}</a>
                 {% trans "to add comments" %}</p>
         {% endif %}
     </div>

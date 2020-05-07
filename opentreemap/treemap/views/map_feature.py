@@ -261,17 +261,21 @@ def update_map_feature(request_dict, user, feature):
         # if we don't remove it, we will get failures as OTM tries to find
         # this field on the model
         is_empty_site = request_dict.pop('is_empty_site')
-        if not is_empty_site and not request_dict.get('tree.species'):
+        tree_species = request_dict.get('tree.species')
+        if not is_empty_site and not tree_species:
             raise ValidationError(
                 {'tree.species': 'Either set a species or set to an empty planting site'}
+            )
+
+        # if both are set, that is also a problem
+        if is_empty_site and tree_species:
+            raise ValidationError(
+                {'tree.species': 'Cannot set both species and empty planting site'}
             )
 
     def check_all_photos(request_dict):
         # check that we have a shape, bark and leaf photo
         # we need all to be valid
-
-        # FIXME remove this field
-        request_dict.pop('has_all_photos')
 
         has_shape_photo = request_dict.pop('has_shape_photo', False)
         has_bark_photo = request_dict.pop('has_bark_photo', False)

@@ -11,7 +11,7 @@ var $ = require('jquery'),
             '<% _.each(fields, function (field) { %>' +
             '<td data-value="<%= field.value %>"> <%= field.display %> </td>' +
             '<% }) %>' +
-            '<td></td>' +
+            '<td><a data-udf-id="<%= id %>" class="btn remove">x</a></td>' +
             '</tr>'),
 
     resolveButtonMarkup = '<a href="javascript:;" ' +
@@ -58,13 +58,22 @@ exports.init = function(form) {
     }
 
     // Wire up collection udfs
-    $('a[data-udf-id]').on('click', function() {
+    $('a.add-row[data-udf-id]').on('click', function() {
         var id = $(this).data('udf-id'),
             selector = format('table[data-udf-id="%s"] * [data-field-name]', id),
             fields = $(selector).toArray(),
             data = _.map(fields, formatField);
 
-        $(this).closest('table').append(udfRowTemplate({ fields: data }));
+        $(this).closest('table').append(udfRowTemplate({ fields: data, id: id }));
+    });
+
+    $('table[data-udf-id]').on('click', 'a.remove[data-udf-id]', function() {
+        var id = $(this).data('udf-id'),
+            selector = format('table[data-udf-id="%s"] * [data-field-name]', id),
+            fields = $(selector).toArray(),
+            data = _.map(fields, formatField);
+
+        $(this).closest('tr').remove(); //.append(udfRowTemplate({ fields: data }));
     });
 
     if (form != null && form.hasOwnProperty('inEditModeProperty')) {

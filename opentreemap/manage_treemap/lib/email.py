@@ -1,6 +1,6 @@
-from django.core.mail import get_connection, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 def _get_email_subj_and_body(tmpl, ctxt):
@@ -18,8 +18,10 @@ def send_email(tmpl, ctxt, recipient_list):
     from_email = settings.DEFAULT_FROM_EMAIL
     subject, message = _get_email_subj_and_body(tmpl, ctxt)
 
-    mail = EmailMultiAlternatives(subject, message,
-                                  from_email, recipient_list)
-
-    mail.attach_alternative(message, 'text/html')
-    return mail.send()
+    return send_mail(
+        subject,
+        message,
+        'info@sustainablejc.org',
+        recipient_list,
+        fail_silently=False,
+    )
