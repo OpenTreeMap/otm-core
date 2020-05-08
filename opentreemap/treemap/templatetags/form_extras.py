@@ -332,6 +332,7 @@ class AbstractNode(template.Node):
         instance = _resolve_variable(self.instance, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context)).template
+        is_required = False
 
         if not isinstance(identifier, basestring)\
            or not _identifier_regex.match(identifier):
@@ -346,6 +347,12 @@ class AbstractNode(template.Node):
         object_name = to_object_name(model_name_or_object_name)
 
         identifier = "%s.%s" % (object_name, field_name)
+
+        def _field_is_required(model, field_name):
+            udf_field_name = field_name.replace('udf:', '')
+            if _is_udf(model, udf_field_name):
+                return udf_field_name in model.udf_required_fields
+            return False
 
         def _field_value(model, field_name, data_type):
             udf_field_name = field_name.replace('udf:', '')
@@ -365,6 +372,7 @@ class AbstractNode(template.Node):
                         val = json.dumps(val)
                 elif data_type == 'multichoice':
                     val = '[]'
+
             else:
                 raise ValueError('Could not find field: %s' % field_name)
 
@@ -381,6 +389,7 @@ class AbstractNode(template.Node):
             data_type, label, explanation, choices = field_type_label_choices(
                 model, field_name, label, explanation=explanation,
                 add_blank=add_blank)
+            is_required = _field_is_required(model, field_name)
             field_value = _field_value(model, field_name, data_type)
 
             if user is not None and hasattr(model, 'field_is_visible'):
@@ -435,6 +444,9 @@ class AbstractNode(template.Node):
         else:
             display_val = unicode(field_value)
 
+        if hasattr(model, 'REQUIRED_FIELDS'):
+            is_required = is_required or field_name in model.REQUIRED_FIELDS
+
         context['field'] = {
             'label': label,
             'explanation': explanation,
@@ -446,6 +458,7 @@ class AbstractNode(template.Node):
             'data_type': data_type,
             'is_visible': is_visible,
             'is_editable': is_editable,
+            'is_required': is_required,
             'choices': choices,
         }
         self.get_additional_context(

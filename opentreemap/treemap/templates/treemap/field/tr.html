@@ -1,7 +1,7 @@
 {# vim: set filetype=htmldjango : #}
 {% if field.is_visible %}
   <tr>
-    <td>{{ field.label }}</td>
+      <td>{% if field.is_editable and field.is_required %}<span style="display: inline;" class="required-indicator"></span>{% endif %}{{ field.label }}</td>
     <td {% include "treemap/field/attrs.html" with class="display" %}>
       {{ field.display_value|default_if_none:"" }}
     </td>

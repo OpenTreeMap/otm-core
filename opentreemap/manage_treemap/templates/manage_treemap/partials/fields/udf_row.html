@@ -7,7 +7,7 @@
         data-model-type="{{ udf.model_type }}"
         data-is-collection="{{ udf.iscollection|yesno }}"
         data-datatype="{{ udf.datatype_dict.type }}">
-    <td>{{ udf.model_type|display_name:request.instance }} {{ udf.name }}</td>
+    <td>{% if udf.isrequired %}* {% endif %}{{ udf.model_type|display_name:request.instance }} {{ udf.name }}</td>
     <td>{{ datatype }}</td>
     <td class="udf-choices">
         {% if not udf.iscollection and not udf.datatype_dict.choices %}

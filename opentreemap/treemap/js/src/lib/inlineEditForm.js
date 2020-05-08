@@ -90,6 +90,14 @@ exports.init = function(options) {
             $("table[data-udf-id] .placeholder").css('display', 'none');
         },
 
+        removeRequiredIndicator = function() {
+            //$('span.required-indicator').html('');
+        },
+
+        displayRequiredIndicator = function() {
+            //$('span.required-indicator').html('* ');
+        },
+
         getDataToSave = options.getDataToSave || function() {
             var data = FH.formToDictionary($(form), $(editFields), $(displayFields));
 
@@ -310,8 +318,10 @@ exports.init = function(options) {
 
     editStartStream.onValue(editForm.displayValuesToFormFields);
     editStartStream.onValue(showCollectionUdfs);
+    editStartStream.onValue(displayRequiredIndicator);
 
     eventsLandingInDisplayModeStream.onValue(resetCollectionUdfs);
+    eventsLandingInDisplayModeStream.onValue(removeRequiredIndicator);
 
     return {
         // immutable access to all actions

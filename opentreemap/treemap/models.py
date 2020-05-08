@@ -975,6 +975,7 @@ class Plot(MapFeature, ValidationMixin):
 
     objects = models.GeoManager()
     is_editable = True
+    REQUIRED_FIELDS = ['width', 'length']
 
     _terminology = {'singular': _('Planting Site'),
                     'plural': _('Planting Sites')}
@@ -1089,6 +1090,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
                                     verbose_name=_("Date Removed"))
 
     users_can_delete_own_creations = True
+    REQUIRED_FIELDS = ['diameter', 'height', 'canopy_height']
 
     objects = models.GeoManager()
 

@@ -10,7 +10,7 @@
   </div>
   {% if field.is_editable %}
   <div style="display: none;" data-class="edit" data-field="{{ field.identifier }}">
-    <label>{% trans "Species" %} *</label>
+    <label>* {% trans "Species" %}</label>
     <div>
       {% include "treemap/field/species_typeahead.html" %}
 

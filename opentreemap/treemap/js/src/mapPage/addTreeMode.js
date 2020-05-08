@@ -107,6 +107,9 @@ function init(options) {
     $("table[data-udf-id] .headerrow").css('display', '');
     $("table[data-udf-id] .placeholder").css('display', 'none');
 
+    // we also always want to show the indicator
+    $('span.required-indicator').html('* ');
+
     // before we save the data, grab any UDF data, such s Stewardship
     function onSaveBefore(data) {
         // Extract data for all rows of the collection,

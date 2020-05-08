@@ -402,6 +402,11 @@ class UserDefinedFieldDefinition(models.Model):
     """
     name = models.CharField(max_length=255)
 
+    """
+    Whether or not this is a required field
+    """
+    isrequired = models.BooleanField(default=False)
+
     class Meta:
         unique_together = ('instance', 'model_type', 'name')
 
@@ -1426,6 +1431,10 @@ class UDFModel(UserTrackable, models.Model):
     @property
     def udf_field_names(self):
         return [field.name for field in self.get_user_defined_fields()]
+
+    @property
+    def udf_required_fields(self):
+        return [field.name for field in self.get_user_defined_fields() if field.isrequired]
 
     @property
     def scalar_udf_names_and_fields(self):
