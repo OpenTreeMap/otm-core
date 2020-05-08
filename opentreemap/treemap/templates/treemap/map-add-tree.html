@@ -71,7 +71,6 @@
                             <tbody>
                             {% for tuple in group.fields %}
                                 {% with field=tuple.0 label=tuple.1 template=tuple.2 %}
-                                    {{ template }}
                                     {% create label from field in request.instance withtemplate template %}
                                 {% endwith %}
                             {% endfor %}
