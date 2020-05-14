@@ -1,0 +1,38 @@
+Welcome New SJC Citizen Scientist Tree Mapper!
+
+Thanks so much for joining the historic Jersey City Tree Mapping Census and we appreciate the time you have already put in participating in the WebEx Training we’ve put together for the program.
+
+Below are the steps to help you get started with the SJC OpenTreeMap (OTM) App, so you can begin mapping Trees in your neighborhood, and the GroupMe OTM Text App, so you can be in touch with your Neighborhood Captain. The GroupMe OTM App is important so communications about the Tree Mapping Census get to you in a timely way. The app also helps us to field any and all questions you may have about your field mapping experience. It is your direct connect to your Neighborhood Captain.
+
+Getting Started With OpenTreeMap
+
+Before you can get started as a Tree Mapper you will need a User Account. Please go to this link to Register on the platform. Please note, this link only works for your email address and cannot be shared with others.
+{{ request.is_secure|yesno:"https,http"}}://{{ request.get_host }}{% url 'registration_register' %}?join=true&key={{ invite.activation_key }}
+
+Once you have set up an account you can go to the OTM platform on your phone to participate in the JC Tree Mapping Census for your neighborhood.
+https://opentreemap.sustainablejc.org/
+
+You can download the SJC OTM Tip Sheet available on our website at https://www.sustainablejc.org/opentreemap
+
+The SJC OpenTreeMap App for Jersey City is in active development and will be available in the Apple App Store and the Google Play Store soon, so stay tuned for updates.
+
+Here is a useful Tree Species ID resource ________ for you to download to take with you when you start Tree Mapping in your neighborhood.  Remember, as a new Citizen Scientist learning how to ID Tree Species is part of the fun, so don’t worry - between this pdf download and the iNaturalist feature verifying your photos, we have you covered!
+
+
+Getting Started With The GroupMe Text App
+
+The GroupMe Text App will be your tool to talk, coordinate, and keep in touch with your Neighborhood Captain, Ward Captain, and Sustainable Jersey City.  We are also connecting you with your fellow neighborhood Tree Mappers who have the GroupMe OTM App. You can send pictures, ask questions, get activated with your neighborhood!
+
+First Step: Download the GroupMe App on your phone, so you can create an account that will allow you to connect with other Tree Mappers in your neighborhood and your Neighborhood Captain.
+Second Step: You will enter your specific neighborhood GroupMe via a Hyperlink Invite sent to you in an email from your Neighborhood Captain, so stay tuned to your inbox.
+
+*You can access GroupMe via your web browser too! Just enter www.GroupMe.com and enter your account information.
+
+The SJC OpenTreeMap platform will officially be turned on for you to start mapping Trees in your neighborhood on Saturday May 16th.  Between now and then you have plenty of time to set up your OTM User Account and connect with your Neighborhood Captains on the GroupMe OTM.
+
+If you’re having trouble with creating a GroupMe account or finding your Neighborhood Captain on GroupMe OTM please reach out to us at info@sustainablejc.org - please provide your GroupMe account username, OTM User Account username, and your neighborhood!
+
+
+Thanks and Happy Tree Mapping!
+
+Sustainable JC Green Team

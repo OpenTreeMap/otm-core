@@ -1,2 +1,2 @@
 {% load i18n %}
-{% trans "You've been added to a tree map!" %}
+{% trans "Invitation To Participate In SJC's OpenTreeMap For Jersey City!" %}
