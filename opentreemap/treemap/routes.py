@@ -258,7 +258,10 @@ instance_user_audits = user_views.instance_user_audits
 profile_to_user_page = user_views.profile_to_user
 
 user = route(
-    GET=render_template('treemap/user.html')(user_views.user),
+    GET=do(
+        username_matches_request_user,
+        render_template('treemap/user.html'),
+        user_views.user),
     PUT=do(
         require_http_method("PUT"),
         username_matches_request_user,
