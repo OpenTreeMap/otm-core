@@ -1,5 +1,6 @@
 import dateutil.parser
 import datetime
+import time
 
 import requests
 from django.conf import settings
@@ -16,8 +17,8 @@ def get_inaturalist_auth_token():
         'client_id': settings.INATURALIST_APP_ID,
         'client_secret': settings.INATURALIST_APP_SECRET,
         'grant_type': 'password',
-        'username': settings.USERNAME,
-        'password': settings.PASSWORD
+        'username': settings.INATURALIST_USERNAME,
+        'password': settings.INATURALIST_PASSWORD
     }
 
     r = requests.post(
@@ -73,6 +74,9 @@ def sync_identifications():
         taxonomy = get_o9n(o9n_model.observation_id).get('taxon')
         if taxonomy:
             _set_identification(o9n_model, taxonomy)
+
+        # to ensure we do not get rate limited
+        time.sleep(30)
 
 
 def get_o9n(o9n_id):

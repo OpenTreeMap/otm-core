@@ -7,6 +7,7 @@ import datetime
 import json
 import hashlib
 import re
+import time
 from functools import wraps
 
 from django.http import HttpResponse, HttpResponseRedirect
@@ -534,6 +535,7 @@ def inaturalist_create_observations(request, instance, *args, **kwargs):
         observation.save()
 
         for photo in tree.photos():
+            time.sleep(10)
             photo_info = inaturalist.add_photo_to_observation(token, _observation['id'], photo)
 
             photo_observation = INaturalistPhoto(
@@ -542,6 +544,9 @@ def inaturalist_create_observations(request, instance, *args, **kwargs):
                 inaturalist_photo_id=photo_info['photo_id']
             )
             photo_observation.save()
+
+        # let's not get rate limited
+        time.sleep(30)
 
     return
 

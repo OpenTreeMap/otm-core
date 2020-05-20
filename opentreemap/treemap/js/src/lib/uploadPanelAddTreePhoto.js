@@ -28,6 +28,7 @@ module.exports.init = function(options) {
         $chooser = $panel.find('.fileChooser'),
         $progressBar = $panel.find('.progress').children().first(),
         callback,
+        unsubscribeFromAdd = $.noop,
         finishedStream = new Bacon.EventStream(function(subscribe) {
             callback = subscribe;
 
@@ -42,10 +43,12 @@ module.exports.init = function(options) {
             $error.hide();
         },
         add: function(e, data) {
+            unsubscribeFromAdd();
+
             var input = $(this).closest(".fileChooser");
             // once we finish adding the tree, we can use that
             // result to send the photo and label
-            addMapFeatureBus.onValue(function (result) {
+            unsubscribeFromAdd = addMapFeatureBus.onValue(function (result) {
                 var url = reverse.add_photo_to_tree_with_label({
                     instance_url_name: config.instance.url_name,
                     feature_id: result.featureId,
@@ -74,6 +77,16 @@ module.exports.init = function(options) {
             if ($image.length > 0) {
                 $image.attr('src', data.result.url);
             }
+
+            // clear everything
+            var input = $(this).closest(".fileChooser");
+            var row = $(input.data('row-id'));
+            row.removeClass('bg-success')
+
+            $(input.data('checkbox-id')).prop('checked', false);
+            data.files = [];
+            console.log('uploadPanel');
+            unsubscribeFromAdd();
 
             if (callback) {
                 // Downstream users will be opening modals, which leads to
