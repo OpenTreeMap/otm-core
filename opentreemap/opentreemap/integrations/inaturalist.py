@@ -1,12 +1,16 @@
 import dateutil.parser
 import datetime
 import time
+import logging
 
+from celery import shared_task, chord
 import requests
 from django.conf import settings
 from django.db import connection
+from django.core.cache import cache
 
-from treemap.models import INaturalistObservation, Species
+from treemap.models import INaturalistObservation, Species, MapFeaturePhotoLabel, INaturalistPhoto
+from treemap.lib.map_feature import get_map_feature_or_404
 
 base_url = "https://www.inaturalist.org"
 
@@ -123,3 +127,56 @@ def get_features_for_inaturalist():
     return [{'feature_id': r[0],
              'instance_id': r[1]}
             for r in results]
+
+
+@shared_task()
+def create_observations(instance):
+    logger = logging.getLogger('iNaturalist')
+    logger.info('Creating observations')
+
+    features = get_features_for_inaturalist()
+    if not features:
+        return
+
+    token = get_inaturalist_auth_token()
+
+    for feature in features:
+        feature = get_map_feature_or_404(feature['feature_id'], instance)
+        tree = feature.safe_get_current_tree()
+
+        photos = feature.photos()
+        if len(photos) != 3:
+            continue
+
+        (longitude, latitude) = feature.latlon.coords
+
+        # create the observation
+        _observation = create_observation(
+            token,
+            latitude,
+            longitude,
+            tree.species.common_name
+        )
+        observation = INaturalistObservation(
+            observation_id=_observation['id'],
+            map_feature=feature,
+            tree=tree,
+            submitted_at=datetime.datetime.now()
+        )
+        observation.save()
+
+        for photo in tree.photos():
+            time.sleep(10)
+            photo_info = add_photo_to_observation(token, _observation['id'], photo)
+
+            photo_observation = INaturalistPhoto(
+                tree_photo=photo,
+                observation=observation,
+                inaturalist_photo_id=photo_info['photo_id']
+            )
+            photo_observation.save()
+
+        # let's not get rate limited
+        time.sleep(30)
+
+    logger.info('Finished creating observations')
