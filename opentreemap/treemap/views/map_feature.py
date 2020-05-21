@@ -505,50 +505,8 @@ def inaturalist_add(request, instance, *args, **kwargs):
 
 
 def inaturalist_create_observations(request, instance, *args, **kwargs):
-
-    features = inaturalist.get_features_for_inaturalist()
-    if not features:
-        return
-
-    token = inaturalist.get_inaturalist_auth_token()
-
-    for feature in features:
-        feature = get_map_feature_or_404(feature['feature_id'], instance)
-        tree = feature.safe_get_current_tree()
-
-        photos = feature.photos()
-        (longitude, latitude) = feature.latlon.coords
-
-        # create the observation
-        _observation = inaturalist.create_observation(
-            token,
-            latitude,
-            longitude,
-            tree.species.common_name
-        )
-        observation = INaturalistObservation(
-            observation_id=_observation['id'],
-            map_feature=feature,
-            tree=tree,
-            submitted_at=datetime.datetime.now()
-        )
-        observation.save()
-
-        for photo in tree.photos():
-            time.sleep(10)
-            photo_info = inaturalist.add_photo_to_observation(token, _observation['id'], photo)
-
-            photo_observation = INaturalistPhoto(
-                tree_photo=photo,
-                observation=observation,
-                inaturalist_photo_id=photo_info['photo_id']
-            )
-            photo_observation.save()
-
-        # let's not get rate limited
-        time.sleep(30)
-
-    return
+    inaturalist.create_observations.delay(instance)
+    return {'success': True}
 
 
 def inaturalist_sync(request, instance):
