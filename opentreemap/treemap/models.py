@@ -1348,6 +1348,11 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         Clz = self.map_feature.__class__
         if callable(getattr(self.map_feature, 'cast_to_subtype', None)):
             Clz = self.map_feature.cast_to_subtype().__class__
+
+        # Plot doesn't actually have permissions, but MapFeaturePhoto does
+        if Clz.__name__.lower() == 'plot':
+            Clz = MapFeature
+
         codename = Role.permission_codename(Clz, action, photo=True)
         return role.has_permission(codename, Model=MapFeaturePhoto)
 

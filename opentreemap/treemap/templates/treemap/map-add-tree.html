@@ -5,6 +5,8 @@
 {% include "treemap/partials/upload_file.html" with title=upload_title panel_id="shape-photo-upload" label="shape" row_id="add-shape" checkbox_id="has-shape-photo" %}
 {% include "treemap/partials/upload_file.html" with title=upload_title panel_id="bark-photo-upload" label="bark" row_id="add-bark" checkbox_id="has-bark-photo" %}
 {% include "treemap/partials/upload_file.html" with title=upload_title panel_id="leaf-photo-upload" label="leaf" row_id="add-leaf" checkbox_id="has-leaf-photo" %}
+{% include "treemap/partials/upload_file.html" with title=upload_title panel_id="empty-site-photo-upload" label="empty site" row_id="add-empty-site" checkbox_id="has-empty-site-photo"%}
+
 {% with nsteps=3 %}
 <div class="sidebar-inner">
     <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
@@ -18,33 +20,50 @@
                 <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
-                <label>* {% trans "Tree Photos" %}</label>
-                <table class="table table-hover">
-                    <tbody>
-                        <tr id="add-shape">
-                            <td>Add photo of tree shape</td>
-                            <td>
-                                <button data-toggle="modal"
-                                    data-target="#shape-photo-upload"
-                                    class="btn add-photos">{% trans "Add Shape" %}</button>
-                            </td>
-                        </tr>
-                        <tr id="add-leaf">
-                            <td>Add photo of tree leaf</td>
-                            <td><button data-toggle="modal"
-                                    data-target="#leaf-photo-upload"
-                                    class="btn add-photos">{% trans "Add Leaf" %}</button>
-                            </td>
-                        </tr>
-                        <tr id="add-bark">
-                            <td>Add photo of tree bark</td>
-                            <td><button data-toggle="modal"
-                                    data-target="#bark-photo-upload"
-                                    class="btn add-photos">{% trans "Add Bark" %}</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div id="tree-photos">
+                    <label>* {% trans "Tree Photos" %}</label>
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr id="add-shape">
+                                <td>Add photo of tree shape</td>
+                                <td>
+                                    <button data-toggle="modal"
+                                        data-target="#shape-photo-upload"
+                                        class="btn add-photos">{% trans "Add Shape" %}</button>
+                                </td>
+                            </tr>
+                            <tr id="add-leaf">
+                                <td>Add photo of tree leaf</td>
+                                <td><button data-toggle="modal"
+                                        data-target="#leaf-photo-upload"
+                                        class="btn add-photos">{% trans "Add Leaf" %}</button>
+                                </td>
+                            </tr>
+                            <tr id="add-bark">
+                                <td>Add photo of tree bark</td>
+                                <td><button data-toggle="modal"
+                                        data-target="#bark-photo-upload"
+                                        class="btn add-photos">{% trans "Add Bark" %}</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-site-photos">
+                    <label>{% trans "Tree Photos" %}</label>
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr id="add-empty-site">
+                                <td>Add photo of tree site</td>
+                                <td>
+                                    <button data-toggle="modal"
+                                        data-target="#empty-site-photo-upload"
+                                        class="btn add-photos">{% trans "Add Empty Site" %}</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <form id="add-tree-form" onsubmit="return false;">
                     <div style="display: none;">
                         <input name="has_shape_photo"

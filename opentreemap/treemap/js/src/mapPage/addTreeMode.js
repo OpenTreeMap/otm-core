@@ -21,7 +21,6 @@ var activateMode = _.identity,
 function init(options) {
     var mapFeatureBus = new Bacon.Bus();
     options.addMapFeatureBus = mapFeatureBus;
-
     var $sidebar = $(options.sidebar),
         $speciesTypeahead = U.$find('#add-tree-species-typeahead', $sidebar),
         $summaryHead = U.$find('.summaryHead', $sidebar),
@@ -44,13 +43,17 @@ function init(options) {
         plotMarker.useTreeIcon(true);
         plotMarker.enablePlacing();
         $('body').addClass('add-feature');
+
+        // this is a hard reset on these fields
+        $('#empty-site-photos').hide();
+        $('#tree-photos').show();
+        $isEmptySite.prop('checked', false);
     };
 
     deactivateMode = function() {
         typeahead.clear();
         manager.deactivate();
     };
-
 
     var shapeImageFinishedStream = uploadPanel.init({
         panelId: '#shape-photo-upload',
@@ -68,6 +71,24 @@ function init(options) {
         panelId: '#leaf-photo-upload',
         dataType: 'html',
         addMapFeatureBus: mapFeatureBus
+    });
+
+    var emptySiteImageFinishedStream = uploadPanel.init({
+        panelId: '#empty-site-photo-upload',
+        dataType: 'html',
+        addMapFeatureBus: mapFeatureBus
+    });
+
+    // start off hidden
+    $('#empty-site-photos').hide();
+    $isEmptySite.on('change', function() {
+        if(this.checked){
+            $('#empty-site-photos').show();
+            $('#tree-photos').hide();
+        } else {
+            $('#empty-site-photos').hide();
+            $('#tree-photos').show();
+        }
     });
 
     mapFeatureUdf.init(null);
@@ -90,7 +111,7 @@ function init(options) {
     function aTreeFieldIsSet() {
         var data = manager.getFormData();
         var treeValueSet = _.some(data, function (value, key) {
-            return key && key.indexOf('tree') === 0 && value;
+            return key && key.indexOf('tree') === 0 && value && value !== "";
         });
 
         // either we have a tree value set, or we have not explicitly

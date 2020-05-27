@@ -97,5 +97,5 @@ urlpatterns = [
         routes.inaturalist_add, name='inaturalist_add'),
 
     url(r'^inaturalist/sync$',
-        routes.inaturalist_sync, name='inaturalist_add'),
+        routes.inaturalist_sync, name='inaturalist_sync'),
 ]

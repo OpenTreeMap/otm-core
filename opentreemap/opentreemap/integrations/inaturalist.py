@@ -74,13 +74,27 @@ def sync_identifications():
     """
     o9n_models = INaturalistObservation.objects.filter(is_identified=False)
 
+    observations = get_all_observations()
+
     for o9n_model in o9n_models:
-        taxonomy = get_o9n(o9n_model.observation_id).get('taxon')
+        taxonomy = observations.get(o9n_model.observation_id)
         if taxonomy:
             _set_identification(o9n_model, taxonomy)
 
-        # to ensure we do not get rate limited
-        time.sleep(30)
+
+def get_all_observations():
+    """
+    Retrieve iNaturalist observation by ID
+    API docs: https://www.inaturalist.org/pages/api+reference#get-observations-id
+    :param o9n_id: observation ID
+    :return: observation JSON as a dict
+    """
+    data = requests.get(
+        url="{base_url}/observations.json".format( base_url=base_url),
+        params={'user_id': 'sustainablejc', 'quality_grade': 'research'}
+    ).json()
+
+    return {d['id']: {'updated_at': d['updated_at'], 'taxon': d['taxon']} for d in data}
 
 
 def get_o9n(o9n_id):
@@ -97,7 +111,7 @@ def get_o9n(o9n_id):
 
 
 def _set_identification(o9n_model, taxon):
-    o9n_model.tree.species = Species(common_name=taxon['common_name']['name'])
+    o9n_model.tree.species = Species(common_name=taxon['taxon']['common_name']['name'])
     o9n_model.identified_at = dateutil.parser.parse(taxon['updated_at'])
     o9n_model.is_identified = True
     o9n_model.save()
@@ -114,6 +128,13 @@ def get_features_for_inaturalist():
         LEFT JOIN treemap_inaturalistobservation inat on inat.map_feature_id = photo.map_feature_id
         where   1=1
         and     inat.id is null
+
+         -- these could be empty tree pits
+        and     t.species_id is not null
+
+        -- we also cannot get the species to dead trees
+        and     coalesce(t.udfs -> 'Condition', '') != 'Dead'
+
         group by photo.map_feature_id, photo.instance_id
         having sum(case when label.name = 'shape' then 1 else 0 end) > 0
         and sum(case when label.name = 'bark'  then 1 else 0 end) > 0

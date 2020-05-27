@@ -49,7 +49,7 @@ function init(options) {
         editFields = formSelector + ' [data-class="edit"]',
         validationFields = options.validationFields || formSelector + ' [data-class="error"]',
         $placeMarkerMessage = U.$find('.place-marker-message', $sidebar),
-        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar), 
+        $moveMarkerMessage = U.$find('.move-marker-message', $sidebar),
         boundsGeoJson = L.geoJson(config.instance.bounds);
 
     $(editFields).show();

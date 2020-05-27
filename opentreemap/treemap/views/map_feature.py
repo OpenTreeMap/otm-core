@@ -252,16 +252,15 @@ def update_map_feature(request_dict, user, feature):
         except ValidationError as e:
             return package_field_errors(thing._model_name, e)
 
-    def check_if_species_is_set(request_dict):
+    def check_if_species_is_set(request_dict, is_empty_site):
         # If we have a field that explicitly checks for empty site,
         # called is_empty_site, and that is False, and either
         # tree.species is empty or not set, then we have a problem
-        if 'is_empty_site' not in request_dict:
+        if is_empty_site:
             return
 
         # if we don't remove it, we will get failures as OTM tries to find
         # this field on the model
-        is_empty_site = request_dict.pop('is_empty_site')
         tree_species = request_dict.get('tree.species')
         if not is_empty_site and not tree_species:
             raise ValidationError(
@@ -274,13 +273,16 @@ def update_map_feature(request_dict, user, feature):
                 {'tree.species': 'Cannot set both species and empty planting site'}
             )
 
-    def check_all_photos(request_dict):
+    def check_all_photos(request_dict, is_empty_site):
         # check that we have a shape, bark and leaf photo
-        # we need all to be valid
-
+        # we need all to be valid, or it can be an empty site
         has_shape_photo = request_dict.pop('has_shape_photo', False)
         has_bark_photo = request_dict.pop('has_bark_photo', False)
         has_leaf_photo = request_dict.pop('has_leaf_photo', False)
+
+        if is_empty_site:
+            return
+
         if not (has_shape_photo and has_bark_photo and has_leaf_photo):
             # FIXME eventually, do not put a validation error on the species
             raise ValidationError(
@@ -300,8 +302,9 @@ def update_map_feature(request_dict, user, feature):
     # validate species before checking any fields
     # but only validate on creation, which means the feature.id is not set
     if (not feature.id):
-        check_if_species_is_set(request_dict)
-        check_all_photos(request_dict)
+        is_empty_site = request_dict.pop('is_empty_site', False)
+        check_if_species_is_set(request_dict, is_empty_site)
+        check_all_photos(request_dict, is_empty_site)
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom

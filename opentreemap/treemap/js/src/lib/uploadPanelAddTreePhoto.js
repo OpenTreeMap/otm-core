@@ -45,21 +45,45 @@ module.exports.init = function(options) {
         add: function(e, data) {
             unsubscribeFromAdd();
 
+            // keep track of this for visibility
+
             var input = $(this).closest(".fileChooser");
+            var row = $(input.data('row-id'));
+
             // once we finish adding the tree, we can use that
             // result to send the photo and label
             unsubscribeFromAdd = addMapFeatureBus.onValue(function (result) {
-                var url = reverse.add_photo_to_tree_with_label({
-                    instance_url_name: config.instance.url_name,
-                    feature_id: result.featureId,
-                    tree_id: result.treeId
-                });
-                data.formData = {'label': input.data('label')}
+                var label = input.data('label');
+
+                // either we have an empty site, so we want to use the empty site photo
+                // or we don't have an empty site and we want every other photo
+                var isEmptySite = !result.feature.has_tree;
+
+                var url = null;
+                if (isEmptySite && label == 'empty site') {
+
+                    url = reverse.add_photo_to_map_feature({
+                        instance_url_name: config.instance.url_name,
+                        feature_id: result.featureId,
+                    });
+
+                } else if (!isEmptySite && label != 'empty site') {
+
+                    url = reverse.add_photo_to_tree_with_label({
+                        instance_url_name: config.instance.url_name,
+                        feature_id: result.featureId,
+                        tree_id: result.treeId
+                    });
+
+                }
+                else {
+                    return;
+                }
+
+                data.formData = {'label': label}
                 data.url = url;
                 data.submit();
             });
-
-            var row = $(input.data('row-id'));
             row.addClass('bg-success')
 
             $(input.data('checkbox-id')).prop('checked', true);
@@ -85,7 +109,6 @@ module.exports.init = function(options) {
 
             $(input.data('checkbox-id')).prop('checked', false);
             data.files = [];
-            console.log('uploadPanel');
             unsubscribeFromAdd();
 
             if (callback) {
