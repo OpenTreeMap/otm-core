@@ -125,6 +125,7 @@ def get_features_for_inaturalist():
         SELECT  photo.map_feature_id, photo.instance_id
         FROM    treemap_mapfeaturephoto photo
         JOIN    treemap_mapfeaturephotolabel label on label.map_feature_photo_id = photo.id
+        JOIN    treemap_tree t on t.plot_id = photo.map_feature_id
         LEFT JOIN treemap_inaturalistobservation inat on inat.map_feature_id = photo.map_feature_id
         where   1=1
         and     inat.id is null
