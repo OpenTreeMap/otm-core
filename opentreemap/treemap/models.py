@@ -686,6 +686,11 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def is_plot(self):
         return getattr(self, 'feature_type', None) == 'Plot'
 
+    @property
+    def inaturalist_observation_url(self):
+        observation = self.inaturalistobservation_set.first()
+        return observation.url if observation else None
+
     def update_updated_fields(self, user):
         """Changing a child object of a map feature (tree, photo,
         etc.) demands that we update the updated_at field on the
@@ -1414,6 +1419,9 @@ class TreePhoto(MapFeaturePhoto):
 
         return data
 
+    def has_label(self, label_name):
+        return self.mapfeaturephotolabel_set.filter(name__iexact=label_name).exists()
+
 
 class BoundaryManager(models.GeoManager):
     """
@@ -1537,6 +1545,12 @@ class INaturalistObservation(models.Model):
     submitted_at = models.DateTimeField(default=timezone.now)
     identified_at = models.DateTimeField(null=True)
 
+    @property
+    def url(self):
+        return '{base_url}/observations/{observation_id}'.format(
+            base_url=settings.INATURALIST_URL,
+            observation_id=self.observation_id
+        )
 
 class INaturalistPhoto(models.Model):
     tree_photo = models.ForeignKey(TreePhoto)

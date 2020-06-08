@@ -2,15 +2,18 @@
 
 var $ = require('jquery'),
     Bacon = require('baconjs'),
+    BU = require('treemap/lib/baconUtils.js'),
     _ = require('lodash'),
     FH = require('treemap/lib/fieldHelpers.js'),
     U = require('treemap/lib/utility.js'),
+    reverse = require('reverse'),
     addMapFeature = require('treemap/mapPage/addMapFeature.js'),
     mapFeatureUdf = require('treemap/lib/mapFeatureUdf.js'),
     otmTypeahead = require('treemap/lib/otmTypeahead.js'),
     plotMarker = require('treemap/lib/plotMarker.js'),
     uploadPanel = require('treemap/lib/uploadPanelAddTreePhoto.js'),
-    diameterCalculator = require('treemap/lib/diameterCalculator.js');
+    diameterCalculator = require('treemap/lib/diameterCalculator.js'),
+    config = require('treemap/lib/config.js');
 
 var activateMode = _.identity,
     deactivateMode = _.identity,
@@ -77,6 +80,44 @@ function init(options) {
         panelId: '#empty-site-photo-upload',
         dataType: 'html',
         addMapFeatureBus: mapFeatureBus
+    });
+    // if we just mapped an empty site, then redo the photoUpload stream
+    // in case we partially mapped this
+    emptySiteImageFinishedStream.onValue(function(value) {
+        photoUploads = Bacon.combineAsArray(
+            shapeImageFinishedStream,
+            barkImageFinishedStream,
+            leafImageFinishedStream
+        );
+
+        photoUploads.onValue(function(value){
+            photoUploads()
+            photoUploads = Bacon.combineAsArray(
+                shapeImageFinishedStream,
+                barkImageFinishedStream,
+                leafImageFinishedStream
+            );
+        });
+    });
+
+    var photoUploads = Bacon.combineAsArray(
+        shapeImageFinishedStream,
+        barkImageFinishedStream,
+        leafImageFinishedStream
+    );
+    var photoUploadSubscription = photoUploads.onValue(function(value){
+        if (value.length != 3 || !value.every(x => x['tree_id'] == value[0]['tree_id']))
+            return;
+
+        var treeId = value[0]['tree_id'];
+
+        var url = reverse.inaturalist_create_observation_for_tree({
+            instance_url_name: config.instance.url_name,
+            tree_id: treeId
+        });
+
+        var stream = BU.jsonRequest('POST', url)();
+        stream.onValue(function() {console.log('submitted to iNat'); });
     });
 
     // start off hidden

@@ -59,6 +59,8 @@ module.exports.init = function(options) {
                 // or we don't have an empty site and we want every other photo
                 var isEmptySite = !result.feature.has_tree;
 
+                var callback_data = {};
+
                 var url = null;
                 if (isEmptySite && label == 'empty site') {
 
@@ -66,6 +68,7 @@ module.exports.init = function(options) {
                         instance_url_name: config.instance.url_name,
                         feature_id: result.featureId,
                     });
+                    callback_data['feature_id'] = result.featureId;
 
                 } else if (!isEmptySite && label != 'empty site') {
 
@@ -74,15 +77,23 @@ module.exports.init = function(options) {
                         feature_id: result.featureId,
                         tree_id: result.treeId
                     });
-
+                    callback_data['feature_id'] = result.featureId;
+                    callback_data['tree_id'] = result.treeId;
                 }
+                // this handles the case of a tree photo that might accidentally be added
+                // on an empty site
                 else {
                     return;
                 }
 
                 data.formData = {'label': label}
                 data.url = url;
-                data.submit();
+
+                // push to the stream once this is done uploading
+                callback_data['label'] = label;
+                data.submit().done(function(e) {
+                    callback(new Bacon.Next(callback_data));
+                });
             });
             row.addClass('bg-success')
 
@@ -114,9 +125,10 @@ module.exports.init = function(options) {
             if (callback) {
                 // Downstream users will be opening modals, which leads to
                 // style errors if that is done before a modal closes
-                $panel.one('hidden.bs.modal', function() {
-                    callback(new Bacon.Next({event: e, data: data}));
-                });
+                //callback(new Bacon.Next({event: e, data: data}));
+                //$panel.one('hidden.bs.modal', function() {
+                //    callback(new Bacon.Next({event: e, data: data}));
+                //});
             }
         },
         fail: function (e, data) {

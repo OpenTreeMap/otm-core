@@ -12,7 +12,7 @@ from django.core.cache import cache
 from treemap.models import INaturalistObservation, Species, MapFeaturePhotoLabel, INaturalistPhoto
 from treemap.lib.map_feature import get_map_feature_or_404
 
-base_url = "https://www.inaturalist.org"
+base_url = settings.INATURALIST_URL
 
 
 def get_inaturalist_auth_token():
@@ -54,6 +54,7 @@ def create_observation(token, latitude, longitude, species):
 
 
 def add_photo_to_observation(token, observation_id, photo):
+
 
     headers = {'Authorization': 'Bearer {}'.format(token)}
     data = {'observation_photo[observation_id]': observation_id}
@@ -117,10 +118,14 @@ def _set_identification(o9n_model, taxon):
     o9n_model.save()
 
 
-def get_features_for_inaturalist():
+def get_features_for_inaturalist(tree_id=None):
     """
     Get all the features that have a label and can be submitted to iNaturalist
     """
+    tree_filter_clause = "1=1"
+    if tree_id:
+        tree_filter_clause = "t.id = {}".format(tree_id)
+
     query = """
         SELECT  photo.map_feature_id, photo.instance_id
         FROM    treemap_mapfeaturephoto photo
@@ -136,13 +141,17 @@ def get_features_for_inaturalist():
         -- we also cannot get the species to dead trees
         and     coalesce(t.udfs -> 'Condition', '') != 'Dead'
 
+        -- if we should filter a specific tree, do it here
+        and     {}
+
         group by photo.map_feature_id, photo.instance_id
         having sum(case when label.name = 'shape' then 1 else 0 end) > 0
         and sum(case when label.name = 'bark'  then 1 else 0 end) > 0
         and sum(case when label.name = 'leaf'  then 1 else 0 end) > 0
-    """
+    """.format(tree_filter_clause)
 
     with connection.cursor() as cursor:
+        # FIXME use parameters for a tree id
         cursor.execute(query)
         results = cursor.fetchall()
 
@@ -152,11 +161,11 @@ def get_features_for_inaturalist():
 
 
 @shared_task()
-def create_observations(instance):
+def create_observations(instance, tree_id=None):
     logger = logging.getLogger('iNaturalist')
     logger.info('Creating observations')
 
-    features = get_features_for_inaturalist()
+    features = get_features_for_inaturalist(tree_id)
     if not features:
         return
 
@@ -166,10 +175,15 @@ def create_observations(instance):
         feature = get_map_feature_or_404(feature['feature_id'], instance)
         tree = feature.safe_get_current_tree()
 
-        photos = feature.photos()
+        if not tree:
+            continue
+
+        photos = tree.photos().prefetch_related('mapfeaturephotolabel_set').all()
         if len(photos) != 3:
             continue
 
+        # we want to submit the leaf first, so sort by leaf
+        photos = sorted(photos, key=lambda x: 0 if x.has_label('leaf') else 1)
         (longitude, latitude) = feature.latlon.coords
 
         # create the observation
@@ -187,7 +201,7 @@ def create_observations(instance):
         )
         observation.save()
 
-        for photo in tree.photos():
+        for photo in photos:
             time.sleep(10)
             photo_info = add_photo_to_observation(token, _observation['id'], photo)
 

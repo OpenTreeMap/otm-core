@@ -37,19 +37,13 @@
 </div>
 {% endif %}
 
-{% if feature.is_plot %}
+{% with observation_url=feature.inaturalist_observation_url %}
 <div class="well">
-  <h3>{% trans "Nearby Trees" %}</h3>
-  {% with nearby=plot.nearby_plots %}
-  {% if nearby %}
-  </ul>
-  {% for plot in nearby %}
-  <li><a href="{% url 'map_feature_detail' instance_url_name=request.instance.url_name feature_id=plot.pk %}">{{ plot.pk }}</a></li>
-  {% endfor %}
-  </ul>
+  <h3>{% trans "iNaturalist" %}</h3>
+  {% if observation_url %}
+  <h5><a href="{{ observation_url }}">Go to observation</a></h5>
   {% else %}
-  <p class="text-muted"><em>{% trans "There are no trees nearby" %}</em></p>
+  <p class="text-muted"><em>This has not been submitted to iNaturalist</em></p>
   {% endif %}
 </div>
 {% endwith %}
-{% endif %}

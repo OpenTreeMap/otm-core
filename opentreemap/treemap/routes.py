@@ -311,6 +311,13 @@ inaturalist_create_observations = do(
     json_api_call,
     feature_views.inaturalist_create_observations)
 
+inaturalist_create_observation_for_tree = do(
+    csrf_exempt,
+    instance_request,
+    require_http_method('POST'),
+    json_api_call,
+    feature_views.inaturalist_create_observation_for_tree)
+
 inaturalist_sync = do(
     csrf_exempt,
     instance_request,

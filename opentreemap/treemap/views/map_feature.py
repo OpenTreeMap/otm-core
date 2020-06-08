@@ -512,5 +512,10 @@ def inaturalist_create_observations(request, instance, *args, **kwargs):
     return {'success': True}
 
 
+def inaturalist_create_observation_for_tree(request, instance, tree_id=None):
+    inaturalist.create_observations.delay(instance, tree_id=tree_id)
+    return {'success': True}
+
+
 def inaturalist_sync(request, instance):
     inaturalist.sync_identifications()

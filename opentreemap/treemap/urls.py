@@ -93,6 +93,10 @@ urlpatterns = [
         routes.inaturalist_create_observations,
         name='inaturalist_create_observations'),
 
+    url(r'^inaturalist/create/(?P<tree_id>\d+)$',
+        routes.inaturalist_create_observation_for_tree,
+        name='inaturalist_create_observation_for_tree'),
+
     url(r'^inaturalist-add/$',
         routes.inaturalist_add, name='inaturalist_add'),
 
