@@ -16,6 +16,9 @@ var $ = require('jquery'),
     config = require('treemap/lib/config.js'),
     reverse = require('reverse'),
 
+    shp = require('shpjs'),
+    leafletShpfile = require('treemap/lib/leaflet.shpfile.js'),
+
     MIN_ZOOM_OPTION = layersLib.MIN_ZOOM_OPTION,
     MAX_ZOOM_OPTION = layersLib.MAX_ZOOM_OPTION,
     BASE_PANE_OPTION = layersLib.BASE_PANE_OPTION;
@@ -29,6 +32,7 @@ require('esri-leaflet');
 require('leaflet.locatecontrol');
 
 var MapManager = function() {};  // constructor
+window.shp = shp;
 
 function monkeyPatchLeafletLayersControlForMobileSafari(layersControl) {
     /*
@@ -266,7 +270,19 @@ MapManager.prototype = {
                 visible = _.keys(basemapMapping)[0];
             }
             map.addLayer(basemapMapping[visible]);
-            this.layersControl = L.control.layers(basemapMapping, null, {
+
+            // add the neighborhood shapefiles
+            var neighborhoods = config.staticUrl + 'shapefiles/jc_neighborhoods.zip';
+            var neighborhoodLayer = new L.Shapefile(neighborhoods, {
+                onEachFeature: function(feature, layer) {
+                    layer.bindTooltip(function (l) {
+                        return feature.properties.neighborho; //merely sets the tooltip text
+                    }, {permanent: false, opacity: 0.5});  //then add your options
+                }
+            });
+            //neighborhoodLayer.addTo(map)
+            var neighborhoods = L.layerGroup([neighborhoodLayer]);
+            this.layersControl = L.control.layers(basemapMapping, {'Neighborhoods': neighborhoodLayer}, {
                 autoZIndex: false
             });
 

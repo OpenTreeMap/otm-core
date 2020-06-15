@@ -24,7 +24,8 @@
     "mustache": "~2.2.1",
     "numeral": "1.5.3",
     "ramda": "^0.23.0",
-    "sanitize-filename": "~1.4.2"
+    "sanitize-filename": "~1.4.2",
+    "shpjs": "3.4.2"
   },
   "devDependencies": {
     "autoprefixer": "^6.5.3",
