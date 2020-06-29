@@ -63,10 +63,21 @@ exports.createCanopyBoundariesTileLayer = function () {
     return L.tileLayer(url, options);
 };
 
-exports.createPlotTileLayer = function () {
+exports.createPlotTileLayer = function (tilerArgs) {
     var options = _.extend({}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
     return filterableLayer(
-        'treemap_mapfeature', 'png', options);
+        'treemap_mapfeature', 'png', options, tilerArgs);
+};
+
+exports.createPlotTileImportedLayer = function () {
+    // this query means all ID's >= 0, which is all ID's
+    var tilerArgs = {
+        'importer': '1',
+        'q': JSON.stringify({"treeRowImport.id": {"MIN": 0, "MAX": ""}})
+    };
+    var options = _.extend({}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
+    return filterableLayer(
+        'importer_treerowimport', 'png', options, tilerArgs);
 };
 
 exports.createPolygonTileLayer = function () {
@@ -160,8 +171,8 @@ function updateBaseUrl(url, newBaseUrl) {
     return newBase + '?' + oldQueryString;
 }
 
-function filterableLayer (table, extension, layerOptions) {
-    var revToUrl = getUrlMaker(table, extension),
+function filterableLayer (table, extension, layerOptions, tilerArgs) {
+    var revToUrl = getUrlMaker(table, extension, tilerArgs),
         noSearchUrl = revToUrl(config.instance.geoRevHash),
         searchBaseUrl = revToUrl(config.instance.universalRevHash),
         layer = L.tileLayer(noSearchUrl, layerOptions);

@@ -126,9 +126,11 @@ MapManager.prototype = {
         var hasPolygons = getDomMapBool('has-polygons', options.domId),
             hasBoundaries = getDomMapBool('has-boundaries', options.domId),
             plotLayer = layersLib.createPlotTileLayer(),
-            allPlotsLayer = layersLib.createPlotTileLayer(),
+            plotImportedLayer = layersLib.createPlotTileImportedLayer(),
+            allPlotsLayer = layersLib.createPlotTileLayer({}),
             utfLayer = layersLib.createPlotUTFLayer();
         this._plotLayer = plotLayer;
+        this._plotImportedLayer = plotImportedLayer;
         this._allPlotsLayer = allPlotsLayer;
         this._utfLayer = utfLayer;
         allPlotsLayer.setOpacity(0.3);
@@ -140,7 +142,24 @@ MapManager.prototype = {
             this.layersControl.addOverlay(plotLayer, 'OpenTreeMap Trees');
         } else {
             map.addLayer(plotLayer);
+
             map.addLayer(utfLayer);
+
+            // add the legend and the imported plot layer together
+            var legend = createLegend();
+            this.layersControl.addOverlay(plotImportedLayer, 'Imported Trees');
+            map.on('overlayadd', function(e) {
+                if (e.layer === plotImportedLayer) {
+                    map.addControl(legend);
+                }
+            });
+
+            map.on('overlayremove', function(e) {
+                if (e.layer === plotImportedLayer) {
+                    map.removeControl(legend);
+                }
+            });
+
             var baseUtfEventStream = BU.leafletEventStream(utfLayer, 'click');
 
             if (hasPolygons) {
@@ -282,6 +301,7 @@ MapManager.prototype = {
             });
             //neighborhoodLayer.addTo(map)
             var neighborhoods = L.layerGroup([neighborhoodLayer]);
+
             this.layersControl = L.control.layers(basemapMapping, {'Neighborhoods': neighborhoodLayer}, {
                 autoZIndex: false
             });
@@ -327,6 +347,7 @@ MapManager.prototype = {
     updateRevHashes: function (response) {
         this._utfLayer.setHashes(response);
         this._plotLayer.setHashes(response);
+        this._plotImportedLayer.setHashes(response);
         this._allPlotsLayer.setHashes(response);
 
         if (this._hasPolygons) {
@@ -337,6 +358,7 @@ MapManager.prototype = {
 
     setFilter: function (filter) {
         this._plotLayer.setFilter(filter);
+        this._plotImportedLayer.setFilter(filter);
 
         if (this._hasPolygons) {
             this._polygonLayer.setFilter(filter);
@@ -504,6 +526,23 @@ function addCustomLayer(mapManager, layerInfo) {
     if (layerInfo.showByDefault) {
         mapManager.map.addLayer(layer);
     }
+}
+
+function createLegend() {
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        var labels = [
+            '<strong>Plot Colors</strong>',
+            '<i class="circle" style="background:#8BAA3C"></i> User Added Tree',
+            '<i class="circle" style="background:#E1C6FF"></i> Empty Plot',
+            '<i class="circle" style="background:#85B4ED"></i> Imported Tree',
+        ];
+        div.innerHTML = labels.join('<br>');
+        return div;
+    };
+
+    return legend;
 }
 
 module.exports = MapManager;

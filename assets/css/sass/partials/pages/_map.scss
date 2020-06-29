@@ -302,3 +302,35 @@ $light-to-dark-green: #ffffff 10%,
        }
    }
 }
+
+// for all our legend information
+.info
+{
+    padding: 6px 8px;
+    font: 13px/16px Verdana, Geneva, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+.legend {
+    line-height: 19px;
+    padding:7px;
+    color: #555;
+}
+
+.legend i {
+    width: 15px;
+    height: 15px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+
+.circle
+{
+    float: left;
+    border: 1px solid #222;
+    border-radius: 50%;
+}
