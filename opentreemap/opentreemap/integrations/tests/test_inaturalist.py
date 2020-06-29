@@ -65,3 +65,23 @@ class TestINaturalist(OTMTestCase):
 
         get_o9n_mock.assert_called_once_with(o9n_id)
         self.assertEqual(INaturalistObservation.objects.filter(is_identified=False).count(), 0)
+
+
+class TestINaturalistPost(OTMTestCase):
+    """
+    A set of test cases for writing to iNaturalist
+
+    Uncomment these and fill in blanks for actual testing
+
+    TODO make mock testing better
+    """
+
+    def test_set_observation_to_captive(self):
+        # pick an observation at random for this
+        token = inaturalist.get_inaturalist_auth_token()
+        observation_id = 51288919
+
+        inaturalist.set_observation_to_captive(token, observation_id)
+
+    def test_get_all_observations(self):
+        data = inaturalist.get_all_observations()

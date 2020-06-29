@@ -33,6 +33,28 @@ def get_inaturalist_auth_token():
     return token
 
 
+def set_observation_to_captive(token, observation_id):
+    metric = 'wild'
+
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+    params = {
+        'id': observation_id,
+        'metric': metric,
+        'agree': 'false'
+    }
+
+    response = requests.post(
+        url="{base_url}/observations/{observation_id}/quality/{metric}".format(
+            base_url=base_url,
+            observation_id=observation_id,
+            metric=metric),
+        json=params,
+        headers=headers
+    )
+
+    return response.ok
+
+
 def create_observation(token, latitude, longitude, species):
 
     headers = {'Authorization': 'Bearer {}'.format(token)}
@@ -50,11 +72,14 @@ def create_observation(token, latitude, longitude, species):
         headers=headers
     )
 
-    return response.json()[0]
+    observation = response.json()[0]
+
+    set_observation_to_captive(token, observation['id'])
+
+    return observation
 
 
 def add_photo_to_observation(token, observation_id, photo):
-
 
     headers = {'Authorization': 'Bearer {}'.format(token)}
     data = {'observation_photo[observation_id]': observation_id}
@@ -87,15 +112,34 @@ def get_all_observations():
     """
     Retrieve iNaturalist observation by ID
     API docs: https://www.inaturalist.org/pages/api+reference#get-observations-id
+
+    We want to retrieve all observations that have at least two observations in agreement
+
     :param o9n_id: observation ID
     :return: observation JSON as a dict
     """
-    data = requests.get(
-        url="{base_url}/observations.json".format( base_url=base_url),
-        params={'user_id': 'sustainablejc', 'quality_grade': 'research'}
-    ).json()
+    all_data = []
+    page = 1
+    per_page = 100
+    while(True):
+        data = requests.get(
+            url="{base_url}/observations.json".format( base_url=base_url),
+            params={
+                'user_id': 'sustainablejc',
+                'identifications': 'most_agree',
+                'per_page': per_page,
+                'page': page
+            }
+        ).json()
+        if (not data):
+            break
 
-    return {d['id']: {'updated_at': d['updated_at'], 'taxon': d['taxon']} for d in data}
+        all_data.extend(data)
+
+        page += 1
+        time.sleep(10)
+
+    return {d['id']: {'updated_at': d['updated_at'], 'taxon': d['taxon']} for d in all_data}
 
 
 def get_o9n(o9n_id):
