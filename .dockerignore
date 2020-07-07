@@ -1,0 +1,3 @@
+# this is what we will be mounting for development
+**/opentreemap
+**/node_modules

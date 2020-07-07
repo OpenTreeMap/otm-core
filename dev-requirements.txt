@@ -1,3 +1,4 @@
+setuptools==44.0.0
 django-debug-toolbar==1.5     # https://django-debug-toolbar.readthedocs.io/en/stable/changes.html
 django-extensions==1.7.4
 ipython==5.1.0
