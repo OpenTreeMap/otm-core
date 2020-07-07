@@ -291,20 +291,35 @@ MapManager.prototype = {
             map.addLayer(basemapMapping[visible]);
 
             // add the neighborhood shapefiles
-            var neighborhoods = config.staticUrl + 'shapefiles/jc_neighborhoods.zip';
+            var neighborhoods = config.staticUrl + 'shapefiles/neighborhoods.zip';
             var neighborhoodLayer = new L.Shapefile(neighborhoods, {
                 onEachFeature: function(feature, layer) {
                     layer.bindTooltip(function (l) {
-                        return feature.properties.neighborho; //merely sets the tooltip text
+                        return feature.properties.Nghbhd; //merely sets the tooltip text
                     }, {permanent: false, opacity: 0.5});  //then add your options
                 }
             });
-            //neighborhoodLayer.addTo(map)
             var neighborhoods = L.layerGroup([neighborhoodLayer]);
 
-            this.layersControl = L.control.layers(basemapMapping, {'Neighborhoods': neighborhoodLayer}, {
-                autoZIndex: false
+            var mainNeighborhoods = config.staticUrl + 'shapefiles/main_neighborhoods.zip';
+            var mainNeighborhoodLayer = new L.Shapefile(mainNeighborhoods, {
+                onEachFeature: function(feature, layer) {
+                    layer.bindTooltip(function (l) {
+                        return feature.properties.Main_Nghbh; //merely sets the tooltip text
+                    }, {permanent: false, opacity: 0.5});  //then add your options
+                }
             });
+            var mainNeighborhoods = L.layerGroup([mainNeighborhoodLayer]);
+
+            this.layersControl = L.control.layers(
+                basemapMapping,
+                {
+                    'Main Neighborhoods': mainNeighborhoodLayer,
+                    'Neighborhoods': neighborhoodLayer
+                }, {
+                    autoZIndex: false
+                }
+            );
 
             monkeyPatchLeafletLayersControlForMobileSafari(this.layersControl);
 
