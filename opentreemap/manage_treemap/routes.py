@@ -14,10 +14,11 @@ import manage_treemap.views.fields as field_views
 import manage_treemap.views.photo as photo_views
 import manage_treemap.views.green_infrastructure as green_infrastructure_views
 
-from exporter.views import begin_export_users
+from exporter.views import begin_export_groups, begin_export_users
 from importer.views import list_imports
 from manage_treemap.views import update_instance_fields_with_validator
 from manage_treemap.views.roles import roles_list, roles_update, roles_create
+from manage_treemap.views.groups import groups_list
 from manage_treemap.views.udf import (udf_bulk_update, udf_create, udf_list,
                                       udf_delete_popup, udf_delete,
                                       udf_update_choice,
@@ -121,6 +122,11 @@ begin_export_users = do(
     admin_instance_request,
     begin_export_users)
 
+begin_export_groups = do(
+    json_api_call,
+    admin_instance_request,
+    begin_export_groups)
+
 roles = admin_route(
     GET=do(render_template('manage_treemap/roles.html'), roles_list),
     PUT=do(roles_update),
@@ -202,4 +208,11 @@ set_field_configs = do(
             render_template(
                 'manage_treemap/partials/fields/field_groups.html'),
             field_views.set_fields_page))
+)
+
+groups = admin_route(
+    GET=do(render_template('manage_treemap/groups.html'), groups_list),
+    #PUT=do(groups_update),
+    #POST=do(render_template('manage_treemap/partials/groups.html'),
+    #      groups_create)
 )

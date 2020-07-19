@@ -36,6 +36,11 @@ urlpatterns = [
     url(r'^roles/$', routes.roles, name='roles_endpoint'),
     url(r'^export/user/(?P<data_format>(csv|json))/$',
         routes.begin_export_users, name='management_begin_export_users'),
+
+    # groups export
+    url(r'^export/groups/$',
+        routes.begin_export_groups, name='management_begin_export_groups'),
+
     url(r'^clear-udf-notifications/$',
         routes.clear_udf_notifications, name='clear_udf_notifications'),
 
@@ -53,4 +58,6 @@ urlpatterns = [
         name='field_configs'),
     url(r'^set-fields/$', routes.set_field_configs,
         name='set_field_configs'),
+
+    url(r'^groups/$', routes.groups, name='groups_endpoint'),
 ]

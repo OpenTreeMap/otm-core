@@ -22,7 +22,7 @@ from django.db.models.signals import post_save, post_delete
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
-                                        PermissionsMixin)
+                                        PermissionsMixin, Group)
 from django.template.loader import get_template
 
 from treemap.species.codes import ITREE_REGIONS, get_itree_code
@@ -428,6 +428,15 @@ class User(AbstractUniqueEmailUser, Auditable):
     def save(self, *args, **kwargs):
         system_user = User.system_user()
         self.save_with_user(system_user, *args, **kwargs)
+
+
+class NeighborhoodGroup(Group):
+    ward = models.CharField(max_length=100)
+    neighborhood = models.CharField(max_length=200)
+
+    class Meta:
+        verbose_name = "Neighborhood"
+        unique_together = ('ward', 'neighborhood')
 
 
 class Species(PendingAuditable, models.Model):
@@ -1256,7 +1265,8 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
     image = models.ImageField(
         upload_to='trees/%Y/%m/%d', editable=False)
     thumbnail = models.ImageField(
-        upload_to='trees_thumbs/%Y/%m/%d', editable=False)
+        upload_to='trees-thumbs/%Y/%m/%d', editable=False)
+        #upload_to='trees_thumbs/%Y/%m/%d', editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     instance = models.ForeignKey(Instance)

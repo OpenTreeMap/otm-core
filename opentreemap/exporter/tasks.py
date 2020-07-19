@@ -30,6 +30,7 @@ from opentreemap.util import add_rollbar_handler
 
 from exporter.models import ExportJob
 from exporter.user import write_users
+from exporter.group import write_groups
 from exporter.util import sanitize_unicode_record
 
 from importer import fields
@@ -128,6 +129,18 @@ def async_users_export(job, data_format):
 
     file_obj = TemporaryFile()
     write_users(data_format, file_obj, instance)
+    job.complete_with(filename, File(file_obj))
+    job.save()
+
+
+@shared_task
+@_job_transaction
+def async_groups_export(job):
+    instance = job.instance
+
+    filename = 'groups.csv'
+    file_obj = TemporaryFile()
+    write_groups(file_obj, instance)
     job.complete_with(filename, File(file_obj))
     job.save()
 

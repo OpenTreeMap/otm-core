@@ -1,0 +1,57 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Groups" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="roles-pane">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Groups" %}</h1>
+            </div>
+            {% include "manage_treemap/partials/form_buttons_groups.html" %}
+        </div>
+
+        <div class="content">
+            <div id="group-info">
+                {% include "manage_treemap/partials/groups.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block endbody %}
+    <div id="add-group-modal" class="modal modal-primary fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h3>{% trans "Add Group" %}</h3>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">{% trans "Name of new group:" %}</label>
+                        <input id="new_group_name" type="text" class="form-control" style="width:100%;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn dismiss-cancel" data-dismiss="modal">
+                        {% trans "Cancel" %}
+                    </button>
+                    <button id="create_new_group" class="btn btn-primary pull-right" data-dismiss="modal">
+                        {% trans "Create Group" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/groups' %}
+{% endblock scripts %}

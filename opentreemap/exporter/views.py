@@ -6,7 +6,7 @@ from __future__ import division
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
-from tasks import async_csv_export, async_users_export
+from tasks import async_csv_export, async_users_export, async_groups_export
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call
@@ -73,6 +73,25 @@ def begin_export_users(request, instance, data_format):
         description='user export with %s format' % data_format)
 
     async_users_export.delay(job.pk, data_format)
+
+    return {'start_status': 'OK', 'job_id': job.pk}
+
+
+def begin_export_groups(request, instance):
+    if not request.user.is_authenticated():
+        raise Http404()
+
+    if not instance.feature_enabled('exports'):
+        return EXPORTS_FEATURE_DISABLED_CONTEXT
+    elif not export_enabled_for(instance, request.user):
+        return EXPORTS_NOT_ENABLED_CONTEXT
+
+    job = ExportJob.objects.create(
+        instance=instance,
+        user=request.user,
+        description='user export with %s format' % data_format)
+
+    async_groups_export.delay(job.pk)
 
     return {'start_status': 'OK', 'job_id': job.pk}
 

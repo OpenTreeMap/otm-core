@@ -79,6 +79,8 @@
 
                         {% include "manage_treemap/partials/admin_link.html" with view="roles_endpoint" title=_("Roles") icon="icon-lock" notification="udfs" %}
 
+                        {% include "manage_treemap/partials/admin_link.html" with view="groups_endpoint" title=_("Groups") icon="icon-lock" %}
+
                         {% with is_active=request|is_current_view:"comment_moderation_admin photo_review_admin" %}
                             <tr {% if is_active %}class="active"{% endif %}>
                                 <td>
