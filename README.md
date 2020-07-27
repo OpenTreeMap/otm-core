@@ -46,7 +46,9 @@ benefits calculation service
 OpenTreeMap client for iOS devices.
 * [otm-android](https://github.com/OpenTreeMap/otm-android) - An OpenTreeMap client for Android devices.
 
+## Additional Documentation
 
+The REST API that provides data for the native mobile apps is documented in [api.md](doc/api.md)
 
 ### Deprecated Repositories
 
