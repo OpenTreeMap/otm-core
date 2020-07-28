@@ -3,7 +3,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import csv
 import logging
+from tempfile import TemporaryFile
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -17,6 +19,8 @@ from treemap.models import (InstanceUser, User, NeighborhoodGroup)
 from treemap.audit import (Role, FieldPermission, add_default_permissions,
                            add_instance_permissions)
 
+from exporter.group import write_groups
+
 # FIXME should this be an InstanceGroup? With only one instance, no need
 from django.contrib.auth.models import Group
 
@@ -28,64 +32,47 @@ class Command(BaseCommand):
     """
     Create a new instance with a single editing role.
     """
-
-    """
     def add_arguments(self, parser):
         parser.add_argument(
             'instance_name',
             help='Specify instance name'),
         parser.add_argument(
-            '--user',
-            required=True,
-            dest='user',
-            help='Specify admin user name'),
+            '--filename',
+            dest='filename',
+            help='File for setting up groups'),
         parser.add_argument(
-            '--center',
-            dest='center',
-            help='Specify the center of the map as a lon,lat pair'),
-        parser.add_argument(
-            '--geojson',
-            dest='geojson',
-            help=('Specify a boundary via a geojson file. Must be '
-                  'projected in EPSG:4326')),
-        parser.add_argument(
-            '--url_name',
-            required=True,
-            dest='url_name',
-            help=('Specify a "url_name" starting with a lowercase letter and '
-                  'containing lowercase letters, numbers, and dashes ("-")'))
-    """
+            '--report',
+            action='store_true',
+            dest='report',
+            help='Run a sample report'),
 
     @transaction.atomic
     def handle(self, *args, **options):
+        instance_name = options['instance_name']
+        instance = Instance.objects.get(name=instance_name)
 
-        even_group, _ = NeighborhoodGroup.objects.get_or_create(
-            name='Even Group',
-            ward='Even Ward',
-            neighborhood='Even Neighborhood'
-        )
+        if options.get('report'):
+            self.run_report(instance)
+            return
 
-        odd_group, _ = NeighborhoodGroup.objects.get_or_create(
-            name='Odd Group',
-            ward='Odd Ward',
-            neighborhood='Odd Neighborhood'
-        )
+        filename = options['filename']
+        with open(filename, mode='r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            line_count = 0
+            for row in csv_reader:
+                try:
+                    user = User.objects.get(email=row['Email'])
+                except:
+                    continue
+                group, _ = NeighborhoodGroup.objects.get_or_create(
+                    name='{} - {}'.format(row['Ward'], row['Neighborhood']),
+                    ward=row['Ward'],
+                    neighborhood=row['Neighborhood']
+                )
+                group.user_set.add(user)
+                group.save()
 
-        #user = User.objects.get(username='tzinckgraf')
-        # list of highest contributing users
-        user_ids = [12, 46, 57, 75, 23, 82, 40]
-        users = User.objects.filter(id__in=user_ids)
-
-        for user in users:
-            group = even_group if user.id % 2 == 0 else odd_group
-            group.user_set.add(user)
-
-        even_group.save()
-        odd_group.save()
-        #test_group.user_set.add(user)
-        #test_group.save()
-
-        import ipdb; ipdb.set_trace() # BREAKPOINT
-        pass
-
-
+    def run_report(self, instance):
+        filename = 'groups.csv'
+        file_obj = TemporaryFile()
+        write_groups(file_obj, instance)

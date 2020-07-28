@@ -38,8 +38,11 @@ urlpatterns = [
         routes.begin_export_users, name='management_begin_export_users'),
 
     # groups export
-    url(r'^export/groups/$',
+    url(r'^export/groups/(?P<aggregation_level>(neighborhood|user))/$',
         routes.begin_export_groups, name='management_begin_export_groups'),
+
+    url(r'^groups/(?P<aggregation_level>(neighborhood|user))/$',
+        routes.get_groups_data, name='get_groups_data'),
 
     url(r'^clear-udf-notifications/$',
         routes.clear_udf_notifications, name='clear_udf_notifications'),

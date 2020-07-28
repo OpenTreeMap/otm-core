@@ -6,5 +6,25 @@
     <button data-class="display" class="btn btn-info addGroupBtn">
         {% trans "Add User To Group" %}
     </button>
-    <button class="btn btn-info" data-export-start-url="{% url 'management_begin_export_groups' instance_url_name=instance.url_name %}">Export to CSV</button>
+    <div class="btn-group">
+        <button data-class="display" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% trans "Export" %} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+            <li>
+                <a href="javascript:;"
+                   data-export-start-url="{% url 'management_begin_export_groups' instance_url_name=instance.url_name aggregation_level='neighborhood' %}">
+                    {% trans "Export Trees By Neighborhood" %}
+                </a>
+            </li>
+            <!--
+            <li>
+                <a href="javascript:;"
+                   data-export-start-url="{% url 'management_begin_export_groups' instance_url_name=instance.url_name aggregation_level='user' %}">
+                    {% trans "Export Trees By User" %}
+                </a>
+            </li>
+            -->
+        </ul>
+    </div>
 {% endblock other_buttons %}

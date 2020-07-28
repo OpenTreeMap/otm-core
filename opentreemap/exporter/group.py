@@ -11,7 +11,7 @@ from datetime import datetime
 from contextlib import contextmanager
 
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Count, F, Q
 
 from treemap.lib.dates import DATETIME_FORMAT
 from treemap.models import NeighborhoodGroup, Audit
@@ -19,95 +19,62 @@ from treemap.models import NeighborhoodGroup, Audit
 from exporter.util import sanitize_unicode_record
 
 
-#def write_groups(*args, **kwargs):
-#    fn = _write_users_csv(*args, **kwargs)
+def write_groups(csv_obj, instance, aggregation_level, min_join_ts=None, min_edit_ts=None):
+    field_names = None
+    values = None
 
+    if aggregation_level == 'neighborhood':
+        field_names = ['ward', 'neighborhood', 'total']
+        values = get_neighborhood_count(instance)
+    elif aggregation_level == 'user':
+        # FIXME remove the data being saved in that public S3
+        #field_names = ['ward', 'neighborhood', 'user_email', 'total']
+        #values = _get_user_neighborhood_count(instance)
+        return
 
-def write_groups(csv_obj, instance, min_join_ts=None, min_edit_ts=None):
-    field_names = ['username', 'email', 'first_name',
-                   'last_name', 'email_hash',
-                   'allow_email_contact', 'role', 'created', 'organization',
-                   'last_edit_model', 'last_edit_model_id',
-                   'last_edit_instance_id', 'last_edit_field',
-                   'last_edit_previous_value', 'last_edit_current_value',
-                   'last_edit_user_id', 'last_edit_action',
-                   'last_edit_requires_auth', 'last_edit_ref',
-                   'last_edit_created']
     writer = csv.DictWriter(csv_obj, field_names)
     writer.writeheader()
-    for user in _users_export(instance, min_join_ts, min_edit_ts):
-        writer.writerow(_user_as_dict(user, instance))
+    for stats in values:
+        writer.writerow(stats)
 
 
-
-def _users_export(instance, min_join_ts, min_edit_ts):
-    users = User.objects.filter(instance=instance)\
-                        .order_by('username')
-
-    if min_join_ts:
-        with _date_filter(min_join_ts, 'minJoinDate') as min_join_date:
-            iuser_ids = Audit.objects.filter(instance=instance)\
-                                     .filter(model='InstanceUser')\
-                                     .filter(created__gt=min_join_date)\
-                                     .distinct('model_id')\
-                                     .values_list('model_id', flat=True)
-            users = users.filter(instanceuser__in=iuser_ids)
-
-    if min_edit_ts:
-        with _date_filter(min_edit_ts, 'minEditDate') as min_edit_date:
-            user_ids = Audit.objects\
-                            .filter(instance=instance)\
-                            .filter(Q(created__gt=min_edit_date) |
-                                    Q(updated__gt=min_edit_date))\
-                            .distinct('user')\
-                            .values_list('user_id', flat=True)
-            users = users.filter(id__in=user_ids)
-
-    return users
+def _get_user_neighborhood_trees(instance):
+    return (NeighborhoodGroup.objects
+        .filter(user__mapfeature__plot__tree__isnull=False)
+        .prefetch_related('user', 'mapfeature', 'plot', 'tree', 'species')
+        .annotate(
+            user_email=F('user__email'),
+            tree_common_name=F('user__mapfeature__plot__tree__species__common_name')
+        ).values(
+            'ward',
+            'neighborhood',
+            'user_email',
+            'tree_common_name'
+        ).all())
 
 
-def _user_as_dict(user, instance):
-    iuser = user.get_instance_user(instance)
-    role_name = None
-    if iuser:
-        role_name = iuser.role.name
-
-    email = ''
-
-    if user.allow_email_contact:
-        email = user.email
-
-    modeldata = {'username': user.username,
-                 'organization': user.get_organization(),
-                 'first_name': user.get_first_name(),
-                 'last_name': user.get_last_name(),
-                 'email': email,
-                 'email_hash': user.email_hash,
-                 'allow_email_contact': str(user.allow_email_contact),
-                 'created': str(user.created),
-                 'role': role_name}
-
-    last_edits = Audit.objects.filter(instance=instance,
-                                      user=user)\
-                              .order_by('-updated')[:1]
-
-    if last_edits:
-        last_edit = last_edits[0]
-
-        modeldata.update({'last_edit_%s' % k: v
-                          for (k, v) in last_edit.dict().iteritems()})
-
-    return sanitize_unicode_record(modeldata)
+def _get_user_neighborhood_count(instance):
+    return (NeighborhoodGroup.objects
+        .prefetch_related('user', 'mapfeature', 'plot', 'tree')
+        .filter(user__mapfeature__plot__tree__isnull=False)
+        .values(
+            'ward',
+            'neighborhood',
+        )
+        .annotate(
+            user_email=F('user__email'),
+            total=Count('user__mapfeature__plot__tree'))
+        .all())
 
 
-@contextmanager
-def _date_filter(timestamp, filter_name):
-    try:
-        filter_date = datetime.strptime(timestamp, DATETIME_FORMAT)
-    except ValueError:
-        raise ValidationError("%(filter_name)s='%(ts)s' not a valid timestamp "
-                              "of format: %(format)s"
-                              % {"ts": timestamp,
-                                 "format": DATETIME_FORMAT,
-                                 "filter_name": filter_name})
-    yield filter_date
+def get_neighborhood_count(instance):
+    return (NeighborhoodGroup.objects
+        .prefetch_related('user', 'mapfeature', 'plot', 'tree')
+        .filter(user__mapfeature__plot__tree__isnull=False)
+        .values(
+            'ward',
+            'neighborhood',
+        )
+        .annotate(
+            total=Count('user__mapfeature__plot__tree'))
+        .all())

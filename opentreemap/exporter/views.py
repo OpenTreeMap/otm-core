@@ -77,7 +77,7 @@ def begin_export_users(request, instance, data_format):
     return {'start_status': 'OK', 'job_id': job.pk}
 
 
-def begin_export_groups(request, instance):
+def begin_export_groups(request, instance, aggregation_level):
     if not request.user.is_authenticated():
         raise Http404()
 
@@ -89,9 +89,9 @@ def begin_export_groups(request, instance):
     job = ExportJob.objects.create(
         instance=instance,
         user=request.user,
-        description='user export with %s format' % data_format)
+        description='group export with %s aggregation level' % aggregation_level)
 
-    async_groups_export.delay(job.pk)
+    async_groups_export.delay(job.pk, aggregation_level)
 
     return {'start_status': 'OK', 'job_id': job.pk}
 

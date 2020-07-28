@@ -5,6 +5,7 @@ from __future__ import division
 
 from copy import deepcopy
 
+from exporter.group import get_neighborhood_count
 from treemap.models import NeighborhoodGroup
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -57,3 +58,9 @@ def groups_create(request, instance):
     add_default_permissions(instance, roles=[role])
 
     return roles_list(request, instance)
+
+
+def get_groups_data(request, instance, aggregation_level):
+    return {
+        'data': list(get_neighborhood_count(instance).all())
+    }

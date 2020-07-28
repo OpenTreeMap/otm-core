@@ -11,6 +11,7 @@ var $ = require('jquery'),
     simpleEditForm = require('treemap/lib/simpleEditForm.js'),
     adminPage = require('manage_treemap/lib/adminPage.js'),
     config = require('treemap/lib/config.js'),
+    Chart = require('Chart'),
     reverse = require('reverse');
 
 var dom = {
@@ -28,7 +29,8 @@ var dom = {
     spinner: '.spinner',
     rolesTableContainer: '#role-info .role-table-scroll',
     newFieldsAlert: '#new-fields-alert',
-    newFieldsDismiss: '#new-fields-dismiss'
+    newFieldsDismiss: '#new-fields-dismiss',
+    chart: '#group-chart canvas',
 };
 
 var url = reverse.roles_endpoint(config.instance.url_name),
@@ -40,7 +42,11 @@ var url = reverse.roles_endpoint(config.instance.url_name),
             $(dom.save).prop("disabled", true);
         })
         .map(getRolePermissions)
-        .flatMap(BU.jsonRequest('PUT', url));
+        .flatMap(BU.jsonRequest('PUT', url)),
+    resultsStream = BU.jsonRequest(
+        'GET',
+        reverse.get_groups_data(config.instance.url_name, 'neighborhood')
+    )();
 
 simpleEditForm.init({
     edit: dom.edit,
@@ -63,11 +69,26 @@ updateStream.onError(showError);
 
 updateStream.onValue(enableSave);
 
+resultsStream.onError(showError);
+resultsStream.onValue(function (results) {
+    var chart = new Chart($(dom.chart), {
+        type: 'bar',
+        data: {
+            labels: results['data'].map(x => x['neighborhood']),
+            datasets: [{
+                label: 'Trees',
+                data: results['data'].map(x => x['total'])
+            }]
+        },
+    });
+});
+
 buttonEnabler.run();
 U.modalsFocusOnFirstInputWhenShown();
 $(dom.addRole).on('click', function () {
     $(dom.addRoleModal).modal('show');
 });
+
 
 var newRoleStream = $(dom.createNewRole)
     .asEventStream('click')

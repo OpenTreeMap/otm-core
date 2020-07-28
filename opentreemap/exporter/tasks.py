@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import csv
+import datetime
 import logging
 
 from contextlib import contextmanager
@@ -135,12 +136,15 @@ def async_users_export(job, data_format):
 
 @shared_task
 @_job_transaction
-def async_groups_export(job):
+def async_groups_export(job, aggregation_level):
     instance = job.instance
 
-    filename = 'groups.csv'
+    filename = 'groups.{}.{}.csv'.format(
+        aggregation_level,
+        datetime.datetime.now().strftime('%Y%m%d')
+    )
     file_obj = TemporaryFile()
-    write_groups(file_obj, instance)
+    write_groups(file_obj, instance, aggregation_level)
     job.complete_with(filename, File(file_obj))
     job.save()
 
