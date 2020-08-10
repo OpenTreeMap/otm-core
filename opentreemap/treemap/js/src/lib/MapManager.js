@@ -290,32 +290,22 @@ MapManager.prototype = {
             }
             map.addLayer(basemapMapping[visible]);
 
-            // add the neighborhood shapefiles
-            var neighborhoods = config.staticUrl + 'shapefiles/neighborhoods.zip';
-            var neighborhoodLayer = new L.Shapefile(neighborhoods, {
-                onEachFeature: function(feature, layer) {
-                    layer.bindTooltip(function (l) {
-                        return feature.properties.Nghbhd; //merely sets the tooltip text
-                    }, {permanent: false, opacity: 0.5});  //then add your options
-                }
-            });
-            var neighborhoods = L.layerGroup([neighborhoodLayer]);
-
-            var mainNeighborhoods = config.staticUrl + 'shapefiles/main_neighborhoods.zip';
-            var mainNeighborhoodLayer = new L.Shapefile(mainNeighborhoods, {
-                onEachFeature: function(feature, layer) {
-                    layer.bindTooltip(function (l) {
-                        return feature.properties.Main_Nghbh; //merely sets the tooltip text
-                    }, {permanent: false, opacity: 0.5});  //then add your options
-                }
-            });
-            var mainNeighborhoods = L.layerGroup([mainNeighborhoodLayer]);
+            var mainNeighborhoodLayer = layersLib.createBoundariesbyCategoryTileLayer('Main Neighborhood');
+            var neighborhoodLayer = layersLib.createBoundariesbyCategoryTileLayer('Neighborhood');
+            var parksLayer = layersLib.createBoundariesbyCategoryTileLayer('Park');
+            var parcelsLayer = layersLib.createBoundariesbyCategoryTileLayer('Parcels');
+            var namedZonesLayer = layersLib.createBoundariesbyCategoryTileLayer('Zones');
+            var sidLayer = layersLib.createBoundariesbyCategoryTileLayer('SID');
 
             this.layersControl = L.control.layers(
                 basemapMapping,
                 {
-                    'Main Neighborhoods': mainNeighborhoodLayer,
-                    'Neighborhoods': neighborhoodLayer
+                    'Main Neighborhoods + LSP': mainNeighborhoodLayer,
+                    'Neighborhoods': neighborhoodLayer,
+                    'Parks': parksLayer,
+                    'SID': sidLayer,
+                    'Parcels': parcelsLayer,
+                    'Zones': namedZonesLayer,
                 }, {
                     autoZIndex: false
                 }

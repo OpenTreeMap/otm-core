@@ -52,6 +52,12 @@ exports.createBoundariesTileLayer = function () {
     return L.tileLayer(url, options);
 };
 
+exports.createBoundariesbyCategoryTileLayer = function (category) {
+    var options = _.extend({category: category}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
+    return filterableLayer(
+        'treemap_boundary', 'png', options, {category: category});
+};
+
 exports.getCanopyBoundariesTileLayerUrl = function(tilerArgs) {
     var revToUrl = getUrlMaker('treemap_canopy_boundary', 'png', tilerArgs);
     return revToUrl(config.instance.geoRevHash);
