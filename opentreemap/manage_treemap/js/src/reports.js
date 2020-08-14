@@ -242,5 +242,5 @@ alertDismissStream.onValue(function() {
     $(dom.roles).find('tr.active').removeClass('active');
 });
 
-//adminPage.init(Bacon.mergeAll(updateStream, alertDismissStream));
+adminPage.init(Bacon.mergeAll(alertDismissStream));
 
