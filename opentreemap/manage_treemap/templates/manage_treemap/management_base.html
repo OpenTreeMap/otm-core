@@ -81,6 +81,8 @@
 
                         {% include "manage_treemap/partials/admin_link.html" with view="groups_endpoint" title=_("Groups") icon="icon-lock" %}
 
+                        {% include "manage_treemap/partials/admin_link.html" with view="reports_endpoint" title=_("Reports") icon="icon-lock" %}
+
                         {% with is_active=request|is_current_view:"comment_moderation_admin photo_review_admin" %}
                             <tr {% if is_active %}class="active"{% endif %}>
                                 <td>

@@ -1,0 +1,33 @@
+{% extends "manage_treemap/management_base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load i18n %}
+{% load instance_config %}
+
+{% block admin_title %}{% trans "Reports" %}{% endblock %}
+
+{% block tab_content %}
+    <div id="roles-pane">
+        <div class="page-header">
+            <div class="page-header-toggles">
+                <i class="icon-menu" id="toggle-sidebar"></i>
+            </div>
+            <div class="page-header-title">
+                <h1>{% trans "Reports" %}</h1>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="group-info">
+                {% include "manage_treemap/partials/reports.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block endbody %}
+    <!-- this is where a modal would go for things like parameters -->
+{% endblock endbody %}
+
+{% block scripts %}
+    {% render_bundle 'js/manage_treemap/reports' %}
+{% endblock scripts %}

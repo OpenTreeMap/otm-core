@@ -63,4 +63,8 @@ urlpatterns = [
         name='set_field_configs'),
 
     url(r'^groups/$', routes.groups, name='groups_endpoint'),
+
+    url(r'^reports/$', routes.reports, name='reports_endpoint'),
+    url(r'^reports/(?P<data_set>\w+)/(?P<aggregation_level>(neighborhood|ward|none))/$',
+        routes.get_reports_data, name='get_reports_data'),
 ]
