@@ -36,7 +36,9 @@ var dom = {
     speciesChart: '#species-chart canvas',
     treeConditionsByNeighborhoodChart: '#tree-conditions-by-neighborhood-chart canvas',
     treeConditionsByWardChart: '#tree-conditions-by-ward-chart canvas',
-    treeDiametersChart: '#tree-diameters-chart canvas'
+    treeDiametersChart: '#tree-diameters-chart canvas',
+    ecobenefitsByWardTableHeader: '#ecobenefits-by-ward-table thead',
+    ecobenefitsByWardTableBody: '#ecobenefits-by-ward-table tbody'
 };
 
 var url = reverse.roles_endpoint(config.instance.url_name),
@@ -59,6 +61,10 @@ var url = reverse.roles_endpoint(config.instance.url_name),
     treeConditionsByWardStream = BU.jsonRequest(
         'GET',
         reverse.get_reports_data(config.instance.url_name, 'condition', 'ward')
+    )(),
+    ecobenefitsByWardStream = BU.jsonRequest(
+        'GET',
+        reverse.get_reports_data(config.instance.url_name, 'ecobenefits', 'ward')
     )();
     /*
     treeDiametersStream = BU.jsonRequest(
@@ -79,15 +85,28 @@ var chartColors = {
 	green: 'rgb(75, 192, 192)',
 	blue: 'rgb(54, 162, 235)',
 	purple: 'rgb(153, 102, 255)',
-	grey: 'rgb(201, 203, 207)'
+	grey: 'rgb(201, 203, 207)',
+	black: 'rgb(0, 0, 0)'
 };
 
-var dynamicColors = function() {
-    var r = Math.floor(Math.random() * 255);
-    var g = Math.floor(Math.random() * 255);
-    var b = Math.floor(Math.random() * 255);
-    return "rgb(" + r + "," + g + "," + b + ")";
-};
+// theme from https://learnui.design/tools/data-color-picker.html
+// starting with #add142, which is the lime-green success color in
+// _base.scss
+var otmGreen = '#8baa3d';
+var otmLimeGreen = '#add142';
+var chartColorTheme = [
+    '#ffffff',
+    '#e7f0c2',
+    '#cce085',
+    '#add142',
+    '#6cc259',
+    '#16b06e',
+    '#009b7e',
+    '#008484',
+    '#006d81',
+    '#005673',
+    '#003f5c',
+];
 
 treesByNeighborhoodStream.onError(showError);
 treesByNeighborhoodStream.onValue(function (results) {
@@ -96,7 +115,8 @@ treesByNeighborhoodStream.onValue(function (results) {
         data: {
             labels: results['data'].map(x => x['name']),
             datasets: [{
-                label: 'Trees',
+                borderColor: otmLimeGreen,
+                backgroundColor: otmGreen,
                 data: results['data'].map(x => x['count'])
             }]
         },
@@ -110,7 +130,8 @@ treesByWardStream.onValue(function (results) {
         data: {
             labels: results['data'].map(x => x['name']),
             datasets: [{
-                label: 'Trees',
+                borderColor: otmLimeGreen,
+                backgroundColor: otmGreen,
                 data: results['data'].map(x => x['count'])
             }]
         },
@@ -126,7 +147,7 @@ speciesStream.onValue(function (results) {
             labels: data.map(x => x['name']),
             datasets: [{
                 data: data.map(x => x['count']),
-                backgroundColor: data.map(x => dynamicColors()),
+                backgroundColor: data.map((x, i) => chartColorTheme[i]),
                 borderColor: 'rgba(200, 200, 200, 0.75)',
                 hoverBorderColor: 'rgba(200, 200, 200, 1)',
             }]
@@ -155,7 +176,7 @@ treeConditionsByNeighborhoodStream.onValue(function (results) {
             {
                 label: 'Healthy',
                 data: data.map(x => x['healthy']),
-                backgroundColor: chartColors.green
+                backgroundColor: otmLimeGreen
             },
             {
                 label: 'Unhealthy',
@@ -192,7 +213,7 @@ treeConditionsByWardStream.onValue(function (results) {
             {
                 label: 'Healthy',
                 data: data.map(x => x['healthy']),
-                backgroundColor: chartColors.green
+                backgroundColor: otmLimeGreen
             },
             {
                 label: 'Unhealthy',
@@ -208,22 +229,55 @@ treeConditionsByWardStream.onValue(function (results) {
     });
 });
 
-
 /*
 treeDiametersStream.onError(showError);
 treeDiametersStream.onValue(function (results) {
     var chart = new Chart($(dom.chart), {
         type: 'bar',
         data: {
-            labels: results['data'].map(x => x['neighborhood']),
+            labels: results['data'].map(x => x['diameter_bucket']),
             datasets: [{
                 label: 'Trees',
-                data: results['data'].map(x => x['total'])
+                data: results['data'].map(x => x['count'])
             }]
         },
     });
 });
 */
+
+ecobenefitsByWardStream.onError(showError);
+ecobenefitsByWardStream.onValue(function (results) {
+    var data = results['data'];
+    var columns = data['columns'];
+    var columnHtml = '<tr>' + columns.map(x => '<th>' + x + '</th>').join('') + '</tr>';
+    var dataHtml = data['data'].map(row => '<tr>' + row.map((x, i) => {
+        if (row[0] == 'Total') {
+            return '<td><b>' + formatColumn(x, columns[i]) + '</b></td>'
+        }
+        return '<td>' + formatColumn(x, columns[i]) + '</td>'
+    }).join('') + '</tr>').join('');
+
+    $(dom.ecobenefitsByWardTableHeader).html(columnHtml);
+    $(dom.ecobenefitsByWardTableBody).html(dataHtml);
+});
+
+function formatColumn(column, columnName) {
+    if (column == null)
+        return '';
+    if (typeof column == 'number' && columnName.indexOf('$') != -1)
+        return '$' + column.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    if (typeof column == 'number' && column < 0.00001)
+        return '';
+    if (typeof column == 'number')
+        return column.toLocaleString(undefined, {
+            maximumFractionDigits: 4
+        });
+    return column;
+}
+
 
 buttonEnabler.run();
 U.modalsFocusOnFirstInputWhenShown();
