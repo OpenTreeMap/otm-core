@@ -65,13 +65,11 @@ var url = reverse.roles_endpoint(config.instance.url_name),
     ecobenefitsByWardStream = BU.jsonRequest(
         'GET',
         reverse.get_reports_data(config.instance.url_name, 'ecobenefits', 'ward')
-    )();
-    /*
+    )(),
     treeDiametersStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'diameter', '')
+        reverse.get_reports_data(config.instance.url_name, 'diameter', 'none')
     )();
-    */
 
 function showError(resp) {
     enableSave();
@@ -229,21 +227,23 @@ treeConditionsByWardStream.onValue(function (results) {
     });
 });
 
-/*
 treeDiametersStream.onError(showError);
 treeDiametersStream.onValue(function (results) {
-    var chart = new Chart($(dom.chart), {
-        type: 'bar',
+    var data = results['data'];
+    var colors = chartColorTheme.reverse();
+    var chart = new Chart($(dom.treeDiametersChart), {
+        type: 'pie',
         data: {
-            labels: results['data'].map(x => x['diameter_bucket']),
+            labels: data.map(x => x['name']),
             datasets: [{
-                label: 'Trees',
-                data: results['data'].map(x => x['count'])
+                data: data.map(x => x['count']),
+                backgroundColor: data.map((x, i) => colors[i]),
+                borderColor: 'rgba(200, 200, 200, 0.75)',
+                hoverBorderColor: 'rgba(200, 200, 200, 1)',
             }]
         },
     });
 });
-*/
 
 ecobenefitsByWardStream.onError(showError);
 ecobenefitsByWardStream.onValue(function (results) {

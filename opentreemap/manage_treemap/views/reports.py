@@ -115,20 +115,33 @@ def get_tree_conditions(aggregation_level, instance):
 
 def get_tree_diameters(aggregation_level, instance):
     query = """
-        select  trunc(diameter / 10) as diameter_bucket,
+        with tstats as (
+            select min(diameter) as min,
+                max(diameter) as max
+            from        treemap_mapfeature m
+            left join   treemap_tree t  on m.id = t.plot_id
+            left join   treemap_species s on s.id = t.species_id
+            where   1=1
+            and     diameter is not null
+            and     s.common_name is not null
+            -- this is otherwise probably just wrong data
+            and     diameter >= 2.5
+        )
+        select  'Min: ' || trunc(min(diameter)) || '; Max: ' || trunc(max(diameter)) as name,
                 count(1) as "count"
-        from        treemap_mapfeature m
-        left join	treemap_tree t  on m.id = t.plot_id
-        left join   treemap_species s on s.id = t.species_id
-        where   1=1
-        and     diameter is not null
-        and     s.common_name is not null
-        -- this is otherwise probably just wrong data
-        and     diameter >= 2.5
-        group by trunc(diameter / 10)
-        order by trunc(diameter / 10)
+            from        treemap_mapfeature m
+            cross join  tstats
+            left join   treemap_tree t  on m.id = t.plot_id
+            left join   treemap_species s on s.id = t.species_id
+            where   1=1
+            and     diameter is not null
+            and     s.common_name is not null
+            -- this is otherwise probably just wrong data
+            and     diameter >= 2.5
+        group by width_bucket(diameter, min, max, 9)
+        order by width_bucket(diameter, min, max, 9)
     """
-    columns = ['common_name', 'diameter_bucket', 'count']
+    columns = ['name', 'count']
     with connection.cursor() as cursor:
         cursor.execute(query, [aggregation_level])
         results = cursor.fetchall()
@@ -157,6 +170,10 @@ def get_ecobenefits(aggregation_level, instance):
 
     # iterate over the boundaries and get the benefits for each one
     for boundary in boundaries:
+        # for now, skip this one
+        if boundary.name == 'Liberty State Park':
+            continue
+
         boundary_filter = json.dumps({'plot.geom':
                                        {'IN_BOUNDARY': boundary.pk}})
         _filter = Filter(boundary_filter, None, instance)
