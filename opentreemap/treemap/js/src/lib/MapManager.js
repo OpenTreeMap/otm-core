@@ -290,6 +290,7 @@ MapManager.prototype = {
             }
             map.addLayer(basemapMapping[visible]);
 
+            var wardLayer = layersLib.createBoundariesbyCategoryTileLayer('Ward');
             var mainNeighborhoodLayer = layersLib.createBoundariesbyCategoryTileLayer('Main Neighborhood');
             var neighborhoodLayer = layersLib.createBoundariesbyCategoryTileLayer('Neighborhood');
             var parksLayer = layersLib.createBoundariesbyCategoryTileLayer('Park');
@@ -300,10 +301,11 @@ MapManager.prototype = {
             this.layersControl = L.control.layers(
                 basemapMapping,
                 {
+                    'Wards': wardLayer,
                     'Main Neighborhoods + LSP': mainNeighborhoodLayer,
                     'Neighborhoods': neighborhoodLayer,
                     'Parks': parksLayer,
-                    'SID': sidLayer,
+                    'SIDs': sidLayer,
                     'Parcels': parcelsLayer,
                     'Zones': namedZonesLayer,
                 }, {

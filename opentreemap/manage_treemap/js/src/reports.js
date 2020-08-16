@@ -38,7 +38,8 @@ var dom = {
     treeConditionsByWardChart: '#tree-conditions-by-ward-chart canvas',
     treeDiametersChart: '#tree-diameters-chart canvas',
     ecobenefitsByWardTableHeader: '#ecobenefits-by-ward-table thead',
-    ecobenefitsByWardTableBody: '#ecobenefits-by-ward-table tbody'
+    ecobenefitsByWardTableBody: '#ecobenefits-by-ward-table tbody',
+    ecobenefitsByWardTotal: '#ecobenefits-by-ward-total'
 };
 
 var url = reverse.roles_endpoint(config.instance.url_name),
@@ -56,7 +57,7 @@ var url = reverse.roles_endpoint(config.instance.url_name),
     )(),
     treeConditionsByNeighborhoodStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'condition', 'neighborhood')
+        reverse.get_reports_data(config.instance.url_name, 'condition', 'ward')
     )(),
     treeConditionsByWardStream = BU.jsonRequest(
         'GET',
@@ -113,6 +114,7 @@ treesByNeighborhoodStream.onValue(function (results) {
         data: {
             labels: results['data'].map(x => x['name']),
             datasets: [{
+                label: 'Trees',
                 borderColor: otmLimeGreen,
                 backgroundColor: otmGreen,
                 data: results['data'].map(x => x['count'])
@@ -128,6 +130,7 @@ treesByWardStream.onValue(function (results) {
         data: {
             labels: results['data'].map(x => x['name']),
             datasets: [{
+                label: 'Trees',
                 borderColor: otmLimeGreen,
                 backgroundColor: otmGreen,
                 data: results['data'].map(x => x['count'])
@@ -252,13 +255,31 @@ ecobenefitsByWardStream.onValue(function (results) {
     var columnHtml = '<tr>' + columns.map(x => '<th>' + x + '</th>').join('') + '</tr>';
     var dataHtml = data['data'].map(row => '<tr>' + row.map((x, i) => {
         if (row[0] == 'Total') {
-            return '<td><b>' + formatColumn(x, columns[i]) + '</b></td>'
+            return '<td><b>' + formatColumn(x, columns[i]) + '</b></td>';
         }
-        return '<td>' + formatColumn(x, columns[i]) + '</td>'
+        return '<td>' + formatColumn(x, columns[i]) + '</td>';
     }).join('') + '</tr>').join('');
 
     $(dom.ecobenefitsByWardTableHeader).html(columnHtml);
     $(dom.ecobenefitsByWardTableBody).html(dataHtml);
+
+    // compute the totals
+    var total = data['data'].flatMap(row => row.map((x, i) => {
+        if (row[0] == 'Total') {
+            return 0;
+        }
+        if (columns[i].indexOf('$') != -1) {
+            return x;
+        } else {
+            return 0;
+        }
+    })).reduce((a, b) => a + b, 0);
+
+    $(dom.ecobenefitsByWardTotal)
+        .html('<b>Total Annual Benefits: $' + total.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + '</b>');
 });
 
 function formatColumn(column, columnName) {

@@ -14,9 +14,6 @@ from treemap.models import Boundary
 
 
 def get_reports_data(request, instance, data_set, aggregation_level):
-    if aggregation_level == 'ward':
-        aggregation_level = 'main neighborhood'
-
     data_set_funcs = {
         'count': get_tree_count,
         'species': get_species_count,
@@ -156,7 +153,7 @@ def get_ecobenefits(aggregation_level, instance):
     """
     columns = ['Name']
     data = []
-    boundaries = Boundary.objects.filter(category='Main Neighborhood').all()
+    boundaries = Boundary.objects.filter(category__iexact=aggregation_level).order_by('name').all()
 
     _filter = Filter(None, None, instance)
     benefits_all, basis_all = get_benefits_for_filter(_filter)
