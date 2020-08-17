@@ -57,7 +57,7 @@ var url = reverse.roles_endpoint(config.instance.url_name),
     )(),
     treeConditionsByNeighborhoodStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'condition', 'ward')
+        reverse.get_reports_data(config.instance.url_name, 'condition', 'neighborhood')
     )(),
     treeConditionsByWardStream = BU.jsonRequest(
         'GET',
