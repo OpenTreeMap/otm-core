@@ -15,62 +15,99 @@ var $ = require('jquery'),
     reverse = require('reverse');
 
 var dom = {
-    selects: 'select[data-name]',
-    radios: ':radio:checked[data-name]',
-    roleIds: '[data-roles]',
-    createNewRole: '#create_new_role',
-    newRoleName: '#new_role_name',
-    roles: '#role-info',
-    edit: '.editBtn',
-    save: '.saveBtn',
-    cancel: '.cancelBtn',
-    addRole: '.addRoleBtn',
-    addRoleModal: '#add-role-modal',
     spinner: '.spinner',
-    rolesTableContainer: '#role-info .role-table-scroll',
     newFieldsAlert: '#new-fields-alert',
     newFieldsDismiss: '#new-fields-dismiss',
+    aggregationLevelDropdown: '#select-aggregation',
+
+    neighborhoodDropdownContainer: '#select-neighborhoods-container',
+    wardDropdownContainer: '#select-wards-container',
+
+    neighborhoodDropdown: '#select-neighborhoods',
+    wardDropdown: '#select-wards',
+
     chart: '#group-chart canvas',
-    treesByNeighborhoodChart: '#trees-by-neighborhood-chart canvas',
-    treesByWardChart: '#trees-by-ward-chart canvas',
+    treeCountsChart: '#tree-counts-chart canvas',
     speciesChart: '#species-chart canvas',
-    treeConditionsByNeighborhoodChart: '#tree-conditions-by-neighborhood-chart canvas',
-    treeConditionsByWardChart: '#tree-conditions-by-ward-chart canvas',
+    treeConditionsChart: '#tree-conditions-chart canvas',
     treeDiametersChart: '#tree-diameters-chart canvas',
+
     ecobenefitsByWardTableHeader: '#ecobenefits-by-ward-table thead',
     ecobenefitsByWardTableBody: '#ecobenefits-by-ward-table tbody',
     ecobenefitsByWardTotal: '#ecobenefits-by-ward-total'
 };
 
-var url = reverse.roles_endpoint(config.instance.url_name),
-    treesByNeighborhoodStream = BU.jsonRequest(
+var charts = {
+    treeCountsChart: null,
+    speciesChart: null,
+    treeConditionsChart: null,
+    treeDiametersChart: null,
+
+    ecobenefitsByWardTableHeader: null,
+    ecobenefitsByWardTableBody: null,
+    ecobenefitsByWardTotal: null
+};
+
+// a cache to hold our data
+var dataCache = {
+    treeCountsChart: null,
+    speciesChart: null,
+    treeConditionsChart: null,
+    treeDiametersChart: null,
+    ecobenefits: null,
+};
+
+var onValueFunctions = {
+    treeCountsChart: null,
+    speciesChart: null,
+    treeConditionsChart: null,
+    treeDiametersChart: null,
+    ecobenefits: null,
+}
+
+var url = reverse.roles_endpoint(config.instance.url_name);
+
+function loadData() {
+
+    var aggregationLevel = $(dom.aggregationLevelDropdown).val();
+    var treeCountStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'count', 'neighborhood')
-    )(),
-    treesByWardStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'count', 'ward')
-    )(),
-    speciesStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'species', 'none')
-    )(),
-    treeConditionsByNeighborhoodStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'condition', 'neighborhood')
-    )(),
-    treeConditionsByWardStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'condition', 'ward')
-    )(),
-    ecobenefitsByWardStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'ecobenefits', 'ward')
-    )(),
-    treeDiametersStream = BU.jsonRequest(
-        'GET',
-        reverse.get_reports_data(config.instance.url_name, 'diameter', 'none')
+        reverse.get_reports_data(config.instance.url_name, 'count', aggregationLevel)
     )();
+    treeCountStream.onError(showError);
+    treeCountStream.onValue(onValueFunctions.treeCountsChart);
+
+    var speciesStream = BU.jsonRequest(
+        'GET',
+        reverse.get_reports_data(config.instance.url_name, 'species', aggregationLevel)
+    )();
+    speciesStream.onError(showError);
+    speciesStream.onValue(onValueFunctions.speciesChart);
+
+    var treeConditionsStream = BU.jsonRequest(
+        'GET',
+        reverse.get_reports_data(config.instance.url_name, 'condition', aggregationLevel)
+    )();
+    treeConditionsStream.onError(showError);
+    treeConditionsStream.onValue(onValueFunctions.treeConditionsChart);
+
+    var treeDiametersStream = BU.jsonRequest(
+        'GET',
+        reverse.get_reports_data(config.instance.url_name, 'diameter', aggregationLevel)
+    )();
+    treeDiametersStream.onError(showError);
+    treeDiametersStream.onValue(onValueFunctions.treeDiametersChart);
+
+    $(dom.ecobenefitsByWardTotal).html('');
+    $(dom.spinner).show();
+    var ecobenefitsStream = BU.jsonRequest(
+        'GET',
+        reverse.get_reports_data(config.instance.url_name, 'ecobenefits', aggregationLevel)
+    )();
+    ecobenefitsStream.onError(showError);
+    ecobenefitsStream.onValue(onValueFunctions.ecobenefits);
+}
+
 
 function showError(resp) {
     enableSave();
@@ -78,161 +115,200 @@ function showError(resp) {
 }
 
 var chartColors = {
-	red: 'rgb(255, 99, 132)',
 	orange: 'rgb(255, 159, 64)',
 	yellow: 'rgb(255, 205, 86)',
 	green: 'rgb(75, 192, 192)',
 	blue: 'rgb(54, 162, 235)',
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(201, 203, 207)',
-	black: 'rgb(0, 0, 0)'
+
+    // a less saturated red
+    red: '#8b1002',
+
+    // a softer black
+    black: '#303031'
 };
 
 // theme from https://learnui.design/tools/data-color-picker.html
-// starting with #add142, which is the lime-green success color in
+// starting with #8baa3d, which is the otm-green color in
 // _base.scss
 var otmGreen = '#8baa3d';
 var otmLimeGreen = '#add142';
 var chartColorTheme = [
-    '#ffffff',
-    '#e7f0c2',
-    '#cce085',
-    '#add142',
-    '#6cc259',
-    '#16b06e',
-    '#009b7e',
-    '#008484',
-    '#006d81',
-    '#005673',
     '#003f5c',
+    '#00506b',
+    '#006274',
+    '#007374',
+    '#00836c',
+    '#1c935f',
+    '#59a04e',
+    '#8baa3d'
 ];
 
-treesByNeighborhoodStream.onError(showError);
-treesByNeighborhoodStream.onValue(function (results) {
-    var chart = new Chart($(dom.treesByNeighborhoodChart), {
-        type: 'bar',
-        data: {
-            labels: results['data'].map(x => x['name']),
-            datasets: [{
-                label: 'Trees',
-                borderColor: otmLimeGreen,
-                backgroundColor: otmGreen,
-                data: results['data'].map(x => x['count'])
-            }]
-        },
-    });
-});
 
-treesByWardStream.onError(showError);
-treesByWardStream.onValue(function (results) {
-    var chart = new Chart($(dom.treesByWardChart), {
-        type: 'bar',
-        data: {
-            labels: results['data'].map(x => x['name']),
-            datasets: [{
-                label: 'Trees',
-                borderColor: otmLimeGreen,
-                backgroundColor: otmGreen,
-                data: results['data'].map(x => x['count'])
-            }]
-        },
-    });
-});
+onValueFunctions.treeCountsChart = function (results) {
+    var data = results['data']
+    dataCache.treeCountsChart = data;
 
-speciesStream.onError(showError);
-speciesStream.onValue(function (results) {
+    if (charts.treeCountsChart == null) {
+        var chart = new Chart($(dom.treeCountsChart), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: []
+            }
+        });
+
+        charts.treeCountsChart = chart;
+    }
+
+    updateTreeCountsData(data);
+};
+
+function updateTreeCountsData(data) {
+    var chart = charts.treeCountsChart;
+    if (chart == null) {
+        return;
+    }
+
+    chart.data.labels = data.map(x => x['name']);
+    chart.data.datasets = [{
+        label: 'Trees',
+        borderColor: otmLimeGreen,
+        backgroundColor: otmGreen,
+        data: data.map(x => x['count'])
+    }];
+    chart.update();
+}
+
+onValueFunctions.speciesChart = function (results) {
     var data = results['data'];
+    dataCache.speciesChart = data;
+
+    updateSpeciesData(data);
+}
+
+function updateSpeciesData(data) {
+    var chart = charts.speciesChart;
+    if (chart != null) {
+        chart.destroy();
+    }
+
+    // reduce the species and counts, as there are multiple given the aggregation
+    var reduceFunc = function(acc, value) {
+        acc[value['species_name']] = acc[value['species_name']] + value['count']
+            || value['count'];
+        return acc;
+    }
+    var dataObj = data.reduce(reduceFunc, {});
+    // make into a list of items and sort descending
+    data = Object.keys(dataObj).map(k => {return {name: k, count: dataObj[k]}})
+        .sort((first, second) => second['count'] - first['count']);
+
+    // take the first N and aggregate the rest
+    var finalData = data.slice(0, 5);
+    var otherSum = data.slice(5).reduce((acc, val) => acc + val['count'], 0);
+    finalData.push({name: 'Other', count: otherSum})
+
     var chart = new Chart($(dom.speciesChart), {
         type: 'pie',
         data: {
-            labels: data.map(x => x['name']),
+            labels: finalData.map(x => x['name']),
             datasets: [{
-                data: data.map(x => x['count']),
-                backgroundColor: data.map((x, i) => chartColorTheme[i]),
+                data: finalData.map(x => x['count']),
+                backgroundColor: finalData.map((x, i) => chartColorTheme[i]),
                 borderColor: 'rgba(200, 200, 200, 0.75)',
                 hoverBorderColor: 'rgba(200, 200, 200, 1)',
             }]
-        },
+        }
     });
-});
+    charts.speciesChart = chart;
+    chart.update();
+}
 
-treeConditionsByNeighborhoodStream.onError(showError);
-treeConditionsByNeighborhoodStream.onValue(function (results) {
+onValueFunctions.treeConditionsChart = function (results) {
     var data = results['data'];
-    var chart = new Chart($(dom.treeConditionsByNeighborhoodChart), {
-        type: 'bar',
-        options: {
-            scales: {
-                xAxes: [{
-                    stacked: true,
-                }],
-                yAxes: [{
-                    stacked: true
-                }]
+    dataCache.treeConditionsChart = data;
+
+    if (charts.treeConditionsChart == null) {
+        var chart = new Chart($(dom.treeConditionsChart), {
+            type: 'bar',
+            options: {
+                scales: {
+                    xAxes: [{
+                        stacked: true,
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
+            },
+            data: {
+                labels: [],
+                datasets: []
             }
-        },
-        data: {
-            labels: data.map(x => x['name']),
-            datasets: [
-            {
-                label: 'Healthy',
-                data: data.map(x => x['healthy']),
-                backgroundColor: otmLimeGreen
-            },
-            {
-                label: 'Unhealthy',
-                data: data.map(x => x['unhealthy']),
-                backgroundColor: chartColors.red
-            },
-            {
-                label: 'Dead',
-                data: data.map(x => x['dead']),
-                backgroundColor: chartColors.black
-            }]
-        },
-    });
-});
+        });
+        charts.treeConditionsChart = chart;
+    }
 
-treeConditionsByWardStream.onError(showError);
-treeConditionsByWardStream.onValue(function (results) {
-    var data = results['data'];
-    var chart = new Chart($(dom.treeConditionsByWardChart), {
-        type: 'bar',
-        options: {
-            scales: {
-                xAxes: [{
-                    stacked: true,
-                }],
-                yAxes: [{
-                    stacked: true
-                }]
-            }
-        },
-        data: {
-            labels: data.map(x => x['name']),
-            datasets: [
-            {
-                label: 'Healthy',
-                data: data.map(x => x['healthy']),
-                backgroundColor: otmLimeGreen
-            },
-            {
-                label: 'Unhealthy',
-                data: data.map(x => x['unhealthy']),
-                backgroundColor: chartColors.red
-            },
-            {
-                label: 'Dead',
-                data: data.map(x => x['dead']),
-                backgroundColor: chartColors.black
-            }]
-        },
-    });
-});
+    updateTreeConditionsChart(data);
+}
 
-treeDiametersStream.onError(showError);
-treeDiametersStream.onValue(function (results) {
+function updateTreeConditionsChart(data) {
+    var chart = charts.treeConditionsChart;
+    if (chart == null) {
+        return;
+    }
+
+    chart.data.labels = data.map(x => x['name']);
+    chart.data.datasets = [
+        {
+            label: 'Healthy',
+            data: data.map(x => x['healthy']),
+            backgroundColor: otmGreen
+        },
+        {
+            label: 'Unhealthy',
+            data: data.map(x => x['unhealthy']),
+            backgroundColor: chartColors.red
+        },
+        {
+            label: 'Dead',
+            data: data.map(x => x['dead']),
+            backgroundColor: chartColors.black
+        }
+    ];
+    chart.update();
+}
+
+onValueFunctions.treeDiametersChart = function (results) {
     var data = results['data'];
+    dataCache.treeDiametersChart = data;
+    updateTreeDiametersChart(data);
+}
+
+function updateTreeDiametersChart(data) {
+    var chart = charts.treeDiametersChart;
+    if (chart != null) {
+        chart.destroy();
+    }
+    //
+    // reduce the species and counts, as there are multiple given the aggregation
+    var reduceFunc = function(acc, value) {
+        var diameter = value['diameter'];
+        if (diameter <= 5) {
+            acc['< 5 in.'] = acc['< 5 in.'] + 1 || 1;
+        } else if (diameter > 5 && diameter < 25){
+            acc['> 5 in. and < 25 in.'] = acc['> 5 in. and < 25 in.'] + 1 || 1;
+        } else {
+            acc['> 25 in.'] = acc['> 25 in.'] + 1 || 1;
+        }
+        return acc;
+    }
+    var dataObj = data.reduce(reduceFunc, {});
+    // make into a list of items and sort descending
+    data = Object.keys(dataObj).map(k => {return {name: k, count: dataObj[k]}});
+
     var colors = chartColorTheme.reverse();
     var chart = new Chart($(dom.treeDiametersChart), {
         type: 'pie',
@@ -240,17 +316,23 @@ treeDiametersStream.onValue(function (results) {
             labels: data.map(x => x['name']),
             datasets: [{
                 data: data.map(x => x['count']),
-                backgroundColor: data.map((x, i) => colors[i]),
+                backgroundColor: data.map((x, i) => colors[i * 2]),
                 borderColor: 'rgba(200, 200, 200, 0.75)',
                 hoverBorderColor: 'rgba(200, 200, 200, 1)',
             }]
         },
     });
-});
+    charts.treeDiametersChart = chart;
+}
 
-ecobenefitsByWardStream.onError(showError);
-ecobenefitsByWardStream.onValue(function (results) {
+onValueFunctions.ecobenefits = function (results) {
     var data = results['data'];
+    dataCache.ecobenefits = data;
+    $(dom.spinner).hide();
+    updateEcobenefits(data);
+}
+
+function updateEcobenefits(data) {
     var columns = data['columns'];
     var columnHtml = '<tr>' + columns.map(x => '<th>' + x + '</th>').join('') + '</tr>';
     var dataHtml = data['data'].map(row => '<tr>' + row.map((x, i) => {
@@ -280,7 +362,7 @@ ecobenefitsByWardStream.onValue(function (results) {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }) + '</b>');
-});
+}
 
 function formatColumn(column, columnName) {
     if (column == null)
@@ -299,13 +381,68 @@ function formatColumn(column, columnName) {
     return column;
 }
 
+$(dom.neighborhoodDropdown).change(function(event) {
+    var name = $(this).val();
+    filterDataByAggregation(name);
+});
+
+$(dom.wardDropdown).change(function(event) {
+    var name = $(this).val();
+    filterDataByAggregation(name);
+});
+
+function filterDataByAggregation(name) {
+    var data = dataCache.treeCountsChart;
+
+    updateTreeCountsData(
+        data.filter(x => name == 'all' || name.includes(x['name']))
+    );
+
+    data = dataCache.speciesChart;
+    updateSpeciesData(
+        data.filter(x => name == 'all' || name.includes(x['name']))
+    );
+
+    data = dataCache.treeConditionsChart;
+    updateTreeConditionsChart(
+        data.filter(x => name == 'all' || name.includes(x['name']))
+    );
+
+    data = dataCache.treeDiametersChart;
+    updateTreeDiametersChart(
+        data.filter(x => name == 'all' || name.includes(x['name']))
+    );
+
+    data = dataCache.ecobenefits;
+    updateEcobenefits({
+        columns: data['columns'],
+        data: data['data'].filter(x => name == 'all' || name.includes(x[0]))
+    });
+}
+
+$(dom.aggregationLevelDropdown).change(function(event) {
+    var aggregationLevel = $(dom.aggregationLevelDropdown).val();
+
+    $(dom.wardDropdownContainer + " option:selected").removeAttr("selected");
+    $(dom.neighborhoodDropdownContainer + " option:selected").removeAttr("selected");
+
+    // could probably do toggle, but i'm paranoid something will break
+    if (aggregationLevel == "ward") {
+        $(dom.wardDropdownContainer).show();
+        $(dom.wardDropdownContainer + " option[value=all]").attr("selected", true);
+        $(dom.neighborhoodDropdownContainer).hide();
+    } else {
+        $(dom.wardDropdownContainer).hide();
+        $(dom.neighborhoodDropdownContainer).show();
+        $(dom.neighborhoodDropdownContainer + " option[value=all]").attr("selected", true);
+    }
+
+    loadData();
+});
+
 
 buttonEnabler.run();
 U.modalsFocusOnFirstInputWhenShown();
-$(dom.addRole).on('click', function () {
-    $(dom.addRoleModal).modal('show');
-});
-
 
 var alertDismissStream = $(dom.newFieldsDismiss).asEventStream('click')
     .doAction('.preventDefault')
@@ -314,8 +451,12 @@ var alertDismissStream = $(dom.newFieldsDismiss).asEventStream('click')
 
 alertDismissStream.onValue(function() {
     $(dom.newFieldsAlert).hide();
-    $(dom.roles).find('tr.active').removeClass('active');
 });
 
 adminPage.init(Bacon.mergeAll(alertDismissStream));
 
+// initially, show by Ward
+$(dom.wardDropdownContainer).show();
+$(dom.neighborhoodDropdownContainer).hide();
+$(dom.wardDropdownContainer + " option[value=all]").attr("selected", true);
+loadData();

@@ -1,18 +1,13 @@
-{% extends "manage_treemap/management_base.html" %}
+{% extends "manage_treemap/dashboard_base.html" %}
 {% load render_bundle from webpack_loader %}
 {% load i18n %}
 {% load instance_config %}
 
-{% block admin_title %}{% trans "Reports" %}{% endblock %}
-
-{% block tab_content %}
-    <div id="roles-pane">
+{% block content %}
+    <div id="roles-pane" class="tab-content management-content">
         <div class="page-header">
-            <div class="page-header-toggles">
-                <i class="icon-menu" id="toggle-sidebar"></i>
-            </div>
             <div class="page-header-title">
-                <h1>{% trans "Reports" %}</h1>
+                <h1>{% trans "Dashboard" %}</h1>
             </div>
         </div>
 

@@ -19,7 +19,7 @@ from importer.views import list_imports
 from manage_treemap.views import update_instance_fields_with_validator
 from manage_treemap.views.roles import roles_list, roles_update, roles_create
 from manage_treemap.views.groups import groups_list, get_groups_data
-from manage_treemap.views.reports import get_reports_data
+from manage_treemap.views.reports import get_reports_data, reports
 from manage_treemap.views.udf import (udf_bulk_update, udf_create, udf_list,
                                       udf_delete_popup, udf_delete,
                                       udf_update_choice,
@@ -28,7 +28,7 @@ from manage_treemap.views.user_roles import (
     user_roles_list, update_user_roles, create_user_role,
     remove_invited_user_from_instance)
 from treemap.decorators import (require_http_method, admin_instance_request,
-                                return_400_if_validation_errors)
+                                return_400_if_validation_errors, instance_request)
 
 admin_route = lambda **kwargs: admin_instance_request(route(**kwargs))
 
@@ -223,9 +223,11 @@ get_groups_data = do(
     admin_instance_request,
     get_groups_data)
 
-
-reports = admin_route(
-    GET=do(render_template('manage_treemap/reports.html'), groups_list),
+reports = do(
+    instance_request,
+    route(
+        GET=do(render_template('manage_treemap/reports.html'), reports),
+    )
     #PUT=do(groups_update),
     #POST=do(render_template('manage_treemap/partials/groups.html'),
     #      groups_create)
@@ -234,5 +236,7 @@ reports = admin_route(
 # FIXME move to API
 get_reports_data = do(
     json_api_call,
-    admin_instance_request,
-    get_reports_data)
+    instance_request,
+    #admin_instance_request,
+    get_reports_data
+)

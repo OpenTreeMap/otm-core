@@ -10,7 +10,18 @@ from django.contrib.contenttypes.models import ContentType
 
 from treemap.ecobenefits import get_benefits_for_filter
 from treemap.search import Filter
-from treemap.models import Boundary
+from treemap.models import Boundary, NeighborhoodGroup
+
+
+def reports(request, instance):
+    neighborhoods = Boundary.objects.filter(category__iexact='neighborhood').order_by('name').all()
+    wards = Boundary.objects.filter(category__iexact='ward').order_by('name').all()
+
+    return {
+        'instance': instance,
+        'neighborhoods': neighborhoods,
+        'wards': wards,
+    }
 
 
 def get_reports_data(request, instance, data_set, aggregation_level):
@@ -49,31 +60,21 @@ def get_tree_count(aggregation_level, instance):
 
 def get_species_count(aggregation_level, instance):
     query = """
-        with top_ten as (
-            SELECT  s.common_name as name,
-                    count(1) as "count"
-            from    treemap_mapfeature m
-            join	treemap_tree t  on m.id = t.plot_id
-            left join   treemap_species s on s.id = t.species_id
-            WHERE   1=1
-            and     s.common_name is not null
-            group by s.common_name
-            order by count(1) desc
-            limit 10
-        )
-        SELECT  top_ten.name, top_ten.count from top_ten
-
-        union all
-
-        SELECT  'Other' as "name",
+        SELECT  s.common_name as species_name,
+                b.name as name,
                 count(1) as "count"
         from    treemap_mapfeature m
         join	treemap_tree t  on m.id = t.plot_id
         left join   treemap_species s on s.id = t.species_id
+        left join   treemap_boundary b on
+            (st_within(m.the_geom_webmercator, b.the_geom_webmercator))
         WHERE   1=1
-        and     s.common_name not in (select name from top_ten)
+        and     s.common_name is not null
+        and     b.name is not null
+        and     lower(b.category) = %s
+        group by s.common_name, b.name
     """
-    columns = ['name', 'count']
+    columns = ['species_name', 'name', 'count']
     with connection.cursor() as cursor:
         cursor.execute(query, [aggregation_level])
         results = cursor.fetchall()
@@ -113,8 +114,8 @@ def get_tree_conditions(aggregation_level, instance):
 def get_tree_diameters(aggregation_level, instance):
     query = """
         with tstats as (
-            select min(diameter) as min,
-                max(diameter) as max
+            select  min(diameter) as min,
+                    max(diameter) as max
             from        treemap_mapfeature m
             left join   treemap_tree t  on m.id = t.plot_id
             left join   treemap_species s on s.id = t.species_id
@@ -124,21 +125,25 @@ def get_tree_diameters(aggregation_level, instance):
             -- this is otherwise probably just wrong data
             and     diameter >= 2.5
         )
-        select  'Min: ' || trunc(min(diameter)) || '; Max: ' || trunc(max(diameter)) as name,
-                count(1) as "count"
+        select  diameter as diameter,
+                b.name as name,
+                tstats.min as "min",
+                tstats.max as "max"
             from        treemap_mapfeature m
             cross join  tstats
             left join   treemap_tree t  on m.id = t.plot_id
             left join   treemap_species s on s.id = t.species_id
+            left JOIN   treemap_boundary b on (ST_Within(m.the_geom_webmercator, b.the_geom_webmercator))
             where   1=1
+            and     lower(b.category) = %s
+            and     b.name is not null
             and     diameter is not null
             and     s.common_name is not null
             -- this is otherwise probably just wrong data
             and     diameter >= 2.5
-        group by width_bucket(diameter, min, max, 9)
-        order by width_bucket(diameter, min, max, 9)
     """
-    columns = ['name', 'count']
+
+    columns = ['diameter', 'name', 'min', 'max']
     with connection.cursor() as cursor:
         cursor.execute(query, [aggregation_level])
         results = cursor.fetchall()
@@ -164,6 +169,8 @@ def get_ecobenefits(aggregation_level, instance):
         data_all.extend([value['value'], value['currency']])
     columns.append('Total Trees')
     data_all.append(basis_all['plot']['n_objects_used'])
+
+    boundary_filters = []
 
     # iterate over the boundaries and get the benefits for each one
     for boundary in boundaries:

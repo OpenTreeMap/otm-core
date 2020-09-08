@@ -1,38 +1,67 @@
-<div>
-    <h3>Trees By Neighborhood</h3>
-    <div id="trees-by-neighborhood-chart">
-        <canvas height="50"></canvas>
+<div id="management">
+    <div class="dashboard" style="width: 85%">
+        <h3>Trees Counts</h3>
+        <div id="tree-counts-chart">
+            <canvas height="50"></canvas>
+        </div>
+
+        <h3>Trees By Species</h3>
+        <div id="species-chart">
+            <canvas height="50"></canvas>
+        </div>
+
+        <h3>Tree Conditions</h3>
+        <div id="tree-conditions-chart">
+            <canvas height="50"></canvas>
+        </div>
+
+        <h3>Tree Diameters</h3>
+        <div id="tree-diameters-chart">
+            <canvas height="50"></canvas>
+        </div>
+
+        <h3>Eco Benefits</h3>
+        <img src="/static/img/spinner.gif" class="spinner pull-right" style="display:none;">
+        <table class="table table-hover" id="ecobenefits-by-ward-table">
+            <thead></thead>
+            <tbody style="white-space: nowrap;" ></tbody>
+        </table>
+        <div id="ecobenefits-by-ward-total"></div>
+        <p><i>* Total trees based on trees used for Eco Benefits calculator</i></p>
     </div>
 
-    <h3>Trees By Ward</h3>
-    <div id="trees-by-ward-chart">
-        <canvas height="50"></canvas>
-    </div>
+    <div class="sidebar" style="width: 15%">
+        <div class="container-fluid">
+            <div class="form-group">
+                <label class="control-label" style="color: white">Aggregation Level</label>
+                <select id="select-aggregation" class="form-control">
+                    <option value="ward">Ward</option>
+                    <option value="neighborhood">Neighborhood</option>
+                </select>
+            </div>
 
-    <h3>Trees By Species</h3>
-    <div id="species-chart">
-        <canvas height="50"></canvas>
-    </div>
+            <div id="select-wards-container" class="form-group">
+                <label class="control-label" style="color: white">Aggregation</label>
+                <select id="select-wards" multiple="multiple" class="form-control" size="15">
+                    <option value="all">All</option>
+                    {% for ward in wards %}
+                        <option>{{ ward }}</option>
+                    {% endfor %}
+                </select>
+                <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>
+            </div>
 
-    <h3>Tree Conditions By Neighborhood</h3>
-    <div id="tree-conditions-by-neighborhood-chart">
-        <canvas height="50"></canvas>
-    </div>
+            <div id="select-neighborhoods-container" class="form-group">
+                <label class="control-label" style="color: white">Aggregation</label>
+                <select id="select-neighborhoods" multiple="multiple" class="form-control" size="15">
+                    <option value="all">All</option>
+                    {% for neighborhood in neighborhoods %}
+                        <option>{{ neighborhood }}</option>
+                    {% endfor %}
+                </select>
+                <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>
+            </div>
+        </div>
 
-    <h3>Tree Conditions By Ward</h3>
-    <div id="tree-conditions-by-ward-chart">
-        <canvas height="50"></canvas>
     </div>
-
-    <h3>Tree Diameters By Species</h3>
-    <div id="tree-diameters-chart">
-        <canvas height="50"></canvas>
-    </div>
-
-    <h3>Eco Benefits By Ward</h3>
-    <table class="table table-hover" id="ecobenefits-by-ward-table">
-        <thead></thead>
-        <tbody style="white-space: nowrap;" ></tbody>
-    </table>
-    <div id="ecobenefits-by-ward-total"></div>
 </div>

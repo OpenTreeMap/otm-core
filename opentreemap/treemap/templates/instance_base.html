@@ -87,6 +87,10 @@ ga('set', 'page', pathname);
   <a href="{% url "management" instance_url_name=request.instance.url_name %}">{% trans "Manage" %}</a>
 </li>
 {% endif %}
+
+<li class="hidden-xs {% block activedashboard %}{% endblock %}">
+  <a href="{% url "reports_endpoint" instance_url_name=request.instance.url_name %}">{% trans "Dashboard" %}</a>
+</li>
 {% endblock instancetopnav %}
 
 <!--
