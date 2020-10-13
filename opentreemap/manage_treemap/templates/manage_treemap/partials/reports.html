@@ -37,6 +37,8 @@
                 <select id="select-aggregation" class="form-control">
                     <option value="ward">Ward</option>
                     <option value="neighborhood">Neighborhood</option>
+                    <option value="park">Parks</option>
+                    <option value="sid">SIDs</option>
                 </select>
             </div>
 
@@ -45,7 +47,7 @@
                 <select id="select-wards" multiple="multiple" class="form-control" size="15">
                     <option value="all">All</option>
                     {% for ward in wards %}
-                        <option>{{ ward }}</option>
+                        <option>{{ ward.name }}</option>
                     {% endfor %}
                 </select>
                 <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>
@@ -56,7 +58,29 @@
                 <select id="select-neighborhoods" multiple="multiple" class="form-control" size="15">
                     <option value="all">All</option>
                     {% for neighborhood in neighborhoods %}
-                        <option>{{ neighborhood }}</option>
+                        <option>{{ neighborhood.name }}</option>
+                    {% endfor %}
+                </select>
+                <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>
+            </div>
+
+            <div id="select-parks-container" class="form-group">
+                <label class="control-label" style="color: white">Aggregation</label>
+                <select id="select-parks" multiple="multiple" class="form-control" size="15">
+                    <option value="all">All</option>
+                    {% for park in parks %}
+                        <option>{{ park.name }}</option>
+                    {% endfor %}
+                </select>
+                <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>
+            </div>
+
+            <div id="select-sids-container" class="form-group">
+                <label class="control-label" style="color: white">Aggregation</label>
+                <select id="select-sids" multiple="multiple" class="form-control" size="15">
+                    <option value="all">All</option>
+                    {% for sid in sids %}
+                        <option>{{ sid.name }}</option>
                     {% endfor %}
                 </select>
                 <p style="color: white"><i>* Hold Control + Click to select muliple</i></p>

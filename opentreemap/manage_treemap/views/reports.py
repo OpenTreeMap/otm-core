@@ -14,13 +14,17 @@ from treemap.models import Boundary, NeighborhoodGroup
 
 
 def reports(request, instance):
-    neighborhoods = Boundary.objects.filter(category__iexact='neighborhood').order_by('name').all()
-    wards = Boundary.objects.filter(category__iexact='ward').order_by('name').all()
+    neighborhoods = Boundary.objects.filter(category__iexact='neighborhood').values('name').order_by('name').all()
+    wards = Boundary.objects.filter(category__iexact='ward').order_by('name').values('name').all()
+    parks = Boundary.objects.filter(category__iexact='park').order_by('name').values('name').distinct().all()
+    sids = Boundary.objects.filter(category__iexact='sid').order_by('name').values('name').distinct().all()
 
     return {
         'instance': instance,
         'neighborhoods': neighborhoods,
         'wards': wards,
+        'parks': parks,
+        'sids': sids
     }
 
 

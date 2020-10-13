@@ -22,9 +22,13 @@ var dom = {
 
     neighborhoodDropdownContainer: '#select-neighborhoods-container',
     wardDropdownContainer: '#select-wards-container',
+    parkDropdownContainer: '#select-parks-container',
+    sidDropdownContainer: '#select-sids-container',
 
     neighborhoodDropdown: '#select-neighborhoods',
     wardDropdown: '#select-wards',
+    parkDropdown: '#select-parks',
+    sidDropdown: '#select-sids',
 
     chart: '#group-chart canvas',
     treeCountsChart: '#tree-counts-chart canvas',
@@ -391,6 +395,16 @@ $(dom.wardDropdown).change(function(event) {
     filterDataByAggregation(name);
 });
 
+$(dom.parkDropdown).change(function(event) {
+    var name = $(this).val();
+    filterDataByAggregation(name);
+});
+
+$(dom.sidDropdown).change(function(event) {
+    var name = $(this).val();
+    filterDataByAggregation(name);
+});
+
 function filterDataByAggregation(name) {
     var data = dataCache.treeCountsChart;
 
@@ -425,16 +439,34 @@ $(dom.aggregationLevelDropdown).change(function(event) {
 
     $(dom.wardDropdownContainer + " option:selected").removeAttr("selected");
     $(dom.neighborhoodDropdownContainer + " option:selected").removeAttr("selected");
+    $(dom.parkDropdownContainer + " option:selected").removeAttr("selected");
+    $(dom.sidDropdownContainer + " option:selected").removeAttr("selected");
 
     // could probably do toggle, but i'm paranoid something will break
     if (aggregationLevel == "ward") {
         $(dom.wardDropdownContainer).show();
         $(dom.wardDropdownContainer + " option[value=all]").attr("selected", true);
         $(dom.neighborhoodDropdownContainer).hide();
-    } else {
+        $(dom.parkDropdownContainer).hide();
+        $(dom.sidDropdownContainer).hide();
+    } else if (aggregationLevel == "neighborhood"){
         $(dom.wardDropdownContainer).hide();
         $(dom.neighborhoodDropdownContainer).show();
         $(dom.neighborhoodDropdownContainer + " option[value=all]").attr("selected", true);
+        $(dom.parkDropdownContainer).hide();
+        $(dom.sidDropdownContainer).hide();
+    } else if (aggregationLevel == "park"){
+        $(dom.wardDropdownContainer).hide();
+        $(dom.neighborhoodDropdownContainer).hide();
+        $(dom.parkDropdownContainer).show();
+        $(dom.parkDropdownContainer + " option[value=all]").attr("selected", true);
+        $(dom.sidDropdownContainer).hide();
+    } else if (aggregationLevel == "sid"){
+        $(dom.wardDropdownContainer).hide();
+        $(dom.neighborhoodDropdownContainer).hide();
+        $(dom.parkDropdownContainer).hide();
+        $(dom.sidDropdownContainer).show();
+        $(dom.sidDropdownContainer + " option[value=all]").attr("selected", true);
     }
 
     loadData();
@@ -458,5 +490,7 @@ adminPage.init(Bacon.mergeAll(alertDismissStream));
 // initially, show by Ward
 $(dom.wardDropdownContainer).show();
 $(dom.neighborhoodDropdownContainer).hide();
+$(dom.parkDropdownContainer).hide();
+$(dom.sidDropdownContainer).hide();
 $(dom.wardDropdownContainer + " option[value=all]").attr("selected", true);
 loadData();
