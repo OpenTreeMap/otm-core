@@ -34,7 +34,7 @@ mccabe==0.6.1
 modgrammar-py2==0.9.1 # rq.filter: !=0.9.2
 olefile==0.44
 pep8==1.4.6 # rq.filter: ==1.4.6
-Pillow==4.2.1
+Pillow==8.1.1
 psycopg2==2.7.3.2                        # http://initd.org/psycopg/docs/news.html
 pyflakes==1.6.0
 python-dateutil==2.6.1                   # https://github.com/dateutil/dateutil/blob/master/NEWS
