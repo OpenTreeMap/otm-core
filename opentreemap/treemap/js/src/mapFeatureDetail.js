@@ -113,11 +113,11 @@ function init() {
 
     initDetail(form);
 
-    var refreshDetailUrl = reverse.map_feature_detail_partial({
+    var refreshDetailUrl = reverse.Urls.map_feature_detail_partial({
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId
         }),
-        refreshSidebarUrl = reverse.map_feature_sidebar({
+        refreshSidebarUrl = reverse.Urls.map_feature_sidebar({
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId
         });

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import csv
 import datetime
@@ -80,7 +78,7 @@ def _values_for_model(
 
         if field_name.startswith('udf:'):
             name = field_name[4:]
-            if name in model_class.collection_udf_settings.keys():
+            if name in list(model_class.collection_udf_settings.keys()):
                 field_definition_id = None
                 for udfd in udf_defs(instance, model):
                     if udfd.iscollection and udfd.name == name:
@@ -163,7 +161,7 @@ def async_csv_export(job, model, query, display_filters):
                       filter(instance=instance))
         values = _values_for_model(instance, job, 'treemap_species',
                                    'Species', select, select_params)
-        field_names = values + select.keys()
+        field_names = values + list(select.keys())
         limited_qs = (initial_qs
                       .extra(select=select,
                              select_params=select_params)
@@ -215,7 +213,7 @@ def async_csv_export(job, model, query, display_filters):
             limited_qs = (initial_qs
                           .extra(select=select,
                                  select_params=select_params)
-                          .values(*field_header_map.keys()))
+                          .values(*list(field_header_map.keys())))
         else:
             limited_qs = initial_qs.none()
 
@@ -230,7 +228,7 @@ def async_csv_export(job, model, query, display_filters):
     else:
         csv_file = TemporaryFile()
         write_csv(limited_qs, csv_file,
-                  field_order=field_header_map.keys(),
+                  field_order=list(field_header_map.keys()),
                   field_header_map=field_header_map,
                   field_serializer_map=field_serializer_map)
         filename = generate_filename(limited_qs).replace('plot', 'tree')
@@ -306,7 +304,7 @@ def _csv_field_serializer_map(instance, field_names):
     def make_serializer(factor, digits):
         return lambda x: str(round(factor * x, digits))
 
-    for name, details in convertable_fields.iteritems():
+    for name, details in convertable_fields.items():
         model_name, field = details
         factor = storage_to_instance_units_factor(instance,
                                                   model_name,

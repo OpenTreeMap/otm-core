@@ -9,14 +9,24 @@
         {% trans "of" %}
         <span class='footer-total-steps'>{{ nsteps }}</span>
     </span>
-    <ul class="pager">
+    <ul class="pager pagination justify-content-center">
         {% if not first %}
-        <li class="previous">
-            <a class="btn btn-primary" href="javascript:;">{% trans "« Back" %}</a>
+        <li class="previous page-item">
+            <a class="btn btn-primary page-link" href="javascript:;">{% trans "« Back" %}</a>
         </li>
         {% endif %}
-        <li class="next">
-            <a class="btn btn-primary" href="javascript:;"{% if feature_name and last %} data-event-category="add-{{ feature_name }}" data-event-action="confirm-done"{% endif %}>
+        <li class="page-item disabled">
+            <span class="page-link">
+                <strong>
+                {% trans "Step" %}
+                <span class='footer-step-number'></span>
+                </strong>
+                {% trans "of" %}
+                <span class='footer-total-steps'>{{ nsteps }}</span>
+            </span>
+        </li>
+        <li class="next page-item">
+            <a class="btn btn-primary page-link" href="javascript:;"{% if feature_name and last %} data-event-category="add-{{ feature_name }}" data-event-action="confirm-done"{% endif %}>
                 {% if last %}{% trans "Done" %}{% else %}{% trans "Next »" %}{% endif %}
             </a>
         </li>

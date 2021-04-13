@@ -48,9 +48,6 @@ If it becomes necessary, see
 http://stackoverflow.com/a/43745677/14405
 '''
 
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
 import json
 import copy
@@ -61,7 +58,6 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.db import models
@@ -164,11 +160,11 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
     particular collection field. We audit all of the fields on this
     object and expand the audits in the same way that scalar udfs work.
     """
-    field_definition = models.ForeignKey('UserDefinedFieldDefinition')
+    field_definition = models.ForeignKey('UserDefinedFieldDefinition', on_delete=models.CASCADE)
     model_id = models.IntegerField()
     data = HStoreField()
 
-    def __unicode__(self):
+    def __str__(self):
         return repr(self.data)
 
     def __init__(self, *args, **kwargs):
@@ -276,7 +272,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         base_model_dict = super(
             UserDefinedCollectionValue, self).as_dict(*args, **kwargs)
 
-        for field, value in self.data.iteritems():
+        for field, value in self.data.items():
             base_model_dict['udf:' + field] = value
 
         return base_model_dict
@@ -323,7 +319,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         if field_perm.permission_level == FieldPermission.WRITE_WITH_AUDIT:
             model_id = _reserve_model_id(UserDefinedCollectionValue)
             pending = True
-            for field, (oldval, __) in updated_fields.iteritems():
+            for field, (oldval, __) in updated_fields.items():
                 self.apply_change(field, oldval)
         else:
             pending = False
@@ -334,7 +330,7 @@ class UserDefinedCollectionValue(UserTrackable, models.Model):
         if audit_type == Audit.Type.Insert:
             updated_fields['id'] = [None, model_id]
 
-        for field, (old_val, new_val) in updated_fields.iteritems():
+        for field, (old_val, new_val) in updated_fields.items():
             Audit.objects.create(
                 current_value=new_val,
                 previous_value=old_val,
@@ -358,7 +354,7 @@ class UserDefinedFieldDefinition(models.Model):
     """
     The instance that this field is bound to
     """
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
 
     """
     The type of model that this should bind to
@@ -410,7 +406,7 @@ class UserDefinedFieldDefinition(models.Model):
     class Meta:
         unique_together = ('instance', 'model_type', 'name')
 
-    def __unicode__(self):
+    def __str__(self):
         return ('%s.%s%s' %
                 (self.model_type, self.name,
                  ' (collection)' if self.iscollection else ''))
@@ -428,7 +424,7 @@ class UserDefinedFieldDefinition(models.Model):
             self, datatype, old_choice_value, new_choice_value):
 
         # Prevent validation errors when the choice value is numeric.
-        old_choice_value = unicode(old_choice_value)
+        old_choice_value = str(old_choice_value)
 
         if datatype['type'] not in ('choice', 'multichoice'):
             raise ValidationError(
@@ -537,10 +533,8 @@ class UserDefinedFieldDefinition(models.Model):
     def _list_replace_or_remove(self, l, old, new):
         if l is None:
             return None
-        new_l = filter(
-            None,
-            [(new if choice == old else choice)
-             for choice in l])
+        new_l = [_f for _f
+                 in [(new if choice == old else choice) for choice in l] if _f]
         return new_l or None
 
     def add_choice(self, new_choice_value, name=None):
@@ -552,7 +546,7 @@ class UserDefinedFieldDefinition(models.Model):
             datatypes = {d['name']: d for d in self.datatype_dict}
             datatypes[name]['choices'].append(new_choice_value)
 
-            self.datatype = json.dumps(datatypes.values())
+            self.datatype = json.dumps(list(datatypes.values()))
             self.save()
         else:
             if name is not None:
@@ -574,7 +568,7 @@ class UserDefinedFieldDefinition(models.Model):
             if choice not in new_choices:
                 self.delete_choice(choice, field_name)
         field['choices'] = new_choices
-        self.datatype = json.dumps(datatypes.values())
+        self.datatype = json.dumps(list(datatypes.values()))
         self.save()
 
     @transaction.atomic
@@ -595,7 +589,7 @@ class UserDefinedFieldDefinition(models.Model):
                 datatypes[name], old_choice_value, new_choice_value)
 
             datatypes[name] = datatype
-            self.datatype = json.dumps(datatypes.values())
+            self.datatype = json.dumps(list(datatypes.values()))
             self.save()
 
             vals = UserDefinedCollectionValue\
@@ -740,7 +734,7 @@ class UserDefinedFieldDefinition(models.Model):
                 raise ValidationError(_('Missing choices key'))
 
             for choice in choices:
-                if not isinstance(choice, basestring):
+                if not isinstance(choice, str):
                     raise ValidationError(_('Choice must be a string'))
                 if choice is None or choice.strip() == '':
                     raise ValidationError(_('Empty choice is not allowed'))
@@ -876,16 +870,16 @@ class UserDefinedFieldDefinition(models.Model):
         datatype = dtd['type']
 
         if datatype == 'date':
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 return value
             elif isinstance(value, datetime):
                 return value.strftime(DATETIME_FORMAT)
         elif isinstance(value, bool):
             return force_text(value).lower()
-        elif isinstance(value, six.integer_types + (float, Decimal)):
+        elif isinstance(value, (int, float, Decimal)):
             return force_text(value)
         # Order matters. Strings are Iterable.
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return value
         elif isinstance(value, Iterable):
             return force_text(json.dumps(value, cls=DecimalEncoder))
@@ -981,11 +975,11 @@ class UserDefinedFieldDefinition(models.Model):
                         fieldname=self.name)
                 if values is None:
                     return None
-                if isinstance(values, basestring):
+                if isinstance(values, str):
                     # A single string is valid JSON. Wrap as a list for
                     # consistency
                     values = [values]
-                map(_validate, values)
+                list(map(_validate, values))
                 return values
         else:
             return value
@@ -997,7 +991,7 @@ class UserDefinedFieldDefinition(models.Model):
         errors = {}
 
         for entry in data:
-            for subfield_name, subfield_val in entry.iteritems():
+            for subfield_name, subfield_val in entry.items():
                 if subfield_name == 'id':
                     continue
 
@@ -1053,7 +1047,7 @@ class UDFPostgresField(HStoreField):
         if not isinstance(self.default, UDFDictionary):
             self.default = UDFDictionary
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection, context=None):
         return UDFDictionary(value)
 
     def to_python(self, value):
@@ -1064,7 +1058,7 @@ class UDFPostgresField(HStoreField):
         if isinstance(value, UDFDictionary):
             return value
 
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = super(UDFPostgresField, self).to_python(value)
 
         if value is None:
@@ -1092,7 +1086,7 @@ class UDFPostgresField(HStoreField):
 
             return {key: udfds[key].reverse_clean(val)
                     for (key, val)
-                    in super(UDFDictionary, udf_dict).iteritems()}
+                    in super(UDFDictionary, udf_dict).items()}
 
         return value
 
@@ -1218,7 +1212,7 @@ class UDFDictionary(dict):
     def __contains__(self, key):
         if super(UDFDictionary, self).__contains__(key):
             return True
-        return key in self.collection_fields.keys()
+        return key in list(self.collection_fields.keys())
 
     def __getitem__(self, key):
         udfd = self._get_udf_or_error(key)
@@ -1269,7 +1263,7 @@ class UDFDictionary(dict):
 
     def iteritems(self):
         model_instance = getattr(self, 'instance', None)
-        for k, v in super(UDFDictionary, self).iteritems():
+        for k, v in super(UDFDictionary, self).items():
             if v is not None:
                 yield k, v
         if model_instance is not None:
@@ -1286,10 +1280,10 @@ class UDFDictionary(dict):
         model_type = getattr(self, '_model_type',
                              self.__class__.__name__)
         return '{}.udfs({})'.format(
-            model_type, pformat(dict(self.items())))
+            model_type, pformat(dict(list(self.items()))))
 
 
-class UDFModel(UserTrackable, models.Model):
+class UDFModel(UserTrackable, models.Model, metaclass=UDFModelBase):
     """
     Classes that extend this model gain support for scalar UDF
     fields via the `udfs` field.
@@ -1298,8 +1292,6 @@ class UDFModel(UserTrackable, models.Model):
     This model works correctly with the Auditable and
     Authorizable mixins
     """
-
-    __metaclass__ = UDFModelBase
 
     udfs = UDFPostgresField(
         db_index=True,
@@ -1480,7 +1472,7 @@ class UDFModel(UserTrackable, models.Model):
     def collection_udf_settings(cls):
         return {
             k: v for k, v in
-            getattr(cls, 'udf_settings', {}).items()
+            list(getattr(cls, 'udf_settings', {}).items())
             if v.get('iscollection')}
 
     @property
@@ -1507,7 +1499,7 @@ class UDFModel(UserTrackable, models.Model):
                     # For collection UDFs, we need to format each subvalue
                     # inside each dictionary
                     value = [{k: _format_value(val)
-                             for k, val in sub_dict.iteritems()}
+                             for k, val in sub_dict.items()}
                              for sub_dict in value]
                 else:
                     value = _format_value(value)
@@ -1527,13 +1519,13 @@ class UDFModel(UserTrackable, models.Model):
         collection_fields = self.udfs._base_collection_fields(clean=False)
         dirty_collection_values = {
             field_name: values
-            for field_name, values in collection_fields.iteritems()
+            for field_name, values in collection_fields.items()
             if field_name in self.dirty_collection_udfs}
 
         fields = {field.name: field
                   for field in self.get_user_defined_fields()}
 
-        for field_name, values in dirty_collection_values.iteritems():
+        for field_name, values in dirty_collection_values.items():
             field = fields[field_name]
 
             ids_specified = []
@@ -1543,7 +1535,7 @@ class UDFModel(UserTrackable, models.Model):
                 if udcv.data != value_dict:
                     udcv.data = {
                         key: field.reverse_clean(val, key=key)
-                        for key, val in value_dict.items()}
+                        for key, val in list(value_dict.items())}
                     udcv.save_with_user(user)
 
                 ids_specified.append(udcv.pk)
@@ -1583,11 +1575,11 @@ class UDFModel(UserTrackable, models.Model):
         errors = {}
 
         keys_to_delete = [
-            key for key, field in scalar_fields.iteritems()
+            key for key, field in scalar_fields.items()
             if field is None]
         for key in keys_to_delete:
             del self.udfs[key]
-        for key, field in scalar_fields.iteritems():
+        for key, field in scalar_fields.items():
             val = self.udfs.get(key, None, do_not_clean=True)
             try:
                 field.clean_value(val)
@@ -1599,7 +1591,7 @@ class UDFModel(UserTrackable, models.Model):
         # without the attribute `collection_data_loaded`, so use `getattr`.
         if getattr(self.udfs, 'collection_data_loaded', None):
             collection_data = self.udfs.collection_fields
-            for collection_field_name, data in collection_data.iteritems():
+            for collection_field_name, data in collection_data.items():
                 collection_field = collection_fields.get(
                     collection_field_name, None)
 

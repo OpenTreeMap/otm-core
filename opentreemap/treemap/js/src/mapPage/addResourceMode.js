@@ -55,7 +55,7 @@ function init(options) {
             skipDetailForm = $option.data('skip-detail-form') == 'True',
             enableDetailNext = $option.data('enable-detail-next') == 'True',
             enableContinueEditing = $option.data('is-editable') == 'True',
-            addFeatureUrl = reverse.add_map_feature({
+            addFeatureUrl = reverse.Urls.add_map_feature({
                 instance_url_name: config.instance.url_name,
                 type: type
             });
@@ -86,7 +86,7 @@ function init(options) {
             }
 
             $.ajax({
-                url: reverse.add_map_feature({
+                url: reverse.Urls.add_map_feature({
                     instance_url_name: config.instance.url_name,
                     type: type
                 }),

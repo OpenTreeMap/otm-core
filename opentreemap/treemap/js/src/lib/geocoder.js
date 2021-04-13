@@ -47,7 +47,7 @@ exports = module.exports = function () {
         }
         return Bacon.fromPromise(
             $.ajax({
-                url: reverse.geocode(),
+                url: reverse.Urls.geocode(),
                 type: 'GET',
                 data: data,
                 dataType: 'json'
@@ -77,7 +77,7 @@ exports = module.exports = function () {
             return Bacon.fromPromise($.ajax(opts));
         } else {
             return Bacon.fromPromise(
-                $.getJSON(reverse.get_geocode_token())
+                $.getJSON(reverse.Urls.get_geocode_token())
                     .then(function(response) {
                         token = response.token;
                         opts.data.token = token;

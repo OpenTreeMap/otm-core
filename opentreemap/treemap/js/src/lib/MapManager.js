@@ -188,7 +188,7 @@ MapManager.prototype = {
                             // halving with every zoom level.  I arrived at 20
                             // meters at zoom level 15 through trial and error
                             dist = 20 / Math.pow(2, map.getZoom() - MIN_ZOOM_OPTION.minZoom),
-                            url = reverse.polygon_for_point({instance_url_name: config.instance.url_name});
+                            url = reverse.Urls.polygon_for_point({instance_url_name: config.instance.url_name});
 
                         return url + format('?lng=%d&lat=%d&distance=%d', lng, lat, dist);
                     }).flatMap(BU.getJsonFromUrl);
@@ -313,7 +313,7 @@ MapManager.prototype = {
                 }
             );
 
-            monkeyPatchLeafletLayersControlForMobileSafari(this.layersControl);
+            //monkeyPatchLeafletLayersControlForMobileSafari(this.layersControl);
 
             this.layersControl.addTo(map);
             map.on('baselayerchange', function(e) {

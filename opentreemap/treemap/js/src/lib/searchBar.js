@@ -78,7 +78,7 @@ function redirectToSearchPage(filters, latLng) {
     if (filters.address) {
         query += '&a=' + filters.address;
     }
-    window.location.href = reverse.map(config.instance.url_name) + '?' + query;
+    window.location.href = reverse.Urls.map(config.instance.url_name) + '?' + query;
 }
 
 function initSearchUi(searchStream) {
@@ -333,7 +333,7 @@ module.exports = exports = {
 
         var speciesTypeahead = otmTypeahead.create({
                 name: "species",
-                url: reverse.species_list_view(config.instance.url_name),
+                url: reverse.Urls.species_list_view(config.instance.url_name),
                 input: "#species-typeahead",
                 template: "#species-element-template",
                 hidden: "#search-species",
@@ -341,7 +341,7 @@ module.exports = exports = {
             }),
             locationTypeahead = otmTypeahead.create({
                 name: "boundaries",
-                url: reverse.boundary_list(config.instance.url_name),
+                url: reverse.Urls.boundary_list(config.instance.url_name),
                 input: dom.locationSearchTypeahead,
                 template: "#boundary-element-template",
                 hidden: "#boundary",

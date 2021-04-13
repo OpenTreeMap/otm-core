@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from treemap.tests import (RequestTestCase, make_instance,
                            make_user)
@@ -76,7 +74,7 @@ class PublicInstanceTests(RequestTestCase):
         self.make_instance_private()
         res = self.client.get('/%s/map/' % self.instance.url_name)
         self.assertRedirects(res,
-                             'http://testserver/accounts/login/?next=/%s/map/'
+                             '/accounts/login/?next=/%s/map/'
                              % self.instance.url_name)
 
     def test_private_instance_is_not_accessible_by_non_instance_user(self):
@@ -85,7 +83,7 @@ class PublicInstanceTests(RequestTestCase):
                          {'username': 'user',
                           'password': 'password'})
         res = self.client.get('/%s/map/' % self.instance.url_name)
-        self.assertRedirects(res, 'http://testserver/not-available')
+        self.assertRedirects(res, '/not-available')
 
     def test_private_instance_accessible_by_instance_user(self):
         self.make_instance_private()

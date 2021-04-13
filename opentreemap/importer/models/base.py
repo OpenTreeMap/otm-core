@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 from datetime import datetime, timedelta
@@ -43,8 +41,8 @@ class GenericImportEvent(models.Model):
     field_order = models.TextField(default='')
 
     # Metadata about this particular import
-    owner = models.ForeignKey(User)
-    instance = models.ForeignKey(Instance)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now=True)
     completed = models.DateTimeField(null=True, blank=True)
 
@@ -321,7 +319,7 @@ class GenericImportRow(models.Model):
 
         # If you give append_error a single field
         # there is no need to get angry
-        if isinstance(fields, basestring):
+        if isinstance(fields, str):
             fields = (fields,)  # make into tuple
 
         self.errors = json.dumps(
@@ -384,7 +382,7 @@ class GenericImportRow(models.Model):
             return i
 
     def convert_units(self, data, converts):
-        for fld, factor in converts.iteritems():
+        for fld, factor in converts.items():
             if fld in data and factor != 1.0:
                 data[fld] = float(data[fld]) * factor
 

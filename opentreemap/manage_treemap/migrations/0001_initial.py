@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 from django.conf import settings
@@ -24,9 +24,9 @@ class Migration(migrations.Migration):
                 ('updated', models.DateField(auto_now=True)),
                 ('accepted', models.BooleanField(default=False)),
                 ('activation_key', models.CharField(unique=True, max_length=40)),
-                ('created_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
-                ('role', models.ForeignKey(to='treemap.Role')),
+                ('created_by', models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
+                ('role', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Role')),
             ],
         ),
         migrations.AlterUniqueTogether(

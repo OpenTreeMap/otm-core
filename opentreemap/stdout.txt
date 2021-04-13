@@ -1,0 +1,1 @@
+Type 'yes' if you would like to try deleting the test database 'test_otm', or 'no' to cancel: 

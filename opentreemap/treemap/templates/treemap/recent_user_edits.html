@@ -32,16 +32,16 @@
         {% endfor %}
     </tbody>
 </table>
-<ul class="pager">
+<ul class="pager pagination">
     {% if prev_page %}
-        <li class="previous">
+        <li class="previous page-item">
             <a id="recent-user-edits-prev" href="{% url 'user_audits' username=user.username %}{{prev_page }}">
                 &larr; {% trans "Previous" %}
             </a>
         </li>
     {% endif %}
     {% if next_page %}
-        <li class="next">
+        <li class="next page-item">
             <a id="recent-user-edits-next" href="{% url 'user_audits' username=user.username %}{{ next_page }}">
                 {% trans "Next" %} &rarr;
             </a>

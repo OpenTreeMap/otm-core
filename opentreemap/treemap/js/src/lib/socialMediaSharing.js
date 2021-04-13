@@ -102,7 +102,7 @@ function renderPhotoModal (imageData) {
 
     $(dom.photoLabel).on('change', function(e) {
         var value = e.target.value;
-        var url = reverse.map_feature_photo({
+        var url = reverse.Urls.map_feature_photo({
             instance_url_name: config.instance.url_name,
             feature_id: window.otm.mapFeature.featureId,
             photo_id: mapFeaturePhotoId

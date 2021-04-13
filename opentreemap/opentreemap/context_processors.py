@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import copy
 from datetime import datetime
@@ -26,7 +24,7 @@ REPLACEABLE_TERMS = {
 
 def global_settings(request):
     last_instance = get_last_visited_instance(request)
-    if hasattr(request, 'user') and request.user.is_authenticated():
+    if hasattr(request, 'user') and request.user.is_authenticated:
         last_effective_instance_user =\
             request.user.get_effective_instance_user(last_instance)
         _update_last_seen(last_effective_instance_user)

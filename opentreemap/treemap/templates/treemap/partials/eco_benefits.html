@@ -3,10 +3,9 @@
 
 {% if request.instance_supports_ecobenefits %}
     <div {% if not hidecounts %}id="benefit-values"{% endif %} class="benefit-values panel-inner">
-        <a class="sidebar-panel-toggle visible-xs-block"
+        <a class="sidebar-panel-toggle visible-xs-block d-block d-sm-none"
            id="{% if hidecounts %}feature-panel-toggle{% else %}eco-panel-toggle{% endif %}">
             <i class="icon-right-open"></i>
-            <i class="icon-cancel"></i>
         </a>
         {% with all_benefits=benefits.all %}
             {% include "treemap/partials/benefit_value_row.html" with benefit=all_benefits.totals total=True %}

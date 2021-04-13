@@ -33,7 +33,7 @@ var dom = {
     chart: '#group-chart canvas',
 };
 
-var url = reverse.roles_endpoint(config.instance.url_name),
+var url = reverse.Urls.roles_endpoint(config.instance.url_name),
     updateStream = $(dom.save)
         .asEventStream('click')
         .doAction(function(e) {
@@ -45,7 +45,7 @@ var url = reverse.roles_endpoint(config.instance.url_name),
         .flatMap(BU.jsonRequest('PUT', url)),
     resultsStream = BU.jsonRequest(
         'GET',
-        reverse.get_groups_data(config.instance.url_name, 'neighborhood')
+        reverse.Urls.get_groups_data(config.instance.url_name, 'neighborhood')
     )();
 
 simpleEditForm.init({

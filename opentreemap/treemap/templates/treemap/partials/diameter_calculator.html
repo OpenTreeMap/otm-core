@@ -18,7 +18,9 @@
                  data-value="{{ field.value|unlocalize }}"
                  data-digits="{{ field.digits }}"
                   />
-          <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+            <div class="input-group-append">
+                <span class="input-group-text" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+            </div>
         </div>
       </td>
       <td>
@@ -27,7 +29,9 @@
                  data-class="circumference-input"
                  type="text"
                   />
-          <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+            <div class="input-group-append">
+                <span class="input-group-text" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+            </div>
         </div>
       </td>
     </tr>

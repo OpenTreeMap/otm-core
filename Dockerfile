@@ -1,32 +1,37 @@
-FROM python:2.7.9
+FROM python:3.8
 
 #RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
+#checkinstall \
+#libgdal1-dev \
+
 RUN apt-get update \
     && apt-get install -y \
-        checkinstall \
         gettext \
         libgeos-dev \
         libproj-dev \
-        libgdal1-dev \
         build-essential \
-        python-dev \
-        python-pip \
+        python3-dev \
+        python3-pip \
         libfreetype6-dev \
+        binutils \
+        libproj-dev \
+        gdal-bin \
         curl
 
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - && apt-get install -y nodejs
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - && apt-get install -y nodejs
 
 RUN npm install -g yarn
 
 WORKDIR /usr/local/otm/app
-COPY . . 
-
-RUN pip install -r requirements.txt \
-    && pip install -r dev-requirements.txt \
-    && pip install -r test-requirements.txt
-
-RUN mkdir -p /usr/local/otm/static && mkdir -p /usr/local/otm/media
-
+# only copy what we need
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 # Bundle JS and CSS via webpack
 RUN yarn --force
+
+# then copy everything else
+COPY . . 
+COPY docker/local_settings.py /usr/local/otm/app/opentreemap/opentreemap/settings/local_settings.py 
+
+RUN mkdir -p /usr/local/otm/static && mkdir -p /usr/local/otm/media && mkdir -p /usr/local/otm/emails

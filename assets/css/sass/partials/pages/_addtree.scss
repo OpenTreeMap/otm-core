@@ -105,7 +105,7 @@
             }
 
             .add-step-header:before {
-                content: counter(steps) ". ";
+                //content: counter(steps) ". ";
                 counter-increment: steps;
             }
             .add-step-header {
@@ -256,6 +256,10 @@
                     }
                 }
 
+                .photo-success {
+                    background: $primary-color
+                }
+
                 @include checkboxes;
             }
             .add-step-footer {
@@ -315,3 +319,7 @@
          }
      }
  }
+
+.react-datepicker-popper {
+    z-index: 3 !important
+}

@@ -8,7 +8,7 @@ var inlineEditForm = require('treemap/lib/inlineEditForm.js'),
 
 adminPage.init();
 inlineEditForm.init({
-    updateUrl: reverse.units_endpoint(config.instance.url_name) + '?update_universal_rev=1',
+    updateUrl: reverse.Urls.units_endpoint(config.instance.url_name) + '?update_universal_rev=1',
     section: '#units',
     errorCallback: alerts.errorCallback
 });

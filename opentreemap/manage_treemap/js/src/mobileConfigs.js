@@ -28,7 +28,7 @@ var attrs = {
 adminPage.init();
 
 reorderFields.handle({
-    url: reverse.set_field_configs(config.instance.url_name),
+    url: reverse.Urls.set_field_configs(config.instance.url_name),
     container: dom.container,
     editButton: dom.edit,
     saveButton: dom.save,

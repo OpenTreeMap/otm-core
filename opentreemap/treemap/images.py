@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from PIL import Image
 import hashlib
 import os
-from cStringIO import StringIO
+from io import BytesIO
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -29,7 +27,7 @@ def _rotate_image_based_on_exif(img):
 
 
 def _get_file_for_image(image, filename, format):
-    temp = StringIO()
+    temp = BytesIO()
     image.save(temp, format=format)
     temp.seek(0)
     return SimpleUploadedFile(filename, temp.read(),
@@ -51,6 +49,8 @@ def save_uploaded_image(image_data, name_prefix, thumb_size=None,
     # have to treat it as a file-like object
     if type(image_data) is str:
         image_data = StringIO(image_data)
+    elif type(image_data) is bytes:
+        image_data = BytesIO(image_data)
 
     image_data.seek(0, os.SEEK_END)
     file_size = image_data.tell()

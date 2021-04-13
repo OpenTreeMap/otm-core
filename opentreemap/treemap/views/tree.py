@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import hashlib
 
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ungettext
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -165,4 +163,4 @@ def ecobenefits_hash(request, instance):
 
     string_to_hash = universal_rev + ":" + eco_str + ":" + map_features
 
-    return hashlib.md5(string_to_hash).hexdigest()
+    return hashlib.md5(string_to_hash.encode()).hexdigest()

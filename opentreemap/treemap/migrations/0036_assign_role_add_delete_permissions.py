@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import migrations
 from django.db.models import Q
+from functools import reduce
 
 
 _WRITE_DIRECTLY = 3
@@ -71,7 +72,7 @@ def remove_permission(apps, schema_editor):
 
     ct_query = reduce(lambda q1, q2: q1 | q2, [
         Q(app_label=label, model__in=app_models)
-        for label, app_models in app_labels.iteritems()])
+        for label, app_models in app_labels.items()])
 
     photo_query = Q(app_label='treemap', model='mapfeaturephoto')
 

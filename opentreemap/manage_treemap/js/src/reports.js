@@ -69,35 +69,35 @@ var onValueFunctions = {
     ecobenefits: null,
 }
 
-var url = reverse.roles_endpoint(config.instance.url_name);
+var url = reverse.Urls.roles_endpoint(config.instance.url_name);
 
 function loadData() {
 
     var aggregationLevel = $(dom.aggregationLevelDropdown).val();
     var treeCountStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'count', aggregationLevel)
+        reverse.Urls.get_reports_data(config.instance.url_name, 'count', aggregationLevel)
     )();
     treeCountStream.onError(showError);
     treeCountStream.onValue(onValueFunctions.treeCountsChart);
 
     var speciesStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'species', aggregationLevel)
+        reverse.Urls.get_reports_data(config.instance.url_name, 'species', aggregationLevel)
     )();
     speciesStream.onError(showError);
     speciesStream.onValue(onValueFunctions.speciesChart);
 
     var treeConditionsStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'condition', aggregationLevel)
+        reverse.Urls.get_reports_data(config.instance.url_name, 'condition', aggregationLevel)
     )();
     treeConditionsStream.onError(showError);
     treeConditionsStream.onValue(onValueFunctions.treeConditionsChart);
 
     var treeDiametersStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'diameter', aggregationLevel)
+        reverse.Urls.get_reports_data(config.instance.url_name, 'diameter', aggregationLevel)
     )();
     treeDiametersStream.onError(showError);
     treeDiametersStream.onValue(onValueFunctions.treeDiametersChart);
@@ -106,7 +106,7 @@ function loadData() {
     $(dom.spinner).show();
     var ecobenefitsStream = BU.jsonRequest(
         'GET',
-        reverse.get_reports_data(config.instance.url_name, 'ecobenefits', aggregationLevel)
+        reverse.Urls.get_reports_data(config.instance.url_name, 'ecobenefits', aggregationLevel)
     )();
     ecobenefitsStream.onError(showError);
     ecobenefitsStream.onValue(onValueFunctions.ecobenefits);

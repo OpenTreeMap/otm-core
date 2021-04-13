@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from treemap.udf import UDFDictionary
@@ -28,9 +28,9 @@ def set_empty_multichoice_values_to_none(apps, schema_editor):
             super(UDFDictionary, obj.udfs).__setitem__(udfd.name, None)
             obj.save_base()
         if len(objs) > 0:
-            print('Updated %s empty multichoice values for %s udf "%s" (%s)'
+            print(('Updated %s empty multichoice values for %s udf "%s" (%s)'
                   % (len(objs), udfd.model_type, udfd.name,
-                     udfd.instance.url_name))
+                     udfd.instance.url_name)))
 
 
 class Migration(migrations.Migration):

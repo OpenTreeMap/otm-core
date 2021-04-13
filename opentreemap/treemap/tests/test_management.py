@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
-from StringIO import StringIO
+
+from io import StringIO
 
 from django.core.management import call_command
 

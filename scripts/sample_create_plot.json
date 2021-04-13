@@ -1,0 +1,45 @@
+{
+    "has_shape_photo": true,
+    "has_bark_photo": true,
+    "has_leaf_photo": true,
+    "tree.species": "40",
+    "tree.diameter": "1",
+    "tree.height": "4",
+    "tree.canopy_height": "3",
+    "tree.udf:Condition": "Healthy",
+    "tree.udf:JC Forester - Roots Sidewalk Issue": "",
+    "tree.udf:JC Forester - Canopy Power Lines Issue": "",
+    "tree.udf:JC Forester - Oak Wilt": "",
+    "plot.udf:Surveyor Id": "",
+    "plot.width": "3",
+    "plot.length": "4",
+    "plot.address_street": "",
+    "plot.address_city": "",
+    "plot.address_zip": "",
+    "plot.owner_orig_id": "",
+    "plot.udf:Install Tree Pit": "",
+    "plot.udf:Tree Pit Concreted Over": "",
+    "plot.udf:Steel Grate": "",
+    "plot.udf:Powerlines Overhead": "",
+    "plot.udf:Tree Stump": "",
+    "is_empty_site": false,
+    "tree.udf:Stewardship": [
+        {
+            "Action": "Watered",
+            "Date": "2021-03-10"
+        },
+        {
+            "Action": "Mulched, Had Compost Added, or Soil Amended",
+            "Date": "2021-03-14"
+        },
+        {
+            "Action": "Mulched, Had Compost Added, or Soil Amended",
+            "Date": "2021-03-14"
+        }
+    ],
+    "plot.udf:Stewardship": [],
+    "plot.geom": {
+        "x": -8238688.656689439,
+        "y": 4971996.239469761
+    }
+}

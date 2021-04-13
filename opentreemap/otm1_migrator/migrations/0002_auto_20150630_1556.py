@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -15,32 +15,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='otm1userrelic',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='otm1userrelic',
             name='migration_event',
-            field=models.ForeignKey(blank=True, to='otm1_migrator.MigrationEvent', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='otm1_migrator.MigrationEvent', null=True),
         ),
         migrations.AddField(
             model_name='otm1modelrelic',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='otm1modelrelic',
             name='migration_event',
-            field=models.ForeignKey(blank=True, to='otm1_migrator.MigrationEvent', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='otm1_migrator.MigrationEvent', null=True),
         ),
         migrations.AddField(
             model_name='otm1commentrelic',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='otm1commentrelic',
             name='migration_event',
-            field=models.ForeignKey(blank=True, to='otm1_migrator.MigrationEvent', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='otm1_migrator.MigrationEvent', null=True),
         ),
         migrations.AlterUniqueTogether(
             name='otm1userrelic',

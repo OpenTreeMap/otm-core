@@ -2,6 +2,7 @@
 
 var webpack = require('webpack'),
     config = require('./webpack.common.config.js'),
+    reversePath = __dirname + '/assets/js/shim/reverse.js';
 
     host = process.env.WEBPACK_DEV_SERVER || 'http://localhost:6062/';
 
@@ -12,10 +13,18 @@ config.entry['js/treemap/base'] = [
     './opentreemap/treemap/js/src/base.js'
 ];
 
-config.output.publicPath = host + 'static/';
-config.output.pathInfo = true;
+//config.output.publicPath = host + 'static/';
+config.output.publicPath = '/static/';
+//config.output.pathInfo = true;
+config.output.pathinfo = true;
 
-config.debug = true;
+config.module.rules.push({
+    include: reversePath,
+    //loader: 'imports?this=>window!exports?Urls'
+    use: ['imports?this=>window!exports?Urls']
+});
+
+//config.debug = true;
 
 config.devtool = 'eval';
 

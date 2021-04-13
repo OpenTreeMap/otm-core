@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import logging
-from cStringIO import StringIO
+from io import BytesIO
 import subprocess
 import shutil
 import tempfile
@@ -367,7 +365,9 @@ def make_request(params=None, user=None, instance=None,
 
     extra = {}
     if body:
-        body_stream = StringIO(body)
+        body_stream = BytesIO(body) \
+            if type(body) == bytes \
+            else BytesIO(body.encode())
         extra['wsgi.input'] = body_stream
         extra['CONTENT_LENGTH'] = len(body)
 
@@ -432,7 +432,7 @@ class LocalMediaTestCase(OTMTestCase):
         return path
 
     def load_resource(self, name):
-        return file(self.resource_path(name))
+        return open(self.resource_path(name), 'rb')
 
     def tearDown(self):
         shutil.rmtree(self.photoDir)

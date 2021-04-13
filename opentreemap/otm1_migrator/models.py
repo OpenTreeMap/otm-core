@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -27,9 +25,9 @@ class MigrationEvent(models.Model):
 
 
 class AbstractRelic(models.Model):
-    migration_event = models.ForeignKey(MigrationEvent,
+    migration_event = models.ForeignKey(MigrationEvent, on_delete=models.CASCADE,
                                         null=True, blank=True)
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
     otm1_model_id = models.IntegerField()
     otm2_model_id = models.IntegerField()
 

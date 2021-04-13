@@ -39,7 +39,7 @@ var dom = {
 
 adminPage.init();
 
-var url = reverse.user_roles(config.instance.url_name),
+var url = reverse.Urls.user_roles(config.instance.url_name),
     $container = $(dom.container),
     $addUser = $(dom.addUser),
     $addUserModal = $(dom.addUserModal),
@@ -209,7 +209,7 @@ $(dom.removeInvite).on('click', function() {
         $row = $removeInviteModal.data('row');
 
     $.ajax({
-        'url': reverse.user_invite(config.instance.url_name, id),
+        'url': reverse.Urls.user_invite(config.instance.url_name, id),
         'method': 'DELETE',
     })
     .done(function() {

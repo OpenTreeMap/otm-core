@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import os
 import pytz
-from exceptions import NotImplementedError
 
 from django.db.transaction import atomic
 from django.contrib.contenttypes.models import ContentType
@@ -140,7 +137,7 @@ def process_userprofile(migration_rules, migration_event,
 
     photo_full_path = os.path.join(photo_basepath, photo_path)
     try:
-        photo_data = open(photo_full_path)
+        photo_data = open(photo_full_path, 'rb')
     except IOError:
         print("Failed to read photo %s ... SKIPPING USER %s %s" %
               (photo_full_path, user.id, user.username))
@@ -166,7 +163,7 @@ def save_treephoto(migration_rules, migration_event, treephoto_path,
         pk = models.UNBOUND_MODEL_ID
     else:
         image = open(os.path.join(treephoto_path,
-                                  model_dict['fields']['photo']))
+                                  model_dict['fields']['photo']), 'rb')
         treephoto_obj.set_image(image)
         treephoto_obj.map_feature_id = (Tree
                                         .objects

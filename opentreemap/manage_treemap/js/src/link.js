@@ -7,6 +7,6 @@ var adminPage = require('manage_treemap/lib/adminPage.js'),
 
 adminPage.init();
 inlineEditForm.init({
-    updateUrl: reverse.external_link(config.instance.url_name),
+    updateUrl: reverse.Urls.external_link(config.instance.url_name),
     section: '#external-links',
 });

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import datetime
 import json
@@ -131,6 +129,16 @@ def context_map_feature_detail(request, instance, feature_id, **kwargs):
     return map_feature_detail(request, instance, feature_id,
                               should_render=False, **kwargs)
 
+def context_map_feature_detail_api(request, instance, feature_id, **kwargs):
+    details = context_map_feature_detail(request, instance, feature_id, **kwargs)
+
+    # exclude anything that cannot easily be converted to JSON
+    keys_to_exclude = ['field_groups', 'photos']
+
+    details_filtered = dict([(key, value) for key, value in details.items() if key not in keys_to_exclude])
+
+    return details_filtered
+
 
 def map_feature_photo_detail(request, instance, feature_id, photo_id):
     feature = get_map_feature_or_404(feature_id, instance)
@@ -147,11 +155,15 @@ def plot_detail(request, instance, feature_id, edit=False, tree_id=None):
 def render_map_feature_add(request, instance, type):
     if type in instance.map_feature_types[1:]:
         app = MapFeature.get_subclass(type).__module__.split('.')[0]
+        feature = MapFeature.get_subclass(type)()
+        feature.instance = instance
+        context = context_dict_for_resource(request, feature)
         try:
             template = '%s/%s_add.html' % (app, type)
         except:
             template = 'treemap/resource_add.html'
-        return render(request, template, {'object_name': to_object_name(type)})
+        context['object_name'] = to_object_name(type)
+        return render(request, template, context)
     else:
         raise_non_instance_404(type)
 
@@ -286,8 +298,22 @@ def update_map_feature(request_dict, user, feature):
         if not (has_shape_photo and has_bark_photo and has_leaf_photo):
             # FIXME eventually, do not put a validation error on the species
             raise ValidationError(
-                {'tree.species': 'Please submit all photos'}
+                {'tree.photos': 'Please submit all photos'}
             )
+
+    def check_required_fields(request_dict, feature, tree):
+        errors = {}
+        if feature.feature_type == 'Plot':
+            for field in feature.REQUIRED_FIELDS:
+                if not getattr(feature, field):
+                    errors['plot.{}'.format(field)] = 'Missing required field'.format(field)
+        if tree:
+            for field in tree.REQUIRED_FIELDS:
+                if not getattr(tree, field):
+                    errors['tree.{}'.format(field)] = 'Missing required field'.format(field)
+
+        if errors:
+            raise ValidationError(errors)
 
     def skip_setting_value_on_tree(value, tree):
         # If the tree is not None, we always set a value.  If the tree
@@ -301,14 +327,14 @@ def update_map_feature(request_dict, user, feature):
 
     # validate species before checking any fields
     # but only validate on creation, which means the feature.id is not set
-    if (not feature.id):
+    if (not feature.id and feature.feature_type == 'Plot'):
         is_empty_site = request_dict.pop('is_empty_site', False)
         check_if_species_is_set(request_dict, is_empty_site)
         check_all_photos(request_dict, is_empty_site)
 
     rev_updates = ['universal_rev']
     old_geom = feature.geom
-    for (identifier, value) in request_dict.iteritems():
+    for (identifier, value) in request_dict.items():
         split_template = 'Malformed request - invalid field %s'
         object_name, field = dotted_split(identifier, 2,
                                           failure_format_string=split_template)
@@ -334,7 +360,7 @@ def update_map_feature(request_dict, user, feature):
             if field == 'species' and value:
                 value = get_object_or_404(Species,
                                           instance=feature.instance, pk=value)
-            elif field == 'plot' and value == unicode(feature.pk):
+            elif field == 'plot' and value == str(feature.pk):
                 value = feature
         else:
             raise ValueError(
@@ -349,6 +375,8 @@ def update_map_feature(request_dict, user, feature):
             rev_updates.append('eco_rev')
         elif identifier in ['tree.species', 'tree.diameter']:
             rev_updates.append('eco_rev')
+
+    check_required_fields(request_dict, feature, tree)
 
     if feature.fields_were_updated():
         errors.update(save_and_return_errors(feature, user))
@@ -385,7 +413,8 @@ def map_feature_hash(request, instance, feature_id, edit=False, tree_id=None):
     if request.user:
         pk = request.user.pk or ''
 
-    return hashlib.md5(feature.hash + ':' + str(pk)).hexdigest()
+    string_to_hash = feature.hash + ':' + str(pk)
+    return hashlib.md5(string_to_hash.encode()).hexdigest()
 
 
 @get_photo_context_and_errors

@@ -1,0 +1,76 @@
+Creating test database for alias 'default'...
+Got an error creating the test database: database "test_otm" already exists
+
+Traceback (most recent call last):
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/utils.py", line 82, in _execute
+    return self.cursor.execute(sql)
+psycopg2.errors.DuplicateDatabase: database "test_otm" already exists
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/base/creation.py", line 188, in _create_test_db
+    self._execute_create_test_db(cursor, test_db_params, keepdb)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/postgresql/creation.py", line 42, in _execute_create_test_db
+    super()._execute_create_test_db(cursor, parameters, keepdb)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/base/creation.py", line 174, in _execute_create_test_db
+    cursor.execute('CREATE DATABASE %(dbname)s %(suffix)s' % parameters)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/utils.py", line 66, in execute
+    return self._execute_with_wrappers(sql, params, many=False, executor=self._execute)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/utils.py", line 75, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/utils.py", line 84, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/utils.py", line 90, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/utils.py", line 82, in _execute
+    return self.cursor.execute(sql)
+django.db.utils.ProgrammingError: database "test_otm" already exists
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "manage.py", line 10, in <module>
+    execute_from_command_line(sys.argv)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/__init__.py", line 401, in execute_from_command_line
+    utility.execute()
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/__init__.py", line 395, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/commands/test.py", line 23, in run_from_argv
+    super().run_from_argv(argv)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/base.py", line 330, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/base.py", line 371, in execute
+    output = self.handle(*args, **options)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/core/management/commands/test.py", line 53, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "/home/tzinckgraf/code/opentreemap/otm-core-python3/otm-core/opentreemap/treemap/tests/__init__.py", line 33, in run_tests
+    return super(OTM2TestRunner, self).run_tests(*args, **kwargs)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/test/runner.py", line 695, in run_tests
+    old_config = self.setup_databases(aliases=databases)
+  File "/home/tzinckgraf/code/opentreemap/otm-core-python3/otm-core/opentreemap/treemap/tests/__init__.py", line 38, in setup_databases
+    result = super(OTM2TestRunner, self).setup_databases(*args, **kwargs)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/test/runner.py", line 614, in setup_databases
+    return _setup_databases(
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/test/utils.py", line 170, in setup_databases
+    connection.creation.create_test_db(
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/base/creation.py", line 55, in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+  File "/home/tzinckgraf/.local/share/virtualenvs/otm-core-python3-ZpRnQKto/lib/python3.8/site-packages/django/db/backends/base/creation.py", line 197, in _create_test_db
+    confirm = input(
+  File "/usr/lib/python3.8/unittest/signals.py", line 36, in __call__
+    self.default_handler(signum, frame)
+KeyboardInterrupt
+
+If you suspect this is an IPython 7.19.0 bug, please report it at:
+    https://github.com/ipython/ipython/issues
+or send an email to the mailing list at ipython-dev@python.org
+
+You can print a more detailed traceback right now with "%tb", or use "%debug"
+to interactively debug it.
+
+Extra-detailed tracebacks for bug-reporting purposes can be enabled via:
+    %config Application.verbose_crash=True
+

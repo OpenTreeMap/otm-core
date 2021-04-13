@@ -149,22 +149,22 @@ active
         {% endfor %}
       </table>
 
-      <ul class="pager">
+      <ul class="pager pagination">
         {% if prev_page %}
-        <li class="previous">
+        <li class="previous page-item">
           <a href="{{ prev_page }}">
         {% else %}
-        <li class="previous disabled">
+        <li class="previous disabled page-item">
           <a>
         {% endif %}
           &larr; {% trans "Previous" %}</a>
         </li>
 
         {% if next_page %}
-        <li class="next">
+        <li class="next page-item">
           <a href="{{ next_page }}">
         {% else %}
-        <li class="next disabled">
+        <li class="next disabled page-item">
           <a>
         {% endif %}
           {% trans "Next" %} &rarr;</a>

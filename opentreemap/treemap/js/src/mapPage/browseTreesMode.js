@@ -28,7 +28,7 @@ var dom = {
 
 function idToPlotDetailUrl(id) {
     if (id) {
-        return reverse.map_feature_detail({
+        return reverse.Urls.map_feature_detail({
             instance_url_name: config.instance.url_name,
             feature_id: id
         });
@@ -127,14 +127,14 @@ function getPopupContent(utfGridEvent) {
         featureId = data ? data[config.utfGrid.mapfeatureIdKey] : null;
 
     if (featureId) {
-        return getPopup(reverse.map_feature_popup({
+        return getPopup(reverse.Urls.map_feature_popup({
             instance_url_name: config.instance.url_name,
             feature_id: featureId
         }));
 
     } else if (config.instance.canopyEnabled) {
         var latlng = utfGridEvent.latlng;
-        return getPopup(reverse.canopy_popup(config.instance.url_name) +
+        return getPopup(reverse.Urls.canopy_popup(config.instance.url_name) +
             format('?lng=%d&lat=%d', latlng.lng, latlng.lat));
 
     } else {
@@ -208,7 +208,7 @@ function togglePopup(newPopup) {
 
 function getPlotAccordionContent(id) {
     var search = $.ajax({
-        url: reverse.map_feature_accordion({
+        url: reverse.Urls.map_feature_accordion({
             instance_url_name: config.instance.url_name,
             feature_id: id
         }),

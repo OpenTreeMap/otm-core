@@ -11,7 +11,7 @@ var inlineEditForm = require('treemap/lib/inlineEditForm.js'),
 adminPage.init();
 
 var form = inlineEditForm.init({
-    updateUrl: reverse.green_infrastructure(config.instance.url_name),
+    updateUrl: reverse.Urls.green_infrastructure(config.instance.url_name),
     section: '#gsi',
     errorCallback: alerts.errorCallback
 });

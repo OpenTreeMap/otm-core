@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import uuid
 import base64
@@ -22,18 +20,18 @@ class APIAccessCredential(models.Model):
     # If user is None this credential can access
     # any user's data if that user's username
     # and password are also provided
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
 
     enabled = models.BooleanField(default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.access_key
 
     @classmethod
     def create(clz, user=None):
-        secret_key = base64.urlsafe_b64encode(os.urandom(64))
+        secret_key = base64.urlsafe_b64encode(os.urandom(64)).decode()
         access_key = base64.urlsafe_b64encode(uuid.uuid4().bytes)\
-                           .replace('=', '')
+                           .replace(b'=', b'').decode()
 
         return APIAccessCredential.objects.create(
             user=user, access_key=access_key, secret_key=secret_key)

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import datetime
 from string import Template
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -198,6 +196,7 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
     if tree:
         tree.convert_to_display_units()
 
+    context['units'] = {**tree.units(), **plot.units()}
     if tree is not None:
         photos = tree.photos()
         # can't send a regular photo qs because the API will
@@ -278,7 +277,7 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
                   'feature_id': plot.pk}
     if tree:
         url_name = 'add_photo_to_tree'
-        url_kwargs = dict(url_kwargs.items() + [('tree_id', tree.pk)])
+        url_kwargs = dict(list(url_kwargs.items()) + [('tree_id', tree.pk)])
     else:
         url_name = 'add_photo_to_plot'
 
@@ -327,23 +326,24 @@ def context_dict_for_resource(request, resource, **kwargs):
     if has_photos:
         completed_progress_items += 1
 
-    context['upload_photo_endpoint'] = reverse(
-        'add_photo_to_map_feature',
-        kwargs={'instance_url_name': instance.url_name,
-                'feature_id': resource.pk})
+    if resource.pk:
+        context['upload_photo_endpoint'] = reverse(
+            'add_photo_to_map_feature',
+            kwargs={'instance_url_name': instance.url_name,
+                    'feature_id': resource.pk})
 
-    context['progress_percent'] = int(100 * (
-        completed_progress_items / total_progress_items) + .5)
+        context['progress_percent'] = int(100 * (
+            completed_progress_items / total_progress_items) + .5)
 
-    context['progress_messages'] = []
-    if not has_photos:
-        context['progress_messages'].append(_('Add a photo'))
+        context['progress_messages'] = []
+        if not has_photos:
+            context['progress_messages'].append(_('Add a photo'))
 
-    audits = _map_feature_audits(request.user, request.instance, resource)
+        audits = _map_feature_audits(request.user, request.instance, resource)
 
-    _add_audits_to_context(audits, context)
+        _add_audits_to_context(audits, context)
 
-    _add_share_context(context, request, photos)
+        _add_share_context(context, request, photos)
 
     object_name_alias = to_object_name(context['feature'].__class__.__name__)
     # some features that were originally written to support plot and tree
@@ -386,7 +386,7 @@ def context_dict_for_map_feature(request, feature, edit=False):
     feature.instance = instance  # save a DB lookup
 
     user = request.user
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         favorited = Favorite.objects \
             .filter(map_feature=feature, user=user).exists()
     else:
@@ -396,7 +396,7 @@ def context_dict_for_map_feature(request, feature, edit=False):
     # which prevents the Favorite query above from ever returning
     # True. To avoid that we need to do the field masking after
     # setting the favorited flag.
-    if user and user.is_authenticated():
+    if user and user.is_authenticated:
         feature.mask_unauthorized_fields(user)
 
     feature.convert_to_display_units()

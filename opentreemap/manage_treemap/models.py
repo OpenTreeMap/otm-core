@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import random
 import string
@@ -28,12 +26,12 @@ class InstanceInvitation(models.Model):
     email = models.CharField(max_length=255,
                              validators=[validate_email])
 
-    instance = models.ForeignKey(Instance)
-    role = models.ForeignKey(Role)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
     admin = models.BooleanField(default=False)
 
     created = models.DateField(auto_now_add=True)
-    created_by = models.ForeignKey(User)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     updated = models.DateField(auto_now=True)
     accepted = models.BooleanField(default=False)

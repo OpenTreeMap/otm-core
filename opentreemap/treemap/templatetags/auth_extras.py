@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django import template
 from django.conf import settings
@@ -135,7 +133,7 @@ class CreateVisibilityNode(template.Node):
         req_user = template.Variable('request.user').resolve(context)
         model = self.model_variable.resolve(context)
 
-        if (model and req_user and req_user.is_authenticated()
+        if (model and req_user and req_user.is_authenticated
            and model.user_can_create(req_user)):
             content = self.nodelist.render(context)
         else:
@@ -182,7 +180,7 @@ def usercontent_tag(parser, token):
             'expected format is: '
             'usercontent for {user_identifier}')
 
-    if isinstance(user_identifier, (int, long)):
+    if isinstance(user_identifier, int):
         user_identifier = user_identifier
     else:
         if user_identifier[0] == '"'\
@@ -211,10 +209,10 @@ class UserContentNode(template.Node):
             user_identifier = self.user_identifier
 
         user_content = self.nodelist.render(context)
-        if isinstance(user_identifier, (int, long)):
+        if isinstance(user_identifier, int):
             if req_user.pk == user_identifier:
                 return user_content
-        elif isinstance(user_identifier, basestring):
+        elif isinstance(user_identifier, str):
             if req_user.username == user_identifier:
                 return user_content
         else:
@@ -239,7 +237,7 @@ def login_forward(context, query_prefix='?'):
     """
     request = template.Variable('request').resolve(context)
 
-    if getattr(request, 'user', None) and request.user.is_authenticated():
+    if getattr(request, 'user', None) and request.user.is_authenticated:
         raise ValidationError(
             _('Can\'t forward login if already logged in'))
     # urlparse chokes on lazy objects in Python 3, force to str

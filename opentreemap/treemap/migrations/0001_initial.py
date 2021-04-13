@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import re
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('reputation', models.IntegerField(default=0)),
                 ('admin', models.BooleanField(default=False)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
             ],
             bases=(treemap.audit.Auditable, models.Model),
         ),
@@ -197,7 +197,7 @@ class Migration(migrations.Migration):
                 ('direct_write_score', models.IntegerField(null=True, blank=True)),
                 ('approval_score', models.IntegerField(null=True, blank=True)),
                 ('denial_score', models.IntegerField(null=True, blank=True)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
             ],
         ),
         migrations.CreateModel(
@@ -207,7 +207,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('default_permission', models.IntegerField(default=0, choices=[(0, 'None'), (1, 'Read Only'), (2, 'Write with Audit'), (3, 'Write Directly')])),
                 ('rep_thresh', models.IntegerField()),
-                ('instance', models.ForeignKey(blank=True, to='treemap.Instance', null=True)),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.Instance', null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -233,7 +233,7 @@ class Migration(migrations.Migration):
                 ('max_diameter', models.IntegerField(default=200)),
                 ('max_height', models.IntegerField(default=800)),
                 ('updated_at', models.DateTimeField(db_index=True, auto_now=True, null=True)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
             ],
             options={
                 'verbose_name_plural': 'Species',
@@ -246,7 +246,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100)),
                 ('content', models.TextField()),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
             ],
         ),
         migrations.CreateModel(
@@ -260,8 +260,8 @@ class Migration(migrations.Migration):
                 ('canopy_height', models.FloatField(help_text='Canopy Height', null=True, blank=True)),
                 ('date_planted', models.DateField(help_text='Date Planted', null=True, blank=True)),
                 ('date_removed', models.DateField(help_text='Date Removed', null=True, blank=True)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
-                ('species', models.ForeignKey(blank=True, to='treemap.Species', help_text='Species', null=True)),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
+                ('species', models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.Species', help_text='Species', null=True)),
             ],
             options={
                 'abstract': False,
@@ -285,13 +285,13 @@ class Migration(migrations.Migration):
                 ('datatype', models.TextField()),
                 ('iscollection', models.BooleanField()),
                 ('name', models.CharField(max_length=255)),
-                ('instance', models.ForeignKey(to='treemap.Instance')),
+                ('instance', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance')),
             ],
         ),
         migrations.CreateModel(
             name='Plot',
             fields=[
-                ('mapfeature_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeature')),
+                ('mapfeature_ptr', models.OneToOneField(on_delete=models.CASCADE, parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeature')),
                 ('width', models.FloatField(help_text='Plot Width', null=True, blank=True)),
                 ('length', models.FloatField(help_text='Plot Length', null=True, blank=True)),
                 ('owner_orig_id', models.CharField(max_length=255, null=True, blank=True)),
@@ -304,60 +304,60 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TreePhoto',
             fields=[
-                ('mapfeaturephoto_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeaturePhoto')),
-                ('tree', models.ForeignKey(to='treemap.Tree')),
+                ('mapfeaturephoto_ptr', models.OneToOneField(on_delete=models.CASCADE, parent_link=True, auto_created=True, primary_key=True, serialize=False, to='treemap.MapFeaturePhoto')),
+                ('tree', models.ForeignKey(on_delete=models.CASCADE, to='treemap.Tree')),
             ],
             bases=('treemap.mapfeaturephoto',),
         ),
         migrations.AddField(
             model_name='userdefinedcollectionvalue',
             name='field_definition',
-            field=models.ForeignKey(to='treemap.UserDefinedFieldDefinition'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.UserDefinedFieldDefinition'),
         ),
         migrations.AddField(
             model_name='mapfeaturephoto',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='mapfeaturephoto',
             name='map_feature',
-            field=models.ForeignKey(to='treemap.MapFeature'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.MapFeature'),
         ),
         migrations.AddField(
             model_name='mapfeature',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='itreecodeoverride',
             name='instance_species',
-            field=models.ForeignKey(to='treemap.Species'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Species'),
         ),
         migrations.AddField(
             model_name='itreecodeoverride',
             name='region',
-            field=models.ForeignKey(to='treemap.ITreeRegion'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.ITreeRegion'),
         ),
         migrations.AddField(
             model_name='instanceuser',
             name='role',
-            field=models.ForeignKey(to='treemap.Role'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Role'),
         ),
         migrations.AddField(
             model_name='instanceuser',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='instance',
             name='default_role',
-            field=models.ForeignKey(related_name='default_role', to='treemap.Role'),
+            field=models.ForeignKey(on_delete=models.CASCADE, related_name='default_role', to='treemap.Role'),
         ),
         migrations.AddField(
             model_name='instance',
             name='eco_benefits_conversion',
-            field=models.ForeignKey(blank=True, to='treemap.BenefitCurrencyConversion', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.BenefitCurrencyConversion', null=True),
         ),
         migrations.AddField(
             model_name='instance',
@@ -367,42 +367,42 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fieldpermission',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='fieldpermission',
             name='role',
-            field=models.ForeignKey(to='treemap.Role'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Role'),
         ),
         migrations.AddField(
             model_name='favorite',
             name='map_feature',
-            field=models.ForeignKey(to='treemap.MapFeature'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.MapFeature'),
         ),
         migrations.AddField(
             model_name='favorite',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='audit',
             name='instance',
-            field=models.ForeignKey(blank=True, to='treemap.Instance', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.Instance', null=True),
         ),
         migrations.AddField(
             model_name='audit',
             name='ref',
-            field=models.ForeignKey(to='treemap.Audit', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Audit', null=True),
         ),
         migrations.AddField(
             model_name='audit',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='tree',
             name='plot',
-            field=models.ForeignKey(to='treemap.Plot'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Plot'),
         ),
         migrations.AlterUniqueTogether(
             name='species',

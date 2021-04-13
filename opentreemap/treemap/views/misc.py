@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import string
 import re
@@ -9,10 +7,11 @@ import sass
 import json
 
 from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
+from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 
@@ -27,7 +26,7 @@ from treemap.lib import COLOR_RE
 from treemap.lib.perms import model_is_creatable
 from treemap.lib.object_caches import udf_defs
 from treemap.units import get_unit_abbreviation, get_units
-from treemap.util import leaf_models_of_class
+from treemap.util import leaf_models_of_class, get_field
 from treemap.images import get_image_from_request
 
 
@@ -73,7 +72,7 @@ def index(request, instance):
 
 
 def get_map_view_context(request, instance):
-    if request.user and not request.user.is_anonymous():
+    if request.user and not request.user.is_anonymous:
         iuser = request.user.get_effective_instance_user(instance)
         resource_classes = [resource for resource in instance.resource_classes
                             if model_is_creatable(iuser, resource)]
@@ -94,6 +93,18 @@ def get_map_view_context(request, instance):
     )
 
     add_map_info_to_context(context, instance)
+    return context
+
+
+def get_plot_field_groups(request, instance):
+    context = {}
+    _get_plot_field_groups(
+        context,
+        instance,
+        request.user,
+        filter_fields=['tree.id']
+        #filter_fields=['tree.id', 'tree.species', 'tree.diameter']
+    )
     return context
 
 
@@ -145,6 +156,7 @@ def add_anonymous_boundary(request):
 
 def boundary_autocomplete(request, instance):
     max_items = request.GET.get('max_items', None)
+    max_items = int(max_items) if max_items else None
 
     boundaries = instance.boundaries \
                          .filter(searchable=True) \
@@ -159,13 +171,25 @@ def boundary_autocomplete(request, instance):
             for boundary in boundaries]
 
 
-def species_list(request, instance):
+def species_list_common(request, instance):
+    return species_list(request, instance, is_common=True)
+
+
+def species_list(request, instance, is_common=False):
     max_items = request.GET.get('max_items', None)
+    max_items = int(max_items) if max_items else None
 
     species_qs = instance.scope_model(Species)\
                          .order_by('common_name')\
                          .values('common_name', 'genus', 'species', 'cultivar',
-                                 'other_part_of_name', 'id')
+                                 'other_part_of_name', 'is_common', 'id')
+
+    is_common = request.GET.get('is_common', None)
+    is_common = bool(is_common) if is_common else False
+
+    # if this is false, we want to grab everything
+    if is_common:
+        species_qs = species_qs.filter(is_common=True)
 
     if max_items:
         species_qs = species_qs[:max_items]
@@ -196,7 +220,7 @@ def species_list(request, instance):
         display_name = "%s [%s]" % (sdict['common_name'],
                                     sci_name)
 
-        tokens = tokenize(species)
+        tokens = tokenize(sdict)
 
         sdict.update({
             'scientific_name': sci_name,
@@ -222,7 +246,7 @@ def compile_scss(request):
     scss = "$staticUrl: '/static/';\n"
     # We can probably be a bit looser with what we allow here in the future if
     # we need to, but we must do some checking so that libsass doesn't explode
-    for key, value in request.GET.items():
+    for key, value in list(request.GET.items()):
         if _SCSS_VAR_NAME_RE.match(key) and COLOR_RE.match(value):
             scss += '$%s: #%s;\n' % (key, value)
         elif key == 'url':
@@ -264,7 +288,7 @@ def public_instances_geojson(request):
 def error_page(status_code):
     template = '%s.html' % status_code
 
-    def inner_fn(request):
+    def inner_fn(request, exception=None):
         reasons = {
             404: _('URL or resource not found'),
             500: _('An unhandled error occured'),
@@ -286,7 +310,7 @@ def error_page(status_code):
     return inner_fn
 
 
-def add_plot_field_groups(context, instance, filter_fields=None):
+def add_plot_field_groups(context, instance, filter_fields=None, json=False):
     _filter_fields = filter_fields or []
     templates = {
         "tree.id": "treemap/field/tree_id_tr.html",
@@ -323,6 +347,55 @@ def add_plot_field_groups(context, instance, filter_fields=None):
             for udf_name in group.get('collection_udf_keys', [])
         ]
 
+        # the UDF model by default is not serializable, so for API calls
+        # we force it to be serializable
+        if json:
+            group['collection_udfs'] = [
+                model_to_dict(udf) for udf in group['collection_udfs']]
+
+        return group
+
+    context['field_groups'] = [
+        info(group) for group in instance.web_detail_fields]
+
+
+def _get_plot_field_groups(context, instance, user, filter_fields=None):
+    _filter_fields = filter_fields or []
+
+    labels = {
+        # 'plot-species' is used as the "label" in the 'field' tag,
+        # but ulitmately gets used as an identifier in the template
+        "tree.species": "plot-species",
+        "tree.diameter": _("Trunk Diameter")
+    }
+
+    # use the tree if it exists to get the UDF fields, otherwise use a blank tree
+    _tree = context.get('tree', Tree(instance=instance))
+    labels.update({
+        v: k for k, v in _tree.scalar_udf_names_and_fields})
+
+    # use the plot if it exists to get the UDF fields, otherwise use a blank plot
+    _plot = context.get('plot', Plot(instance=instance))
+    labels.update({
+        v: k for k, v in _plot.scalar_udf_names_and_fields})
+
+    def info(group):
+        model = _tree if group['model'] == 'tree' else _plot
+
+        # this is the case when creating these fields for some reason
+        user = None
+        group['fields'] = [
+            get_field(context, labels.get(field), field, user, instance, model=model)
+            for field in group.get('field_keys', []) if field not in _filter_fields
+        ]
+
+        # the UDF model by default is not serializable, so for API calls
+        # we force it to be serializable
+        group['collection_udfs'] = [
+            next(model_to_dict(udf) for udf in udf_defs(instance)
+                 if udf.full_name == udf_name)
+            for udf_name in group.get('collection_udf_keys', [])
+        ]
         return group
 
     context['field_groups'] = [

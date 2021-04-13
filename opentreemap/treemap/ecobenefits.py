@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.gis.geos.point import Point
@@ -113,7 +111,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # Returning a unicode SQL string ensures that any string
         # replacements done to query string will not raise
         # UnicodeDecodeError
-        return unicode(cursor.mogrify(sql, params), 'utf-8')
+        return str(cursor.mogrify(sql, params), 'utf-8')
 
     def benefits_for_filter(self, instance, item_filter):
         from treemap.models import Plot, Tree
@@ -176,7 +174,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
         # does that we use "plot__geom" above and then
         # do this rather dubious string manipulation below
         if not region_code:
-            targetGeomField = '"treemap_mapfeature"."the_geom_webmercator"'
+            targetGeomField = '"treemap_mapfeature"."the_geom_webmercator"::bytea'
             xyGeomFields = 'ST_X(%s), ST_Y(%s)' % \
                            (targetGeomField, targetGeomField)
 
@@ -187,7 +185,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
                   'region': region_code or ""}
 
         rawb, err = ecobackend.json_benefits_call(
-            'eco_summary.json', params.iteritems(), post=True)
+            'eco_summary.json', iter(params.items()), post=True)
 
         if err:
             raise Exception(err)
@@ -237,7 +235,7 @@ class TreeBenefitsCalculator(BenefitCalculator):
                           'speciesid': tree.species.pk}
 
                 rawb, err = ecobackend.json_benefits_call(
-                    'eco.json', params.iteritems())
+                    'eco.json', iter(params.items()))
 
                 if err:
                     rslt = {'error': err}
@@ -314,7 +312,7 @@ def compute_currency_and_transform_units(instance, benefits):
 
     rslt = {}
 
-    for group, (unit, keys) in groups.iteritems():
+    for group, (unit, keys) in groups.items():
         valuetotal = currencytotal = 0
 
         for key in keys:
@@ -343,7 +341,7 @@ def _sum_dict(d1, d2):
         return d1
 
     dsum = {}
-    for k in d1.keys() + d2.keys():
+    for k in list(d1.keys()) + list(d2.keys()):
         if k in d1 and k not in d2:
             dsum[k] = d1[k]
         elif k in d2 and k not in d1:
@@ -370,8 +368,8 @@ def _combine_benefit_basis(basis, new_basis_groups):
 
 
 def _combine_grouped_benefits(benefits, new_benefit_groups):
-    for group, ft_benefits in new_benefit_groups.iteritems():
-        for ft_benefit_key, ft_benefit in ft_benefits.iteritems():
+    for group, ft_benefits in new_benefit_groups.items():
+        for ft_benefit_key, ft_benefit in ft_benefits.items():
             if group not in benefits:
                 benefits[group] = {}
 
@@ -403,7 +401,7 @@ def _combine_grouped_benefits(benefits, new_benefit_groups):
 def _annotate_basis_with_extra_stats(basis):
     # Basis groups just have # calc and # discarded
     # annotate with some more info
-    for abasis in basis.values():
+    for abasis in list(basis.values()):
         total = (abasis['n_objects_used'] +
                  abasis['n_objects_discarded'])
 
@@ -476,7 +474,7 @@ def _ensure_itree_codes_fetched():
         _itree_codes_by_region = result['Codes']
 
         _all_itree_codes = set(
-            itertools.chain(*_itree_codes_by_region.values()))
+            itertools.chain(*list(_itree_codes_by_region.values())))
 
 
 within_itree_regions_view = json_api_call(within_itree_regions)

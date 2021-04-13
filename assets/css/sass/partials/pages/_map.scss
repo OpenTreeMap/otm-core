@@ -303,6 +303,10 @@ $light-to-dark-green: #ffffff 10%,
    }
 }
 
+.leaflet-control-layers:nth-child(2) .leaflet-control-layers-toggle {
+    background-image: url(#{$staticUrl}img/map_layers_icon.png);
+}
+
 // for all our legend information
 .info
 {

@@ -25,7 +25,7 @@ var dom = {
 var map,
     polygon,
     customAreaSearchBus,
-    createAnonymousBoundary = BU.jsonRequest('POST', reverse.anonymous_boundary());
+    createAnonymousBoundary = BU.jsonRequest('POST', reverse.Urls.anonymous_boundary());
 
 function init(options) {
     var mapManager = options.mapManager;

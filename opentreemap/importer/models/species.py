@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import itertools
 
@@ -50,7 +48,7 @@ class SpeciesImportEvent(GenericImportEvent):
     def row_set(self):
         return self.speciesimportrow_set
 
-    def __unicode__(self):
+    def __str__(self):
         return _('Species Import #%s') % self.pk
 
     def status_description(self):
@@ -94,10 +92,10 @@ class SpeciesImportRow(GenericImportRow):
     ))
 
     # Species reference
-    species = models.ForeignKey(Species, null=True, blank=True)
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, null=True, blank=True)
     merged = models.BooleanField(default=False)
 
-    import_event = models.ForeignKey(SpeciesImportEvent)
+    import_event = models.ForeignKey(SpeciesImportEvent, on_delete=models.CASCADE)
 
     class Meta:
         app_label = 'importer'
@@ -122,7 +120,7 @@ class SpeciesImportRow(GenericImportRow):
 
         data = self.cleaned
         diffs = {}
-        for (model_key, row_key) in SpeciesImportRow.SPECIES_MAP.iteritems():
+        for (model_key, row_key) in SpeciesImportRow.SPECIES_MAP.items():
             row_data = data.get(row_key, None)
             model_data = getattr(species, model_key)
 
@@ -332,18 +330,18 @@ class SpeciesImportRow(GenericImportRow):
             species = Species.objects.filter(pk__in=possible_matches)
             diffs = [self.diff_from_species(s) for s in species]
 
-            if all(diff.keys() == ['id'] for diff in diffs):
+            if all(list(diff.keys()) == ['id'] for diff in diffs):
                 # Imported data differs only in ID field (None vs. something)
                 identical_to_existing = True
                 self.merged = True
 
             else:
                 # Filter out diffs whose "model value" is empty
-                filtered_diffs = [{k: v for k, v in diff.iteritems()
+                filtered_diffs = [{k: v for k, v in diff.items()
                                    if v[0] is not None and v[0] != ''}
                                   for diff in diffs]
 
-                diff_keys = [diff.keys() for diff in filtered_diffs]
+                diff_keys = [list(diff.keys()) for diff in filtered_diffs]
                 diff_keys = set(itertools.chain(*diff_keys))
                 diff_keys.remove('id')
 
@@ -392,7 +390,7 @@ class SpeciesImportRow(GenericImportRow):
             self.import_event.max_tree_height_conversion_factor
         })
 
-        for modelkey, datakey in SpeciesImportRow.SPECIES_MAP.iteritems():
+        for modelkey, datakey in SpeciesImportRow.SPECIES_MAP.items():
             importdata = data.get(datakey, None)
 
             if importdata is not None:

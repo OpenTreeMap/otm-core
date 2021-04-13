@@ -122,7 +122,7 @@ module.exports.init = function(options) {
 
             $lightbox.find(labelEditSelectSelector).on('change', function(e) {
                 var value = e.target.value;
-                var url = reverse.map_feature_photo({
+                var url = reverse.Urls.map_feature_photo({
                     instance_url_name: config.instance.url_name,
                     feature_id: featureId,
                     photo_id: photId

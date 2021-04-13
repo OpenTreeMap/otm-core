@@ -32,7 +32,7 @@ exports.init = function(form) {
             '.responseData.treeId');
 
     if (treeId) {
-        var deleteUrl = reverse.delete_tree({
+        var deleteUrl = reverse.Urls.delete_tree({
                 instance_url_name: config.instance.url_name,
                 feature_id: window.otm.mapFeature.featureId,
                 tree_id: treeId
@@ -47,7 +47,7 @@ exports.init = function(form) {
 
     otmTypeahead.create({
         name: "species",
-        url: reverse.species_list_view(config.instance.url_name),
+        url: reverse.Urls.species_list_view(config.instance.url_name),
         input: "#plot-species-typeahead",
         template: "#species-element-template",
         hidden: "#plot-species-hidden",

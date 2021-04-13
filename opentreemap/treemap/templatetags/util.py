@@ -1,5 +1,5 @@
 from django import template
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
 import json
@@ -110,7 +110,7 @@ def audit_detail_link(audit):
     """
     model = audit.model
 
-    if model in MapFeature.subclass_dict().keys():
+    if model in list(MapFeature.subclass_dict().keys()):
         model = 'mapfeature'
 
     model = model.lower()
@@ -134,7 +134,7 @@ def terminology(model, instance):
 @register.filter
 def display_name(audit_or_model_or_name, instance=None):
     audit = None
-    if isinstance(audit_or_model_or_name, (Audit, basestring)):
+    if isinstance(audit_or_model_or_name, (Audit, str)):
         if isinstance(audit_or_model_or_name, Audit):
             audit = audit_or_model_or_name
             name = audit.model

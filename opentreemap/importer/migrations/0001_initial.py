@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
                 ('finished', models.BooleanField(default=False)),
                 ('errors', models.TextField(default='')),
                 ('status', models.IntegerField(default=3)),
-                ('import_event', models.ForeignKey(to='importer.TreeImportEvent')),
+                ('import_event', models.ForeignKey(on_delete=models.CASCADE, to='importer.TreeImportEvent')),
             ],
         ),
     ]

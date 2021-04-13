@@ -66,7 +66,7 @@ function getJobStartStream () {
 function makeJobCheckStream (attrStream) {
     function poll (jobId) {
         jobManager.start(jobId);
-        var url = reverse.check_export({
+        var url = reverse.Urls.check_export({
             instance_url_name: config.instance.url_name,
             job_id: jobId
         });

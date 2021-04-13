@@ -45,7 +45,8 @@ def site_config_green_infrastructure(request, instance):
         return form_fields
 
     terminology_fields = {thing: _get_form_fields(defaults, thing)
-                          for thing, defaults in REPLACEABLE_TERMS.items()}
+                          for thing, defaults
+                          in list(REPLACEABLE_TERMS.items())}
 
     __, annual_rainfall_display_value = get_display_value(
         instance, 'greenInfrastructure', 'rainfall',
@@ -165,7 +166,7 @@ def _map_feature_cross_validator(field_name, value, instance):
 
 
 def _terminology_validator(field_name, value, instance):
-    acceptable_terms = REPLACEABLE_TERMS.keys() + [
+    acceptable_terms = list(REPLACEABLE_TERMS.keys()) + [
         Cls.__name__ for Cls in _get_replaceable_models(instance)]
 
     __, terms, term, form = dotted_split(field_name, 4, maxsplit=3)
@@ -219,7 +220,7 @@ def _set_map_feature_config(field_name, value, instance):
 def _validate_and_set_individual_values(json_data, instance, error_dict):
     errors = None
     INVALID_KEY_MESSAGE = _("An invalid key was sent in the request")
-    for identifier, value in json_data.iteritems():
+    for identifier, value in json_data.items():
         if not '.' in identifier:
             error_dict[identifier] = [INVALID_KEY_MESSAGE]
         __, field_name = dotted_split(identifier, 2, maxsplit=1)
@@ -251,7 +252,7 @@ def _validate_and_set_individual_values(json_data, instance, error_dict):
 # mutates error_dict
 def _cross_validate_values(json_data, instance, error_dict):
     errors = None
-    for identifier, value in json_data.iteritems():
+    for identifier, value in json_data.items():
         __, field_name = dotted_split(identifier, 2, maxsplit=1)
         if field_name in error_dict:
             continue
@@ -268,7 +269,7 @@ def green_infrastructure(request, instance):
     json_data = json_from_request(request)
     new_data = {}
     increment_universal_rev = False
-    for identifier, value in json_data.iteritems():
+    for identifier, value in json_data.items():
         model, field_name = dotted_split(identifier, 2, maxsplit=1)
         if field_name.startswith('config.map_feature_types') or \
            field_name.startswith('config.map_feature_config'):

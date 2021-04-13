@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 import django.utils.timezone
@@ -70,6 +70,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tree',
             name='species',
-            field=models.ForeignKey(verbose_name='Species', blank=True, to='treemap.Species', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, verbose_name='Species', blank=True, to='treemap.Species', null=True),
         ),
     ]

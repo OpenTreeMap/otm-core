@@ -4,7 +4,7 @@
 <div class="panel" id="map-info">
   <div class="panel-group" id="feature-panel">
     <div class="panel-heading">
-      <a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#map-info" href="#tree-detail">{% trans "Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="panel-toggle collapsed" data-toggle="collapse" data-parent="#map-info" data-target="#tree-detail">{% trans "Details" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
     <div id="tree-detail" class="panel-body collapse">
       <div class="panel-body-buttons-wrapper">
@@ -50,9 +50,9 @@
   {% if request.instance_supports_ecobenefits %}
   <div class="panel-group" id="eco-panel">
     <div class="panel-heading">
-      <a class="panel-toggle" data-toggle="collapse" data-parent="#map-info" href="#yearlyEco">{% trans "Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
+      <a class="panel-toggle" data-toggle="collapse" role="button" data-parent="#map-info" data-target="#yearlyEco">{% trans "Eco Benefits" %} <span class="arrow pull-right"><i class="icon-right-open"></i></span></a>
     </div>
-    <div id="yearlyEco" class="panel-body collapse in">
+    <div id="yearlyEco" class="panel-body collapse in show">
       <div class="panel-inner benefit-values" id="benefit-values">
           <div class="benefit-value-row benefit-loading">
               <h3 class="benefit-label">{% trans "Loading Ecobenefits" %}</h3>

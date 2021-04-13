@@ -49,7 +49,9 @@
              value="{{ field.value|default_if_none:""|unlocalize }}"
            {% endif %}
            {{ extra|default:"" }} />
-    <span class="input-group-addon" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+    <div class="input-group-append">
+        <span class="input-group-text" {{ unit_extra|default:"" }}>{{ field.units }}</span>
+    </div>
   </div>
   {% else %}
     <input name="{{ field.identifier }}"

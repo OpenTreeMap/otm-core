@@ -48,7 +48,7 @@ body {
         position: absolute;
         overflow: hidden;
         margin: 0;
-        top: 196px;
+        top: 210px;
         width: 100%;
 
         left: 0;
@@ -219,6 +219,14 @@ body {
     background: $light-gray-color;
     border-radius: 6px;
 
+    // this is from the old bootstrap
+    min-height: 20px;
+    padding: 19px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+
     > :last-child {
         margin-bottom: 0;
     }
@@ -354,5 +362,15 @@ body {
             margin-top: 9px;
             height: calc(100% - #{$navbar-height});
         }
+    }
+
+    // with react, we cannot easily add the above to the DOM,
+    // so we solve that by adding to these elements
+    .header.hide-search {
+        margin-top: -90px;
+    }
+    .content.explore-map.hide-search {
+        margin-top: 9px;
+        height: calc(100% - #{$navbar-height});
     }
 }

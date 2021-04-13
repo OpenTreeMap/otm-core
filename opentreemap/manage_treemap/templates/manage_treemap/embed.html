@@ -23,19 +23,19 @@
             <form>
                 <fieldset>
                     <ul class="frame-size-choice list-inline container-fluid">
-                        <li class="pull-left">
+                        <li class="pull-left list-inline-item">
                             <label class="checkbox">
                                 <input type="radio" name="frame-size" id="frame-size-standard" value="{{ iframe_standard }}" checked="checked">
                                 <span>{% trans "Standard" %}</span> <span class="reduced">{{ iframe_standard_width }}x{{ iframe_standard_height }}</span>
                             </label>
                         </li>
-                        <li class="pull-left">
+                        <li class="pull-left list-inline-item">
                             <label class="checkbox">
                                 <input type="radio" name="frame-size" id="frame-size-wide" value="{{ iframe_wide }}">
                                 <span>{% trans "Wide" %}</span> <span class="reduced">{{ iframe_wide_width }}x{{ iframe_wide_height }}</span>
                             </label>
                         </li>
-                        <li class="pull-left">
+                        <li class="pull-left list-inline-item">
                             <label class="checkbox">
                                 <input type="radio" name="frame-size" id="frame-size-custom" value="{{ iframe_custom }}">
                                 <span>{% trans "Custom " %}</span>

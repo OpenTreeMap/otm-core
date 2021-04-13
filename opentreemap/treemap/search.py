@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from json import loads
 from datetime import datetime
@@ -118,14 +116,23 @@ class FilterContext(Q):
             del kwargs['basekey']
         else:
             self.basekeys = set()
-
         super(FilterContext, self).__init__(*args, **kwargs)
 
     def add(self, thing, conn):
         if thing.basekeys:
             self.basekeys = self.basekeys | thing.basekeys
 
-        return super(FilterContext, self).add(thing, conn)
+        q = super(FilterContext, self).add(thing, conn)
+        q.basekeys = self.basekeys
+        return q
+
+    def __and__(self, other):
+        """
+        Under the hood, this does a deepcopy, which does not preserve attributes
+        """
+        q = super(FilterContext, self).__and__(other)
+        q.basekeys = self.basekeys
+        return q
 
 
 def convert_filter_units(instance, filter_dict):
@@ -133,7 +140,7 @@ def convert_filter_units(instance, filter_dict):
     Convert the values in a filter dictionary from display units to database
     units. Mutates the `filter_dict` argument and returns it.
     """
-    for field_name, value in filter_dict.iteritems():
+    for field_name, value in filter_dict.items():
         if field_name not in ['tree.diameter', 'tree.height',
                               'tree.canopy_height', 'plot.width',
                               'plot.length', 'bioswale.drainage_area',
@@ -245,7 +252,7 @@ def _parse_scalar_predicate(query, mapping):
 
             query = {}
 
-            for pred, props in props_by_pred.iteritems():
+            for pred, props in props_by_pred.items():
 
                 lookup_tail, rhs = _parse_prop(props, value, pred, value[pred])
 
@@ -260,7 +267,7 @@ def _parse_scalar_predicate(query, mapping):
         return FilterContext(basekey=model, **query)
 
     qs = [parse_scalar_predicate_pair(*kv, mapping=mapping)
-          for kv in query.iteritems()]
+          for kv in query.items()]
     return _apply_combinator('AND', qs)
 
 
@@ -284,7 +291,7 @@ def _parse_by_is_collection_udf(query_dict, mapping):
     }
     '''
     query_dict_list = [dict(value=v, **_parse_by_key_type(k, mapping=mapping))
-                       for k, v in query_dict.items()]
+                       for k, v in list(query_dict.items())]
     grouped = groupby(sorted(query_dict_list, key=lambda qd: qd['type']),
                       lambda qd: qd['type'])
     return {k: list(v) for k, v in grouped}
@@ -306,8 +313,8 @@ def _parse_by_key_type(key, mapping):
 
 
 def _unparse_scalars(scalars):
-    return dict(zip([qd['key'] for qd in scalars],
-                    [qd['value'] for qd in scalars]))
+    return dict(list(zip([qd['key'] for qd in scalars],
+                         [qd['value'] for qd in scalars])))
 
 
 def _parse_collections(by_type, mapping):
@@ -334,7 +341,7 @@ def _parse_collections(by_type, mapping):
 
     return _apply_combinator(
         'AND', [parse_collection_subquery(identifier, field_parts, mapping)
-                for identifier, field_parts in by_type.items()])
+                for identifier, field_parts in list(by_type.items())])
 
 
 def _parse_udf_collection(udfd_id, query_parts):
@@ -354,7 +361,7 @@ def _parse_udf_collection(udfd_id, query_parts):
         if isinstance(value, dict):
             preds = parse_udf_dict_value(value)
             query = {_lookup_key('data__', field, k):
-                     v for (k, v) in preds.iteritems()}
+                     v for (k, v) in preds.items()}
         else:
             query = {_lookup_key('data__', field): value}
         return query
@@ -415,7 +422,7 @@ def _parse_predicate_key(key, mapping):
     if mapping_model not in mapping:
         raise ModelParseException(
             'Valid models are: %s or a collection UDF, not "%s"' %
-            (mapping.keys(), model))
+            (list(mapping.keys()), model))
 
     return model, mapping[mapping_model], field
 
@@ -594,7 +601,7 @@ def _parse_props(props, valuesdict):
 
     params = {}
 
-    for key, val in valuesdict.items():
+    for key, val in list(valuesdict.items()):
         lookup, rhs = _parse_prop(props[key], valuesdict, key, val)
         params[lookup] = rhs
 
@@ -606,12 +613,12 @@ def _parse_prop(predicate_props, valuesdict, key, val):
         if not valid_values.issuperset(set(valuesdict.keys())):
             raise ParseException(
                 'Cannot use these keys together: %s vs %s' %
-                (valuesdict.keys(), valid_values))
+                (list(valuesdict.keys()), valid_values))
 
         predicate_builder = predicate_props['predicate_builder']
         param_pair = predicate_builder(val)
         # Return a 2-tuple rather than a single-key dict
-        return param_pair.items()[0]
+        return list(param_pair.items())[0]
 
 
 def _parse_dict_props_for_mapping(mapping, valuesdict):

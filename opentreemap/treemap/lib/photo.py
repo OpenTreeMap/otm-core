@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
-from urlparse import urlparse, urlunparse
 
-from django.core.urlresolvers import reverse
+from urllib.parse import urlparse, urlunparse
+
+from django.urls import reverse
 
 
 def _drop_querystring(url):

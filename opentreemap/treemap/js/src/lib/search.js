@@ -79,7 +79,7 @@ function executeSearch(filters) {
     var query = makeQueryStringFromFilters(filters);
 
     var search = $.ajax({
-        url: reverse.benefit_search(config.instance.url_name),
+        url: reverse.Urls.benefit_search(config.instance.url_name),
         data: query,
         type: 'GET',
         dataType: 'html'

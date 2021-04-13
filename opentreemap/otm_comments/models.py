@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from threadedcomments.models import ThreadedComment
 
@@ -21,7 +19,7 @@ class EnhancedThreadedComment(ThreadedComment):
 
     # We could retrieve this through the GenericForeignKey on ThreadedComment,
     # but it makes things simpler to record instance here.
-    instance = models.ForeignKey('treemap.Instance')
+    instance = models.ForeignKey('treemap.Instance', on_delete=models.CASCADE)
 
     @property
     def is_flagged(self):
@@ -58,8 +56,8 @@ class EnhancedThreadedComment(ThreadedComment):
 
 
 class EnhancedThreadedCommentFlag(models.Model, Auditable):
-    comment = models.ForeignKey(EnhancedThreadedComment)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    comment = models.ForeignKey(EnhancedThreadedComment, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     flagged_at = models.DateTimeField(auto_now_add=True)
     # whether the flag itself was hidden, NOT the related
     # comment. That is decided by `comment.is_removed`

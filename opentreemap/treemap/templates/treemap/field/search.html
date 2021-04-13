@@ -8,11 +8,11 @@
             {% with 'data-class=search data-search-type=MIN id=min'|add:field.id as extra %}
                 {% include "treemap/field/inputs.html" %}
             {% endwith %}
-            <span class="hidden-xs">
+            <span class="hidden-xs d-none d-sm-block">
                 {# Translators: This is in-between two date boxes for a range search #}
                 {% trans "through" %}
             </span>
-            <span class="visible-xs-inline">-</span>
+            <span class="visible-xs-inline d-block d-sm-none">-</span>
             {% with 'data-class=search data-search-type=MAX id=max'|add:field.id as extra %}
                 {% include "treemap/field/inputs.html" %}
             {% endwith %}

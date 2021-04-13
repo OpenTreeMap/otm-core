@@ -1,4 +1,4 @@
-import urlparse
+import urllib.parse
 
 from django import template
 from django.http.request import QueryDict
@@ -9,13 +9,13 @@ register = template.Library()
 
 class UrlHelper(object):
     def __init__(self, full_path):
-        url = urlparse.urlparse(full_path)
+        url = urllib.parse.urlparse(full_path)
         self.path = url.path
         self.fragment = url.fragment
         self.query_dict = QueryDict(url.query, mutable=True)
 
     def update_query_data(self, **kwargs):
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             if hasattr(val, '__iter__'):
                 self.query_dict.setlist(key, val)
             else:

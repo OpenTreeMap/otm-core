@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 
@@ -66,7 +64,7 @@ def udf_bulk_update(request, instance):
         choice_map = {int(param['id']): param['changes']
                       for param in choice_changes}
         udfds = [udf for udf in udf_defs(instance)
-                 if udf.pk in choice_map.keys()]
+                 if udf.pk in list(choice_map.keys())]
 
         # Update one at a time rather than doing bulk_update.
         # There won't be that many of them, and we need to go through

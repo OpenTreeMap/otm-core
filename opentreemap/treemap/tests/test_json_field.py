@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from treemap.tests import make_instance
 from treemap.instance import Instance
@@ -58,8 +56,8 @@ class JsonFieldTests(OTMTestCase):
         self.instance.config = ['a', 'b', 'c']
         self.instance.save()
 
-        self.assertEquals(set(Instance.objects.filter(config__contains='a')),
-                          {self.instance})
+        self.assertEqual(set(Instance.objects.filter(config__contains='a')),
+                         {self.instance})
 
-        self.assertEquals(set(Instance.objects.filter(config__contains='x')),
-                          set())
+        self.assertEqual(set(Instance.objects.filter(config__contains='x')),
+                         set())

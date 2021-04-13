@@ -30,9 +30,9 @@ var dom = {
 
 adminPage.init();
 
-var cssUrl = reverse.scss() + '?' + config.instance.scssQuery,
+var cssUrl = reverse.Urls.scss() + '?' + config.instance.scssQuery,
     form = inlineEditForm.init({
-        updateUrl: reverse.branding(config.instance.url_name),
+        updateUrl: reverse.Urls.branding(config.instance.url_name),
         section: '#branding',
         errorCallback: alerts.errorCallback
     });

@@ -31,7 +31,7 @@ function init(options) {
         formSelector = options.formSelector,
         indexOfSetLocationStep = options.indexOfSetLocationStep,
         addFeatureRadioOptions = options.addFeatureRadioOptions,
-        addFeatureUrl = reverse.add_plot(config.instance.url_name),
+        addFeatureUrl = reverse.Urls.add_plot(config.instance.url_name),
         onSaveBefore = options.onSaveBefore || _.identity,
 
         stepControls = require('treemap/mapPage/stepControls.js').init($sidebar),
@@ -244,12 +244,17 @@ function init(options) {
             }
         });
 
+        var featureBusOnSuccess = [onAddFeatureSuccess, triggerSearchBus.push];
+        if (addMapFeatureBus != null){
+            featureBusOnSuccess.push(addMapFeatureBus.push)
+        }
+
         $.ajax({
             url: addFeatureUrl,
             type: 'POST',
             contentType: "application/json",
             data: JSON.stringify(data),
-            success: [onAddFeatureSuccess, triggerSearchBus.push, addMapFeatureBus.push],
+            success: featureBusOnSuccess,
             error: onAddFeatureError
         });
     }
@@ -290,7 +295,7 @@ function init(options) {
             break;
         case 'edit':
             close();
-            var url = reverse.map_feature_detail_edit({
+            var url = reverse.Urls.map_feature_detail_edit({
                 instance_url_name: config.instance.url_name,
                 feature_id: result.featureId,
                 edit: 'edit'

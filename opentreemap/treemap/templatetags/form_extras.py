@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 import re
@@ -10,14 +8,14 @@ from modgrammar import Grammar, OPTIONAL, G, WORD, OR, ParseError
 from django import template
 from django.template.loader import get_template
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import dateformat
 from django.utils.translation import ugettext as _
 from django.conf import settings
 
 from opentreemap.util import dotted_split
 
-from treemap.util import get_model_for_instance, to_object_name, num_format
+from treemap.util import get_model_for_instance, to_object_name, num_format, get_field
 from treemap.json_field import (is_json_field_reference,
                                 get_attr_from_json_field)
 from treemap.units import (get_digits_if_formattable, get_units_if_convertible,
@@ -55,25 +53,25 @@ FIELD_MAPPINGS = {
 
 FOREIGN_KEY_PREDICATE = 'IS'
 
-VALID_FIELD_KEYS = ','.join(FIELD_MAPPINGS.keys())
+VALID_FIELD_KEYS = ','.join(list(FIELD_MAPPINGS.keys()))
 
 
 class Variable(Grammar):
-    grammar = (G(b'"', WORD(b'^"'), b'"') | G(b"'", WORD(b"^'"), b"'")
-               | WORD(b"a-zA-Z_", b"a-zA-Z0-9_."))
-
+    grammar = (G('"', WORD('^"'), '"') | G("'", WORD("^'"), "'")
+               | WORD("a-zA-Z_", "a-zA-Z0-9_."))
+    grammar_whitespace_mode = 'optional'
 
 class Label(Grammar):
-    grammar = (G(b'_("', WORD(b'^"'), b'")') | G(b"_('", WORD(b"^'"), b"')")
+    grammar = (G('_("', WORD('^"'), '")') | G("_('", WORD("^'"), "')")
                | Variable)
-
+    grammar_whitespace_mode = 'optional'
 
 class InlineEditGrammar(Grammar):
-    grammar = (OR(G(OR(b"field", b"create"), OPTIONAL(Label)), b"search"),
-               b"from", Variable, OPTIONAL(b"for", Variable),
-               OPTIONAL(b"in", Variable), b"withtemplate", Variable,
-               OPTIONAL(b"withhelp", Label))
-    grammar_whitespace = True
+    grammar = (OR(G(OR("field", "create"), OPTIONAL(Label)), "search"),
+               "from", Variable, OPTIONAL("for", Variable),
+               OPTIONAL("in", Variable), "withtemplate", Variable,
+               OPTIONAL("withhelp", Label))
+    grammar_whitespace_mode = 'optional'
 
 
 _inline_edit_parser = InlineEditGrammar.parser()
@@ -188,8 +186,8 @@ def inline_edit_tag(tag, Node):
     """
     def tag_parser(parser, token):
         try:
-            results = _inline_edit_parser.parse_string(token.contents,
-                                                       reset=True, eof=True)
+            results = _inline_edit_parser.parse_text(token.contents,
+                                                     reset=True, eof=True)
         except ParseError as e:
             raise template.TemplateSyntaxError(
                 'expected format: %s [{label}] from {model.property}'
@@ -226,7 +224,7 @@ def _token_to_variable(token):
     elif token[0] == '"' and token[0] == token[-1] and len(token) >= 2:
         return token[1:-1]
     else:
-        return template.Variable(token)
+        return template.Variable(token.strip())
 
 
 def _resolve_variable(variable, context):
@@ -280,7 +278,7 @@ def field_type_label_choices(model, field_name, label=None,
         label = label if label else field.verbose_name
         explanation = explanation if explanation else field.help_text
         choices = [{'value': choice[0], 'display_value': choice[1]}
-                   for choice in field.choices]
+                   for choice in field.choices] if field.choices else []
         if choices and field.null:
             choices = [{'value': '', 'display_value': ''}] + choices
     else:
@@ -332,139 +330,31 @@ class AbstractNode(template.Node):
         instance = _resolve_variable(self.instance, context)
         field_template = get_template(_resolve_variable(
                                       self.field_template, context)).template
-        is_required = False
 
-        if not isinstance(identifier, basestring)\
+        if not isinstance(identifier, str)\
            or not _identifier_regex.match(identifier):
             raise template.TemplateSyntaxError(
                 'expected a string with the format "object_name.property" '
                 'to follow "from" %s' % identifier)
 
-        model_name_or_object_name, field_name = dotted_split(identifier, 2,
-                                                             maxsplit=1)
+        model_name_or_object_name, field_name = dotted_split(identifier, 2, maxsplit=1)
         model = self.get_model(context, model_name_or_object_name, instance)
 
-        object_name = to_object_name(model_name_or_object_name)
-
-        identifier = "%s.%s" % (object_name, field_name)
-
-        def _field_is_required(model, field_name):
-            udf_field_name = field_name.replace('udf:', '')
-            if _is_udf(model, udf_field_name):
-                return udf_field_name in model.udf_required_fields
-            return False
-
-        def _field_value(model, field_name, data_type):
-            udf_field_name = field_name.replace('udf:', '')
-            val = None
-            if field_name in [f.name for f in model._meta.get_fields()]:
-                try:
-                    val = getattr(model, field_name)
-                except (ObjectDoesNotExist, AttributeError):
-                    pass
-            elif _is_udf(model, udf_field_name):
-                if udf_field_name in model.udfs:
-                    val = model.udfs[udf_field_name]
-                    # multichoices place a json serialized data-value
-                    # on the dom element and client-side javascript
-                    # processes it into a view table and edit widget
-                    if data_type == 'multichoice':
-                        val = json.dumps(val)
-                elif data_type == 'multichoice':
-                    val = '[]'
-
-            else:
-                raise ValueError('Could not find field: %s' % field_name)
-
-            return val
-
-        if is_json_field_reference(field_name):
-            field_value = get_attr_from_json_field(model, field_name)
-            choices = None
-            is_visible = is_editable = True
-            data_type = "string"
-        else:
-            add_blank = (ADD_BLANK_ALWAYS if self.treat_multichoice_as_choice
-                         else ADD_BLANK_IF_CHOICE_FIELD)
-            data_type, label, explanation, choices = field_type_label_choices(
-                model, field_name, label, explanation=explanation,
-                add_blank=add_blank)
-            is_required = _field_is_required(model, field_name)
-            field_value = _field_value(model, field_name, data_type)
-
-            if user is not None and hasattr(model, 'field_is_visible'):
-                is_visible = model.field_is_visible(user, field_name)
-                is_editable = model.field_is_editable(user, field_name)
-            else:
-                # This tag can be used without specifying a user. In that case
-                # we assume that the content is visible and upstream code is
-                # responsible for only showing the content to the appropriate
-                # user
-                is_visible = True
-                is_editable = True
-
-        digits = units = ''
-
-        if hasattr(model, 'instance'):
-            digits = get_digits_if_formattable(
-                model.instance, object_name, field_name)
-
-            units = get_units_if_convertible(
-                model.instance, object_name, field_name)
-            if units != '':
-                units = get_unit_abbreviation(units)
-
-        if data_type == 'foreign_key':
-            # rendered clientside
-            display_val = ''
-        elif field_value is None:
-            display_val = None
-        elif data_type in ['date', 'datetime']:
-            fmt = (model.instance.short_date_format if model.instance
-                   else settings.SHORT_DATE_FORMAT)
-            display_val = dateformat.format(field_value, fmt)
-        elif is_convertible_or_formattable(object_name, field_name):
-            display_val = format_value(
-                model.instance, object_name, field_name, field_value)
-            if units != '':
-                display_val += (' %s' % units)
-        elif data_type == 'bool':
-            display_val = _('Yes') if field_value else _('No')
-        elif data_type == 'multichoice':
-            # this is rendered clientside from data attributes so
-            # there's no meaningful intermediate value to send
-            # without rendering the same markup server-side.
-            display_val = None
-        elif choices:
-            display_vals = [choice['display_value'] for choice in choices
-                            if choice['value'] == field_value]
-            display_val = display_vals[0] if display_vals else field_value
-        elif data_type == 'float':
-            display_val = num_format(field_value)
-        else:
-            display_val = unicode(field_value)
-
-        if hasattr(model, 'REQUIRED_FIELDS'):
-            is_required = is_required or field_name in model.REQUIRED_FIELDS
-
-        context['field'] = {
-            'label': label,
-            'explanation': explanation,
-            'identifier': identifier,
-            'value': field_value,
-            'display_value': display_val,
-            'units': units,
-            'digits': digits,
-            'data_type': data_type,
-            'is_visible': is_visible,
-            'is_editable': is_editable,
-            'is_required': is_required,
-            'choices': choices,
-        }
+        context['field'] = get_field(
+            context,
+            label,
+            identifier,
+            user,
+            instance,
+            explanation,
+            treat_multichoice_as_choice=self.treat_multichoice_as_choice,
+            model=model,
+        )
         self.get_additional_context(
             context['field'], model, field_name, context.get('q', ''))
 
-        return field_template.render(context)
+        _field = field_template.render(context)
+        return _field
 
 
 class FieldNode(AbstractNode):
@@ -548,7 +438,7 @@ class SearchNode(CreateNode):
         def update_field(settings):
             # Identifier is lower-cased above to match the calling convention
             # of update endpoints, so we shouldn't overwrite it :(
-            field.update({k: v for k, v in settings.items()
+            field.update({k: v for k, v in list(settings.items())
                           if v is not None and k != 'identifier'})
 
         search_settings = getattr(model, 'search_settings', {}).get(field_name)

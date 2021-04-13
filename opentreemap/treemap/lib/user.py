@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.db.models import Q
 
@@ -186,7 +184,7 @@ def get_audits_params(request):
 
 def user_accessible_instance_filter(logged_in_user):
     public = Q(is_public=True)
-    if logged_in_user is not None and not logged_in_user.is_anonymous():
+    if logged_in_user is not None and not logged_in_user.is_anonymous:
         private_with_access = Q(instanceuser__user=logged_in_user)
 
         instance_filter = public | private_with_access

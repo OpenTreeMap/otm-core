@@ -111,7 +111,7 @@ function init(options) {
 
         var treeId = value[0]['tree_id'];
 
-        var url = reverse.inaturalist_create_observation_for_tree({
+        var url = reverse.Urls.inaturalist_create_observation_for_tree({
             instance_url_name: config.instance.url_name,
             tree_id: treeId
         });

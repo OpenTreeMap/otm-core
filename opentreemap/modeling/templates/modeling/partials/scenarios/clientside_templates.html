@@ -14,7 +14,9 @@
                 <label>{% trans "Diameter" %}</label>
                 <div class="input-group">
                     <input class="form-control diameter" type="text" value="<%- tree.diameter() %>">
-                    <span class="input-group-addon">{{ diameter_units }}</span>
+                    <div class="input-group-append">
+                        <span class="input-group-text">{{ diameter_units }}</span>
+                    </div>
                 </div>
             </div>
             <div class="col-sm-3">
@@ -69,7 +71,9 @@
                 <label>{% trans "Diameter" %}</label>
                 <div class="input-group">
                     <input class="form-control diameter" type="text" value="<%- tree.diameter() %>">
-                    <span class="input-group-addon">{{ diameter_units }}</span>
+                    <div class="input-group-append">
+                        <span class="input-group-text">{{ diameter_units }}</span>
+                    </div>
                 </div>
             </div>
             <div class="col-sm-1">
@@ -200,7 +204,9 @@
                         value="<%= mortalityRates[i] || 0 %>"
                         data-code="<%= otmCode %>"
                         data-index="<%= i %>" />
-                    <span class="input-group-addon">%</span>
+                    <div class="input-group-append">
+                        <span class="input-group-text">%</span>
+                    </div>
                 </div>
             </td>
         <% }) %>

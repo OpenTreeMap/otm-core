@@ -31,7 +31,7 @@ var dom = {
     newFieldsDismiss: '#new-fields-dismiss'
 };
 
-var url = reverse.roles_endpoint(config.instance.url_name),
+var url = reverse.Urls.roles_endpoint(config.instance.url_name),
     updateStream = $(dom.save)
         .asEventStream('click')
         .doAction(function(e) {

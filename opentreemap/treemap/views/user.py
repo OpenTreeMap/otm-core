@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import collections
 
@@ -10,9 +8,9 @@ from registration.models import RegistrationProfile
 from django.conf import settings
 from django.contrib.sites.requests import RequestSite
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models.expressions import RawSQL
-from django.db.models.functions import Length
+from django.db.models.functions import Length, Lower
 from django.http import HttpResponseRedirect
 from django.http.request import QueryDict
 from django.shortcuts import render, get_object_or_404
@@ -227,7 +225,7 @@ def user(request, username):
     public_fields = []
     private_fields = []
 
-    for field in USER_PROFILE_FIELDS.values():
+    for field in list(USER_PROFILE_FIELDS.values()):
         field_tuple = (field['label'], field['identifier'],
                        field.get('template', "treemap/field/div.html"))
         if field['visibility'] == 'public' and user.make_info_public is True:
@@ -254,7 +252,7 @@ def users(request, instance):
 
     users_qs = InstanceUser.objects \
                            .filter(instance=instance)\
-                           .order_by('user__username')\
+                           .order_by(Lower('user__username'))\
                            .values('user_id', 'user__username',
                                    'user__first_name', 'user__last_name',
                                    'user__make_info_public')

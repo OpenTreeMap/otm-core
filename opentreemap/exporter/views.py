@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
-from tasks import async_csv_export, async_users_export, async_groups_export
+from .tasks import async_csv_export, async_users_export, async_groups_export
 
 from django_tinsel.utils import decorate as do
 from django_tinsel.decorators import json_api_call
@@ -59,7 +57,7 @@ def users_json(request, instance):
 ############################################
 
 def begin_export_users(request, instance, data_format):
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         raise Http404()
 
     if not instance.feature_enabled('exports'):
@@ -108,7 +106,7 @@ def begin_export(request, instance, model):
     job = ExportJob(instance=instance,
                     description='csv export of %s' % model)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         job.user = request.user
     job.save()
 

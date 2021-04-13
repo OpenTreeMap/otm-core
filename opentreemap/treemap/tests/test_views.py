@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import os
 import json
-from StringIO import StringIO
+from io import StringIO
 import psycopg2
 
 from django.test.utils import override_settings
@@ -156,7 +154,7 @@ class BoundaryViewTest(ViewTestCase):
             self.instance,
             boundary.pk)
 
-        self.assertEqual(response.content,
+        self.assertEqual(response.content.decode('utf-8'),
                          boundary.geom.transform(4326, clone=True).geojson)
 
         self._assert_response_is_srid_3857_distance(response, distance)
@@ -170,7 +168,7 @@ class BoundaryViewTest(ViewTestCase):
             self.instance,
             boundary.pk)
 
-        self.assertEqual(response.content,
+        self.assertEqual(response.content.decode('utf-8'),
                          boundary.geom.transform(4326, clone=True).geojson)
 
         self._assert_response_is_srid_3857_distance(response, distance)
@@ -179,7 +177,7 @@ class BoundaryViewTest(ViewTestCase):
         distance3857 = 1.0
         point3857 = Point(distance3857, distance3857, srid=3857)
         point4326 = point3857.transform(4326, clone=True)
-        n = point4326.get_x()
+        n = point4326.x
         request_dict = {
             'polygon': [[n, n], [n, n+1], [n+1, n+1], [n+1, n], [n, n]]
         }
@@ -195,7 +193,7 @@ class BoundaryViewTest(ViewTestCase):
             self.instance,
             boundary_id)
 
-        self.assertEqual(gjs_response.content,
+        self.assertEqual(gjs_response.content.decode('utf-8'),
                          anonymous_boundary.geom.transform(
                              4326, clone=True).geojson)
 
@@ -228,8 +226,8 @@ class BoundaryViewTest(ViewTestCase):
         json_response = json.loads(response.content)
         response_upper_left = Point(json_response['coordinates'][0][0][0],
                                     srid=4326)
-        self.assertAlmostEqual(response_upper_left.get_x(),
-                               upper_left_4326.get_x())
+        self.assertAlmostEqual(response_upper_left.x,
+                               upper_left_4326.x)
 
 
 class TreePhotoTestCase(LocalMediaTestCase):
@@ -979,7 +977,7 @@ class PlotViewTest(PlotViewTestCase):
                                                     .has_itree_region()
         context = plot_detail(request, self.instance, plot_w_tree.pk)
 
-        self.assertEquals(plot_w_tree, context['plot'])
+        self.assertEqual(plot_w_tree, context['plot'])
         self.assertIn('benefits', context)
 
     def test_plot_without_tree(self):
@@ -988,7 +986,7 @@ class PlotViewTest(PlotViewTestCase):
 
         context = self.get_plot_context(plot_wo_tree)
 
-        self.assertEquals(plot_wo_tree, context['plot'])
+        self.assertEqual(plot_wo_tree, context['plot'])
         self.assertNotIn('benefits', context)
 
     def test_system_user_hidden_from_audit_history(self):
@@ -1056,8 +1054,8 @@ class PlotViewProgressTest(PlotViewTestCase):
         # Having a plot location counts at 25%
         context = self.get_plot_context(self.plot_wo_tree)
 
-        self.assertEquals(25, context['progress_percent'])
-        self.assertEquals(4, len(context['progress_messages']))
+        self.assertEqual(25, context['progress_percent'])
+        self.assertEqual(4, len(context['progress_messages']))
 
     def test_progress_messages_decrease_when_plot_has_tree(self):
         wo_tree_context = self.get_plot_context(self.plot_wo_tree)
@@ -1327,7 +1325,7 @@ class RecentEditsViewTest(ViewTestCase):
         self.assertEqual(len(expected), len(actual), "Number of dicts")
 
         for expected, generated in zip(expected, actual):
-            for k, v in expected.iteritems():
+            for k, v in expected.items():
                 self.assertEqual(v, generated[k], "key [%s]" % k)
 
     def check_audits(self, url, dicts, user=None):
@@ -1591,21 +1589,21 @@ class RecentEditsViewTest(ViewTestCase):
                 "ref": None,
                 "action": Audit.Type.Insert,
                 "previous_value": None,
-                "current_value": "water",
-                "requires_auth": False,
-                "user_id": self.commander.pk,
-                "instance_id": self.instance.pk,
-                "field": "udf:action"
-            }, {
-                "model": "udf:%s" % cudf.pk,
-                "ref": None,
-                "action": Audit.Type.Insert,
-                "previous_value": None,
                 "current_value": "343",
                 "requires_auth": False,
                 "user_id": self.commander.pk,
                 "instance_id": self.instance.pk,
                 "field": "udf:height"
+            }, {
+                "model": "udf:%s" % cudf.pk,
+                "ref": None,
+                "action": Audit.Type.Insert,
+                "previous_value": None,
+                "current_value": "water",
+                "requires_auth": False,
+                "user_id": self.commander.pk,
+                "instance_id": self.instance.pk,
+                "field": "udf:action"
             }],
             user=self.officer)
 
@@ -1714,11 +1712,11 @@ class SpeciesViewTests(ViewTestCase):
             js_species['other_part_of_name'] = species.other_part_of_name
 
     def test_get_species_list(self):
-        self.assertEquals(species_list(make_request(), self.instance),
-                          self.species_json)
+        self.assertEqual(species_list(make_request(), self.instance),
+                         self.species_json)
 
     def test_get_species_list_max_items(self):
-        self.assertEquals(
+        self.assertEqual(
             species_list(make_request({'max_items': 3}), self.instance),
             self.species_json[:3])
 
@@ -1735,11 +1733,11 @@ class UserViewTests(ViewTestCase):
 
     def test_get_by_username(self):
         context = user(make_request(), self.joe.username)
-        self.assertEquals(self.joe.username, context['user'].username,
-                          'the user view should return a dict with user with '
-                          '"username" set to %s ' % self.joe.username)
-        self.assertEquals(list, type(context['audits']),
-                          'the user view should return a list of audits')
+        self.assertEqual(self.joe.username, context['user'].username,
+                         'the user view should return a dict with user with '
+                         '"username" set to %s ' % self.joe.username)
+        self.assertEqual(list, type(context['audits']),
+                         'the user view should return a list of audits')
 
     def test_get_with_invalid_username_returns_404(self):
         self.assertRaises(Http404, user, make_request(),
@@ -1781,7 +1779,7 @@ class UserUpdateViewTests(ViewTestCase):
     def assertOk(self, response):
         if (issubclass(response.__class__, HttpResponse)):
             context = json.loads(response.content)
-            self.assertEquals(200, response.status_code)
+            self.assertEqual(200, response.status_code)
         else:
             context = response
         self.assertTrue('ok' in context)
@@ -1790,7 +1788,7 @@ class UserUpdateViewTests(ViewTestCase):
 
     def assertBadRequest(self, response):
         self.assertTrue(issubclass(response.__class__, HttpResponse))
-        self.assertEquals(400, response.status_code)
+        self.assertEqual(400, response.status_code)
         context = json.loads(response.content)
         self.assertFalse('ok' in context)
         self.assertTrue('globalErrors' in context)
@@ -1805,9 +1803,9 @@ class UserUpdateViewTests(ViewTestCase):
         update = b'{"user.first_name": "Joseph"}'
         self.assertOk(update_user(
             make_request(user=self.joe, body=update), self.joe))
-        self.assertEquals('Joseph',
-                          User.objects.get(username='joe').first_name,
-                          'The first_name was not updated')
+        self.assertEqual('Joseph',
+                         User.objects.get(username='joe').first_name,
+                         'The first_name was not updated')
 
     def test_expects_keys_prefixed_with_user(self):
         self.joe.name = 'Joe'
@@ -1851,11 +1849,11 @@ class InstanceUserViewTests(ViewTestCase):
                                  self.commander.username)
         expected_url = '/users/%s/?instance_id=%d' %\
             (self.commander.username, self.instance.id)
-        self.assertEquals(res.status_code, 302, "should be a 302 Found \
+        self.assertEqual(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
-        self.assertEquals(expected_url, res['Location'],
-                          'the view should redirect to %s not %s ' %
-                          (expected_url, res['Location']))
+        self.assertEqual(expected_url, res['Location'],
+                         'the view should redirect to %s not %s ' %
+                         (expected_url, res['Location']))
 
     def test_get_with_invalid_username_redirects(self):
         test_username = 'no_way_username'
@@ -1864,11 +1862,11 @@ class InstanceUserViewTests(ViewTestCase):
                                  test_username)
         expected_url = '/users/%s/?instance_id=%d' %\
             (test_username, self.instance.id)
-        self.assertEquals(res.status_code, 302, "should be a 302 Found \
+        self.assertEqual(res.status_code, 302, "should be a 302 Found \
             temporary redirect")
-        self.assertEquals(expected_url, res['Location'],
-                          'the view should redirect to %s not %s ' %
-                          (expected_url, res['Location']))
+        self.assertEqual(expected_url, res['Location'],
+                         'the view should redirect to %s not %s ' %
+                         (expected_url, res['Location']))
 
 
 class SettingsJsViewTests(ViewTestCase):
@@ -1893,12 +1891,12 @@ class SettingsJsViewTests(ViewTestCase):
     @override_settings(TILE_HOST=None)
     def test_none_tile_hosts_omits_tilehosts_setting(self):
         self.assertNotInResponse('otm.settings.tileHosts',
-                                 self.get_response())
+                                 self.get_response().content.decode('utf-8'))
 
     @override_settings(TILE_HOST='{s}.a')
     def test_single_tile_host_in_tilehosts_setting(self):
         self.assertInResponse('otm.settings.tileHost = "{s}.a";',
-                              self.get_response())
+                              self.get_response().content.decode('utf-8'))
 
 
 class InstanceSettingsJsViewTests(SettingsJsViewTests):
@@ -1998,18 +1996,18 @@ class ForgotUsernameTests(ViewTestCase):
         resp = forgot_username(make_request({'email': self.user.email},
                                             method='POST'))
 
-        self.assertEquals(resp, {'email': self.user.email})
+        self.assertEqual(resp, {'email': self.user.email})
 
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 1)
         self.assertIn(self.user.username, mail.outbox[0].body)
 
     def test_no_email_if_doesnt_exist(self):
         resp = forgot_username(make_request({'email': 'doesnt@exist.co.uk'},
                                             method='POST'))
 
-        self.assertEquals(resp, {'email': 'doesnt@exist.co.uk'})
+        self.assertEqual(resp, {'email': 'doesnt@exist.co.uk'})
 
-        self.assertEquals(len(mail.outbox), 0)
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class UserInstancesViewTests(OTMTestCase):
@@ -2037,17 +2035,17 @@ class UserInstancesViewTests(OTMTestCase):
     def test_a_views_a(self):
         # User a views their own instances
         instances = get_user_instances(self.user_a, self.user_a, self.c)
-        self.assertEquals(list(instances), [self.a, self.ab, self.c])
+        self.assertEqual(list(instances), [self.a, self.ab, self.c])
 
     def test_a_views_b(self):
         # User a views b's instances
         instances = get_user_instances(self.user_a, self.user_b, self.c)
-        self.assertEquals(list(instances), [self.ab, self.b_public])
+        self.assertEqual(list(instances), [self.ab, self.b_public])
 
     def test_anonymous_views_b(self):
         # User anonymous views b's instances
         instances = get_user_instances(None, self.user_b, self.c)
-        self.assertEquals(list(instances), [self.b_public])
+        self.assertEqual(list(instances), [self.b_public])
 
 
 @override_settings(VIEWABLE_INSTANCES_FUNCTION=None)

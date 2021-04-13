@@ -39,6 +39,13 @@
             margin-right: 15px;
         }
 
+        &.mr-auto {
+            margin-left: 5px;
+        }
+        &.ml-auto {
+            margin-right: 30px;
+        }
+
         > li {
             margin-left: 20px;
             height: #{$navbar-height - 1px};

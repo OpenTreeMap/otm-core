@@ -5,7 +5,7 @@
 
 <div class="carousel-inner">
 {% for photo in photos %}
-  <div class="item {{ forloop.first|yesno:"active," }}">
+  <div class="carousel-item {{ forloop.first|yesno:"active," }}">
     <a data-toggle="modal" href="#photo-lightbox" class="inspect-photo"
         data-photo-src="{{ photo.image }}"
         {% if forloop.first %}
@@ -50,8 +50,10 @@
   </div>
 </div>
 {% if photos|length > 1 %}
-<a class="carousel-control left" href="#photo-carousel" data-slide="prev"><i class="icon-left-circled"></i></a>
-<a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a>
+<!--a class="carousel-control-prev left" href="#photo-carousel" data-slide="prev"><i class="icon-left-circled"></i></a-->
+<a class="carousel-control-prev" href="#photo-carousel" role="button" data-slide="prev"><i class="icon-left-circled"></i></a>
+<!--a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a-->
+<a class="carousel-control-next" href="#photo-carousel" role="button" data-slide="next"><i class="icon-right-circled"></i></a>
 {% endif %}
 {% if error %}
 {# The data-photo-upload-failed attribute must appear on an element if there was a validation error #}

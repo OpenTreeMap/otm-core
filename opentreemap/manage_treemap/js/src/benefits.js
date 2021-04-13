@@ -11,7 +11,7 @@ var $ = require('jquery'),
 adminPage.init();
 
 var form = inlineEditForm.init({
-        updateUrl: reverse.benefits(config.instance.url_name),
+        updateUrl: reverse.Urls.benefits(config.instance.url_name),
         section: '#benefits',
         errorCallback: alerts.errorCallback
     }),

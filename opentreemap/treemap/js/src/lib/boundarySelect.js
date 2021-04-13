@@ -29,7 +29,7 @@ function showBoundaryGeomOnMapLayerAndZoom(map, boundaryGeoJsonLayer) {
 }
 
 function instanceBoundaryIdToUrl(id) {
-    return reverse.boundaries_geojson({
+    return reverse.Urls.boundaries_geojson({
         instance_url_name: config.instance.url_name,
         boundary_id: id
     });

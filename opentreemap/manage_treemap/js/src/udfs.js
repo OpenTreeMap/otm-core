@@ -60,7 +60,7 @@ var $udfType = $('#udf-type'),
     saveConfirmModelTemplate = _.template($('#confirmer-model-template').html()),
     saveConfirmChangeTemplate = _.template($('#confirmer-change-template').html()),
 
-    url = reverse.udfs(config.instance.url_name);
+    url = reverse.Urls.udfs(config.instance.url_name);
 
 var saveModal = (function() {
     function hide() {
@@ -160,7 +160,7 @@ newUdfStream
     });
 
 var getUdfUrlForId = function(id) {
-    return reverse.udfs_change({
+    return reverse.Urls.udfs_change({
         instance_url_name: config.instance.url_name,
         udf_id: id
     });

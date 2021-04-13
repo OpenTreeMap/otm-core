@@ -1,4 +1,4 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from treemap.tests import make_instance, make_admin_user
 from treemap.tests.test_urls import UrlTestCase

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -13,8 +11,8 @@ from treemap.json_field import JSONField
 
 class Plan(models.Model):
     revision = models.IntegerField(default=0)
-    instance = models.ForeignKey(Instance)
-    owner = models.ForeignKey(User)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.TextField()
     description = models.TextField(blank=True)
     is_published = models.BooleanField(default=False)
@@ -37,7 +35,7 @@ class Plan(models.Model):
         }
 
     def update(self, plan_dict):
-        for key, value in plan_dict.iteritems():
+        for key, value in plan_dict.items():
             if key in ('revision', 'name', 'description', 'is_published',
                        'scenarios', 'zoom_lat_lng'):
                 setattr(self, key, value)
@@ -53,5 +51,5 @@ class Plan(models.Model):
     def clean(self):
         pass
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name

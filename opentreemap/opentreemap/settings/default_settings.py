@@ -222,6 +222,7 @@ TEMPLATES = [
 MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -294,6 +295,7 @@ INSTALLED_APPS = (
     'django.contrib.postgres',
     'django_js_reverse',
     'webpack_loader',
+    'frontend',
 )
 
 I18N_APPS = (
@@ -402,13 +404,27 @@ WEBPACK_LOADER = {
 
 # For django-recaptcha https://github.com/praekelt/django-recaptcha
 # Setting NOCAPTCHA to True enables v2
-NOCAPTCHA = True
+NOCAPTCHA = False
 
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 if os.environ.get('RECAPTCHA_PUBLIC_KEY', '') != '':
     # We use an if block here because django-recaptcha will only use a default
     # test key if these settings are undefined.
-    RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', None)
-    RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY', None)
+    #RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', None)
+    #RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY', None)
     USE_RECAPTCHA = True
 else:
     USE_RECAPTCHA = False
+
+
+DEFAULT_INSTANCE = 'JerseyCity'
+
+INATURALIST_URL = ''
+
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    'http://localhost:8080'
+)
+
+BROKER_URL = 'redis://localhost:6379/'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/'

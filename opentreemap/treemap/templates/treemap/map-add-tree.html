@@ -9,7 +9,7 @@
 
 {% with nsteps=3 %}
 <div class="sidebar-inner">
-    <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
+    <a href="javascript:;" class="close cancelBtn small hidden-xs d-none d-sm-block">×</a>
     <h3>{% trans "Add a Tree" %}</h3>
     <div class="add-step-container" id="add-tree-container">
         {% include "treemap/partials/step_set_location.html" with first=True feature_name="tree" %}
@@ -17,7 +17,7 @@
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Add species and additional info" %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <div id="tree-photos">
@@ -132,7 +132,7 @@
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Finalize this tree" %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <h3 class="summaryHead"></h3>

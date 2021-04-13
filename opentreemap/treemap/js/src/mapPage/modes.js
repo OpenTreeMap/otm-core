@@ -203,7 +203,7 @@ function init(mapManager, triggerSearchBus, embed, completedSearchStream) {
 function getSpeciesTypeaheadOptions(idPrefix) {
     return {
         name: "species",
-        url: reverse.species_list_view(config.instance.url_name),
+        url: reverse.Urls.species_list_view(config.instance.url_name),
         input: "#" + idPrefix + "-typeahead",
         template: "#species-element-template",
         hidden: "#" + idPrefix + "-hidden",

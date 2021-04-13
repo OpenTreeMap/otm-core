@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
-import urllib2
-import urllib
+
+import urllib.request
+import urllib.parse
+import urllib.error
 import json
 import re
 import sys
@@ -92,7 +91,7 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                     hexstring = ''.join('%02X' % ord(x) for x in bytestring)
 
                     v = "ST_GeomFromEWKT('%s')" % GEOSGeometry(hexstring).ewkt
-                elif not isinstance(v, unicode):
+                elif not isinstance(v, str):
                     v = str(v)
 
                 if k == "param":
@@ -103,15 +102,15 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
                 else:
                     paramdata[k] = v
 
-            data = json.dumps(paramdata)
+            data = json.dumps(paramdata).encode('utf-8')
         else:
-            data = json.dumps(params)
-        req = urllib2.Request(url,
-                              data,
-                              {'Content-Type': 'application/json'})
+            data = json.dumps(params).encode('utf-8')
+
+        req = urllib.request.Request(
+            url, data, {'Content-Type': 'application/json'})
     else:
-        paramString = "&".join(["%s=%s" % (urllib.quote_plus(str(name)),
-                                           urllib.quote_plus(str(val)))
+        paramString = "&".join(["%s=%s" % (urllib.parse.quote_plus(str(name)),
+                                           urllib.parse.quote_plus(str(val)))
                                 for (name, val) in params])
 
         # A get request is assumed by urllib2
@@ -124,13 +123,15 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
     general_unhandled_struct = (None, UNKNOWN_ECO_FAILURE)
 
     try:
-        result = urllib2.urlopen(req).read()
+        result = urllib.request.urlopen(req).read()
         if result:
             result = json.loads(result)
         return result, None
-    except urllib2.HTTPError as e:
-        error_body = e.fp.read()
-        for code, patterns in ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items():
+    except urllib.error.HTTPError as e:
+        error_body = e.fp.read().decode('UTF-8')
+        codes_and_patterns = \
+            list(ECOBENEFIT_FAILURE_CODES_AND_PATTERNS.items())
+        for code, patterns in codes_and_patterns:
             for pattern in patterns:
                 match = re.match(pattern, error_body)
                 if match:
@@ -162,6 +163,6 @@ def json_benefits_call(endpoint, params, post=False, convert_params=True):
             LOG_FUNCTION_FOR_FAILURE_CODE[UNKNOWN_ECO_FAILURE](
                 "ECOBENEFIT FAILURE: " + error_body)
             return general_unhandled_struct
-    except urllib2.URLError:
+    except urllib.error.URLError:
         logger.error("Error connecting to ecoservice", exc_info=sys.exc_info())
         return general_unhandled_struct

@@ -71,7 +71,7 @@ def dict_to_model(config, model_name, data_dict, instance):
 
     for field in (common_fields
                   .union(renamed_fields)
-                  .union(dependency_fields.values())):
+                  .union(list(dependency_fields.values()))):
         transform_fn = (config[model_name]
                         .get('value_transformers', {})
                         .get(field, None))
@@ -85,7 +85,7 @@ def dict_to_model(config, model_name, data_dict, instance):
                 model.udfs[transformed_field[4:]] = transformed_value
         else:
             suffix = ('_id'
-                      if transformed_field in dependency_fields.values()
+                      if transformed_field in list(dependency_fields.values())
                       else '')
             setattr(model, transformed_field + suffix, transformed_value)
 
@@ -128,7 +128,7 @@ def add_udfs_to_migration_rules(migration_rules, udfs, instance):
         model_rules = migration_rules[model]
         model_rules['removed_fields'] -= set(udfs[model].keys())
 
-        for field, field_rules in udfs[model].items():
+        for field, field_rules in list(udfs[model].items()):
             prefixed = 'udf:' + field_rules['udf.name']
             model_rules['renamed_fields'][field] = prefixed
 
@@ -143,13 +143,14 @@ def add_udfs_to_migration_rules(migration_rules, udfs, instance):
 
 
 def create_udfs(udfs, instance):
-    for model, model_rules in udfs.items():
-        for field, field_rules in model_rules.items():
+    for model, model_rules in list(udfs.items()):
+        for field, field_rules in list(model_rules.items()):
             # convert the migrator udf schema
             # to the udf-lib friendly schema
 
             name = field_rules['udf.name']
             model_type = to_model_name(model)
+            import ipdb; ipdb.set_trace() # BREAKPOINT
             choices = field_rules.get('udf.choices')
             datatype_type = field_rules.get(
                 'udf.type', 'choice' if choices else 'string')
@@ -162,7 +163,7 @@ def create_udfs(udfs, instance):
             }
 
             if not udf_lib.udf_exists(udf_params, instance):
-                print "Creating udf %s" % name
+                print("Creating udf %s" % name)
                 udf_lib.udf_create(udf_params, instance)
 
 

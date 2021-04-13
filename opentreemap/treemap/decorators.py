@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import json
 from functools import wraps
@@ -10,7 +8,7 @@ from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied
 from django.http import (HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
@@ -37,7 +35,7 @@ def instance_request(view_fn, redirect=True):
         request.instance_supports_ecobenefits = instance.has_itree_region()
 
         user = request.user
-        if user.is_authenticated():
+        if user.is_authenticated:
             instance_user = user.get_instance_user(instance)
             request.instance_user = instance_user
 
@@ -49,7 +47,7 @@ def instance_request(view_fn, redirect=True):
                 if request_is_embedded(request):
                     return HttpResponseRedirect(
                         reverse('instance_not_available') + '?embed=1')
-                elif request.user.is_authenticated():
+                elif request.user.is_authenticated:
                     return HttpResponseRedirect(
                         reverse('instance_not_available'))
                 else:
@@ -65,7 +63,7 @@ def user_must_be_admin(view_fn):
     def f(request, instance, *args, **kwargs):
         user = request.user
 
-        if user.is_authenticated():
+        if user.is_authenticated:
             user_instance = user.get_instance_user(instance)
             is_admin = user_instance and user_instance.admin
 
@@ -192,7 +190,7 @@ def login_or_401(view_fn):
     """
     @wraps(view_fn)
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return view_fn(request, *args, **kwargs)
         else:
             return HttpResponse('Unauthorized', status=401)

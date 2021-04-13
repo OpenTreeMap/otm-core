@@ -2,7 +2,7 @@
 <div class="add-step with-map">
     <div class="add-step-header">
         {% trans "Set the" %} {{ feature_name }}'s {% trans "location" %}
-        <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+        <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
     </div>
     <div class="add-step-content">
         {# Making onsubmit return false prevents the form from being submitted. We want to run JS code instead #}
@@ -12,21 +12,21 @@
         </form>
         <a class="geolocate"><i class="icon-direction"></i> {% trans "Use Current Location" %}</a>
         <div class="alert alert-info place-marker-message">
-            <span class="visible-xs-inline">
+            <span class="visible-xs-inline d-block d-sm-none">
                 {% trans 'Tap on the map, enter an address, or select "Use Current Location."' %}
             </span>
-            <span class="hidden-xs">
+            <span class="hidden-xs d-none d-sm-block">
                 {% trans 'Choose a point on the map, enter an address with city, or select "Use Current Location."' %}
             </span>
         </div>
         <div class="alert alert-danger text-danger geocode-error" style="display: none;">
-            <span class="visible-xs-inline">{% trans "Unable to locate this address." %}</span>
-            <span class="hidden-xs">{% trans "Unable to locate this address." %}</span>
+            <span class="visible-xs-inline d-block d-sm-none">{% trans "Unable to locate this address." %}</span>
+            <span class="hidden-xs d-none d-sm-block">{% trans "Unable to locate this address." %}</span>
         </div>
         <div class="alert alert-danger text-danger geolocate-error" style="display: none;">
             {% trans "Unable to determine current location" %}
         </div>
-        <div class="alert alert-info move-marker-message hidden-xs" style="display: none;">
+        <div class="alert alert-info move-marker-message hidden-xs d-none d-sm-block" style="display: none;">
             {% trans "Please move marker to exact location of the" %} {{ feature_name }}
         </div>
         <div class="alert alert-danger text-danger pointnotinmap-error" style="display: none;">

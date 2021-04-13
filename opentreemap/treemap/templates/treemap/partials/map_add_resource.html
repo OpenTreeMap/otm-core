@@ -4,13 +4,13 @@
 
 {% with nsteps=5 %}
 <div class="sidebar-inner">
-    <a href="javascript:;" class="close cancelBtn small hidden-xs">×</a>
+    <a href="javascript:;" class="close cancelBtn small hidden-xs d-none d-sm-block">×</a>
     <h3>{% trans "Add a" %} {{ term.Resource.singular }}</h3>
     <div class="add-step-container" id="add-resource-container">
         <div class="add-step active">
             <div class="add-step-header">
                 {% blocktrans with Resource=terms.Resource.singular %} Select {{ Resource }} Type {% endblocktrans %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small d-block d-sm-none visible-xs-block">×</a>
             </div>
             <div class="add-step-content">
                 <label>{{ term.Resource.singular }} {% trans "Type" %}</label>
@@ -40,7 +40,7 @@
           {% if cls.area_field_name == 'roof_geometry' %}
             <div class="add-step-header">
                 {% trans "Indicate Nearby Roof Area" %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <div class="alert alert-info">Move the squares on the blue polygon to define the borders of the roof area that will drain into your {{ term.Resource.singular.lower }}.
@@ -49,7 +49,7 @@
           {% else %}
             <div class="add-step-header">
                 {% trans "Indicate Polygon Area" %}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <div class="alert alert-info">Move the squares on the blue polygon to define the borders of your {{ term.Resource.singular.lower }}.
@@ -64,7 +64,7 @@
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "About this" %} {{ term.Resource.singular }}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <form id="add-resource-form" onsubmit="return false;">
@@ -76,7 +76,7 @@
         <div class="add-step">
             <div class="add-step-header">
                 {% trans "Finalize this" %} {{ term.Resource.singular }}
-                <a href="javascript:;" class="close cancelBtn small visible-xs-block">×</a>
+                <a href="javascript:;" class="close cancelBtn small visible-xs-block d-block d-sm-none">×</a>
             </div>
             <div class="add-step-content">
                 <h3 class="summaryHead"></h3>

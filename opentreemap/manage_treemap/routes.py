@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+
 
 from functools import partial
 
@@ -25,7 +23,8 @@ from manage_treemap.views.udf import (udf_bulk_update, udf_create, udf_list,
                                       udf_update_choice,
                                       remove_udf_notifications)
 from manage_treemap.views.user_roles import (
-    user_roles_list, update_user_roles, create_user_role,
+    user_roles_list, user_roles_list_api, user_roles_list_active, user_roles_list_invited,
+    update_user_roles, create_user_role,
     remove_invited_user_from_instance)
 from treemap.decorators import (require_http_method, admin_instance_request,
                                 return_400_if_validation_errors, instance_request)
@@ -109,6 +108,24 @@ user_roles = admin_route(
     POST=do(return_400_if_validation_errors,
             render_template('manage_treemap/partials/user_roles.html'),
             create_user_role)
+)
+
+user_roles_invited = do(
+    json_api_call,
+    instance_request,
+    user_roles_list_invited
+)
+
+user_roles_active = do(
+    json_api_call,
+    instance_request,
+    user_roles_list_active
+)
+
+user_roles_api = do(
+    json_api_call,
+    instance_request,
+    user_roles_list_api
 )
 
 user_roles_partial = admin_route(

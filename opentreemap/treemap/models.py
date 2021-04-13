@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
 
 import hashlib
@@ -24,6 +21,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import (UserManager, AbstractBaseUser,
                                         PermissionsMixin, Group)
 from django.template.loader import get_template
+
+# these are all built-in directly to Django
+from django.db.models import Manager as GeoManager
 
 from treemap.species.codes import ITREE_REGIONS, get_itree_code
 from treemap.audit import Auditable, Role, Dictable, Audit, PendingAuditable
@@ -70,7 +70,7 @@ def _action_format_string_for_readonly(action, readonly):
 
 
 class StaticPage(models.Model):
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     content = models.TextField()
 
@@ -121,7 +121,7 @@ class StaticPage(models.Model):
                 return name
         return None
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -235,7 +235,7 @@ class BenefitCurrencyConversion(Dictable, models.Model):
         if config:
             benefits_conversion = cls()
             benefits_conversion.currency_symbol = '$'
-            for field, conversion in config.iteritems():
+            for field, conversion in config.items():
                 setattr(benefits_conversion, field, conversion)
             return benefits_conversion
         else:
@@ -363,7 +363,7 @@ class User(AbstractUniqueEmailUser, Auditable):
 
     @property
     def email_hash(self):
-        return hashlib.sha512(self.email).hexdigest()
+        return hashlib.sha512(self.email.encode()).hexdigest()
 
     def dict(self):
         return {'id': self.pk,
@@ -448,7 +448,7 @@ class Species(PendingAuditable, models.Model):
     DEFAULT_MAX_HEIGHT = 800
 
     # Base required info
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
     # ``otm_code`` is the key used to link this instance
     # species row to a cannonical species. An otm_code
     # is usually the USDA code, but this is not guaranteed.
@@ -489,7 +489,10 @@ class Species(PendingAuditable, models.Model):
     updated_at = models.DateTimeField(  # TODO: remove null=True
         null=True, auto_now=True, editable=False, db_index=True)
 
-    objects = models.GeoManager()
+    # Let's us differentiate between common species and uncommon species in an area.
+    is_common = models.NullBooleanField(verbose_name='Is Common Species')
+
+    objects = GeoManager()
 
     def __init__(self, *args, **kwargs):
         super(Species, self).__init__(*args, **kwargs)
@@ -562,7 +565,7 @@ class Species(PendingAuditable, models.Model):
         else:
             return get_itree_code(region_code, self.otm_code)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.display_name
 
     class Meta:
@@ -573,9 +576,9 @@ class Species(PendingAuditable, models.Model):
 
 
 class InstanceUser(Auditable, models.Model):
-    instance = models.ForeignKey(Instance)
-    user = models.ForeignKey(User)
-    role = models.ForeignKey(Role)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
     reputation = models.IntegerField(default=0)
     admin = models.BooleanField(default=False)
     last_seen = models.DateField(null=True, blank=True)
@@ -601,7 +604,7 @@ class InstanceUser(Auditable, models.Model):
     def do_not_track(cls):
         return Auditable.do_not_track | {'last_seen'}
 
-    def __unicode__(self):
+    def __str__(self):
         # protect against not being logged in
         username = ''
         if getattr(self, 'user', None) is not None:
@@ -619,7 +622,7 @@ post_delete.connect(invalidate_adjuncts, sender=InstanceUser)
 # before PendingAuditable.
 class MapFeature(Convertible, UDFModel, PendingAuditable):
     "Superclass for map feature subclasses like Plot, RainBarrel, etc."
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
     geom = models.PointField(srid=3857, db_column='the_geom_webmercator')
 
     address_street = models.CharField(max_length=255, blank=True, null=True,
@@ -636,10 +639,10 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     # efficient.
     updated_at = models.DateTimeField(default=timezone.now,
                                       verbose_name=_("Last Updated"))
-    updated_by = models.ForeignKey(User, null=True, blank=True,
+    updated_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True,
                                    verbose_name=_("Last Updated By"))
 
-    objects = models.GeoManager()
+    objects = GeoManager()
 
     # subclass responsibilities
     area_field_name = None
@@ -675,7 +678,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     @classproperty
     def do_not_track(cls):
         return PendingAuditable.do_not_track | UDFModel.do_not_track | {
-            'feature_type', 'mapfeature_ptr', 'hide_at_zoom'}
+            'is_plot', 'title', 'feature_type', 'mapfeature_ptr', 'hide_at_zoom'}
 
     @property
     def _is_generic(self):
@@ -839,7 +842,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         for feature in self.nearby_map_features():
             string_to_hash += "," + str(feature.pk)
 
-        return hashlib.md5(string_to_hash).hexdigest()
+        return hashlib.md5(string_to_hash.encode()).hexdigest()
 
     def title(self):
         # Cast allows the map feature subclass to handle generating
@@ -912,7 +915,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             .filter(instance=self.instance)\
             .exclude(pk=self.pk)
 
-    def __unicode__(self):
+    def __str__(self):
         geom = getattr(self, 'geom', None)
         x = geom and geom.x or '?'
         y = geom and geom.y or '?'
@@ -923,6 +926,17 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
             return ''
         text = "%s (%s, %s) %s" % (feature_type, x, y, address)
         return text
+
+    def as_dict(self):
+        """
+        Add additional fields to the dictionary representation.
+        This is what gets returned from the API
+        """
+        data = super(MapFeature, self).as_dict()
+        data['title'] = self.title()
+        data['is_editable'] = self.is_editable
+        data['is_plot'] = self.is_plot
+        return data
 
     @classproperty
     def _terminology(cls):
@@ -987,7 +1001,7 @@ class Plot(MapFeature, ValidationMixin):
     owner_orig_id = models.CharField(max_length=255, null=True, blank=True,
                                      verbose_name=_("Custom ID"))
 
-    objects = models.GeoManager()
+    objects = GeoManager()
     is_editable = True
     REQUIRED_FIELDS = ['width', 'length']
 
@@ -1085,10 +1099,10 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
     """
     Represents a single tree, belonging to an instance
     """
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
 
-    plot = models.ForeignKey(Plot)
-    species = models.ForeignKey(Species, null=True, blank=True,
+    plot = models.ForeignKey(Plot, on_delete=models.CASCADE)
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, null=True, blank=True,
                                 verbose_name=_("Species"))
 
     readonly = models.BooleanField(default=False)
@@ -1105,8 +1119,9 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     users_can_delete_own_creations = True
     REQUIRED_FIELDS = ['diameter', 'height', 'canopy_height']
+    is_editable = True
 
-    objects = models.GeoManager()
+    objects = GeoManager()
 
     _stewardship_choices = ['Watered',
                             'Pruned',
@@ -1148,7 +1163,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
     _terminology = {'singular': _('Tree'), 'plural': _('Trees')}
 
-    def __unicode__(self):
+    def __str__(self):
         diameter_str = getattr(self, 'diameter', '')
         species_str = getattr(self, 'species', '')
         if not diameter_str and not species_str:
@@ -1221,7 +1236,7 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
         photos = [str(photo.pk) for photo in self.treephoto_set.all()]
         string_to_hash += ":" + ",".join(photos)
 
-        return hashlib.md5(string_to_hash).hexdigest()
+        return hashlib.md5(string_to_hash.encode()).hexdigest()
 
     def add_photo(self, image, user):
         tp = TreePhoto(tree=self, instance=self.instance)
@@ -1251,8 +1266,8 @@ class Tree(Convertible, UDFModel, PendingAuditable, ValidationMixin):
 
 
 class Favorite(models.Model):
-    user = models.ForeignKey(User)
-    map_feature = models.ForeignKey(MapFeature)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    map_feature = models.ForeignKey(MapFeature, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1260,7 +1275,7 @@ class Favorite(models.Model):
 
 
 class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
-    map_feature = models.ForeignKey(MapFeature)
+    map_feature = models.ForeignKey(MapFeature, on_delete=models.CASCADE)
 
     image = models.ImageField(
         upload_to='trees/%Y/%m/%d', editable=False)
@@ -1269,7 +1284,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
         #upload_to='trees_thumbs/%Y/%m/%d', editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
 
     users_can_delete_own_creations = True
     _terminology = {'singular': _('Photo'), 'plural': _('Photos')}
@@ -1373,7 +1388,7 @@ class MapFeaturePhoto(models.Model, PendingAuditable, Convertible):
 
 
 class TreePhoto(MapFeaturePhoto):
-    tree = models.ForeignKey(Tree)
+    tree = models.ForeignKey(Tree, on_delete=models.CASCADE)
 
     @classproperty
     def always_writable(cls):
@@ -1433,7 +1448,7 @@ class TreePhoto(MapFeaturePhoto):
         return self.mapfeaturephotolabel_set.filter(name__iexact=label_name).exists()
 
 
-class BoundaryManager(models.GeoManager):
+class BoundaryManager(GeoManager):
     """
     By default, exclude anonymous boundaries from queries.
     """
@@ -1471,9 +1486,9 @@ class Boundary(models.Model):
 
     objects = BoundaryManager()
     # Allows access to anonymous boundaries
-    all_objects = models.GeoManager()
+    all_objects = GeoManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     @classmethod
@@ -1494,7 +1509,7 @@ class Boundary(models.Model):
 
 
 class ITreeRegionAbstract(object):
-    def __unicode__(self):
+    def __str__(self):
         "printed representation, used in templates"
         return "%s (%s)" % (self.code,
                             ITREE_REGIONS.get(self.code, {}).get('name'))
@@ -1517,12 +1532,12 @@ class ITreeRegion(ITreeRegionAbstract, models.Model):
     code = models.CharField(max_length=40, unique=True)
     geometry = models.MultiPolygonField(srid=3857)
 
-    objects = models.GeoManager()
+    objects = GeoManager()
 
 
 class ITreeCodeOverride(models.Model, Auditable):
-    instance_species = models.ForeignKey(Species)
-    region = models.ForeignKey(ITreeRegion)
+    instance_species = models.ForeignKey(Species, on_delete=models.CASCADE)
+    region = models.ForeignKey(ITreeRegion, on_delete=models.CASCADE)
     itree_code = models.CharField(max_length=100)
 
     class Meta:
@@ -1537,7 +1552,7 @@ class MapFeaturePhotoLabel(models.Model):
     """
     Provide a tag for a photo
     """
-    map_feature_photo = models.ForeignKey(MapFeaturePhoto)
+    map_feature_photo = models.ForeignKey(MapFeaturePhoto, on_delete=models.CASCADE)
     name = models.CharField(max_length=40)
 
     class Meta:
@@ -1548,8 +1563,8 @@ class INaturalistObservation(models.Model):
     # this is the observation_id from iNaturalist
     observation_id = models.IntegerField()
 
-    map_feature = models.ForeignKey(MapFeature)
-    tree = models.ForeignKey(Tree)
+    map_feature = models.ForeignKey(MapFeature, on_delete=models.CASCADE)
+    tree = models.ForeignKey(Tree, on_delete=models.CASCADE)
 
     is_identified = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(default=timezone.now)
@@ -1563,8 +1578,8 @@ class INaturalistObservation(models.Model):
         )
 
 class INaturalistPhoto(models.Model):
-    tree_photo = models.ForeignKey(TreePhoto)
-    observation = models.ForeignKey(INaturalistObservation)
+    tree_photo = models.ForeignKey(TreePhoto, on_delete=models.CASCADE)
+    observation = models.ForeignKey(INaturalistObservation, on_delete=models.CASCADE)
     inaturalist_photo_id = models.IntegerField()
 
 

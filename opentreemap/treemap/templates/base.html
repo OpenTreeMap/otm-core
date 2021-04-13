@@ -3,6 +3,7 @@
 {% load render_bundle from webpack_loader %}
 {% load instance_config %}
 {% load js_reverse %}
+{% load static %}
 
 <!DOCTYPE html>
 <!--
@@ -12,6 +13,7 @@
     <meta charset="utf-8">
     <title>{% block title %}OpenTreeMap{% block instance_title %}{% endblock %}{% block page_title %}{% endblock %}{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="{% static 'js/shim/reverse.js' %}"></script>
     <link rel="icon" type="image/png" href="/favicon.png" />
     {% block application_css %}
     {% render_bundle 'js/treemap/base' 'css' %}
@@ -75,29 +77,33 @@
     <div {% block outermost_atts %}{% endblock outermost_atts %} class="wrapper{% if embed %} embed{% endif %}">
       {% block topnav %}
       <!-- Top Nav -->
-      <div class="navbar navbar-inverse navbar-fixed-top">
+      <nav class="navbar navbar-expand fixed-top bg-dark navbar-dark">
         <div class="navbar-collapse" id="otm-navbar-collapse">
-          <ul class="pull-left nav navbar-nav navbar-left">
+          <ul class="navbar-nav nav mr-auto">
             {# Since the active style changes on a page-by-page basis we use nested blocks below. These nested blocks can then be overriden to change which tab is active. #}
             {% block instancetopnav %}
             {% if last_instance %}
-              <li class="explore-trees {% block activeexplore %}active{% endblock %}"><a href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
+              <li class="nav-item explore-trees {% block activeexplore %}active{% endblock %}">
+                <a class="nav-link" href="{% url 'map' instance_url_name=last_instance.url_name %}">{% trans "Explore Trees" %}</a></li>
               {% if last_instance|feature_enabled:'add_plot' and last_effective_instance_user and not embed %}
-              <li data-feature="add_plot">
-                <a data-class='add-tree'
+              <li data-feature="add_plot" class="nav-item">
+                <a class="nav-link" data-class='add-tree'
                    data-always-enable='{{ last_effective_instance_user|plot_is_creatable }}'
                    data-disabled-title='{% trans "Adding trees is not available to all users" %}'
-                   data-href="{% url 'map' instance_url_name=last_instance.url_name %}?m=addTree"
+                   data-href="{% url 'react_map' instance_url_name=last_instance.url_name %}?m=addTree"
+                   href="{% url 'react_map' instance_url_name=last_instance.url_name %}?m=addTree"
                    disabled='disabled'>{% trans "Add a Tree" %}</a>
               </li>
               {% endif %}
             {% endif %}
             {% endblock instancetopnav %}
           </ul>
-          <ul class="pull-right nav navbar-nav navbar-right">
+        </div>
+        <div class="navbar-collapse collapse" id="otm-navbar-collapse">
+          <ul class="navbar-nav nav ml-auto">
             {% if request.user.is_authenticated %}
-              <li class="hidden-xs {% block activeuser %}{% endblock %}">
-                <a href="{% url 'profile' %}">{% trans "My Account" %}
+              <li class="nav-item hidden-xs d-none d-sm-block {% block activeuser %}{% endblock %}">
+                <a class="nav-link" href="{% url 'profile' %}">{% trans "My Account" %}
                   {% if last_instance %}
                     {% if reputation %}
                     <span class="reputation">({{ last_effective_instance_user.reputation }} rep)</span>
@@ -105,9 +111,9 @@
                   {% endif %}
                 </a>
               </li>
-              <li class="hidden-xs"><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
-              <li class="user-img hidden-xs">
-                <a href="{% url 'profile' %}">
+              <li class="nav-item hidden-xs d-none d-sm-block"><a class="nav-link" href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
+              <li class="nav-item user-img hidden-xs d-none d-sm-block">
+                <a class="nav-link" href="{% url 'profile' %}">
                 {% if request.user.thumbnail %}
                   <img src="{{ request.user.thumbnail.url }}">
                 {% else %}
@@ -115,13 +121,13 @@
                 {% endif %}
                 </a>
               </li>
-              <li class="add-menu dropdown visible-xs-inline-block">
-                <a class="dropdown-toggle" data-toggle="dropdown">
+              <li class="nav-item add-menu dropdown visible-xs-inline-block d-block d-sm-none">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown">
                   <i class="icon-cog"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-pull-left">
                   <li>
-                    <a href="{% url 'profile' %}">{% trans "My Account" %}
+                    <a class="nav-link" href="{% url 'profile' %}">{% trans "My Account" %}
                       {% if last_instance %}
                         {% if reputation %}
                         <span class="reputation">({{ last_effective_instance_user.reputation }} rep)</span>
@@ -129,31 +135,31 @@
                       {% endif %}
                     </a>
                   </li>
-                  <li><a href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
+                  <li class="nav-item"><a class="nav-link" href="{% url 'auth_logout' %}">{% trans "Logout" %}</a></li>
                 </ul>
               </li>
             {% else %}
-              <li class="hidden-xs"><a id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
+              <li class="hidden-xs d-none d-sm-block"><a class="nav-link" id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
               <!--
               {% block signup %}
-              <li class="hidden-xs"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+              <li class="hidden-xs d-none d-sm-block"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
               {% endblock signup %}
               --!>
-              <li class="add-menu dropdown visible-xs-inline-block">
-              <a class="dropdown-toggle" data-toggle="dropdown">
+              <li class="add-menu dropdown visible-xs-inline-block d-block d-sm-none">
+              <a class="nav-link dropdown-toggle" data-toggle="dropdown">
                   <i class="icon-cog"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-pull-left">
-                  <li><a id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
+                  <li><a class="nav-link" id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
                   {% block signup_small %}
-                  <li><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
+                  <li><a class="nav-link" href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
                   {% endblock signup_small %}
                 </ul>
               </li>
             {% endif %}
           </ul>
         </div>
-      </div>
+      </nav>
       {% endblock topnav %}
 
       {% block header %}
@@ -198,7 +204,7 @@
     </div>
 
     {% if not embed %}
-      <footer class="hidden-xs">{% block footer %}{% endblock footer %}</footer>
+      <footer class="hidden-xs d-none d-sm-block">{% block footer %}{% endblock footer %}</footer>
     {% endif %}
 
     {% block config_scripts %}
@@ -219,7 +225,7 @@
           {% js_reverse_inline %}
         </script>
       {% endif %}
-      {% render_bundle 'js/treemap/base' 'js' %}
+      {% render_bundle 'js/treemap/base-chunk' 'js' %}
     {% endblock global_scripts %}
 
     {% block templates %}

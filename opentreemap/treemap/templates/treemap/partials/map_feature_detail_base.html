@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load l10n %}
 {% load util %}
-{% load staticfiles %}
+{% load static %}
 {% load auth_extras %}
 {% load comment_sequence %}
 
@@ -48,7 +48,6 @@
         {% if feature.is_plot or feature.is_editable %}
             <button id="edit-map-feature"
                     data-class="display"
-                    disabled="disabled"
                     data-always-enable="{{ last_effective_instance_user|map_feature_is_writable:feature }}"
                     data-href="{{ request.get_full_path }}"
                     {% if feature.is_plot %}
@@ -63,7 +62,6 @@
         {% endif %}
         <button id="delete-object"
                 data-class="display"
-                disabled="disabled"
                 {% if has_tree %}
                     {# TODO: this will not work quite right when a user adds a tree without refreshing #}
                 data-always-enable="{{ last_effective_instance_user|is_deletable:tree }}"

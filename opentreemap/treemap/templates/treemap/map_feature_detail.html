@@ -118,6 +118,7 @@
                              data-has-boundaries="False"
                              data-has-polygons="{{ has_polygons }}">
                         </div>
+                        {{ feature.is_editable }}
                         {% if feature.is_editable %}
                             <button
                                     data-href="{{ request.get_full_path }}"

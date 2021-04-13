@@ -1,15 +1,18 @@
 from django.conf.urls import include
 from django.conf.urls import url
-from django.contrib.auth.views import login
+from django.urls import path
+from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
 from django.views.generic.base import TemplateView
 
 
-from views import (RegistrationView, ActivationView, LoginForm,
-                   PasswordResetView)
+from .views import (RegistrationView, ActivationView, LoginForm,
+                    PasswordResetView)
 
 
 urlpatterns = [
-    url(r'^login/$', login, {'authentication_form': LoginForm}, name='login'),
+    path(r'^login/$', auth_views.LoginView.as_view(
+        authentication_form=LoginForm), name='login'),
     url(r'^activation-complete/$',
         TemplateView.as_view(template_name='registration/activation_complete.html'),  # NOQA
         name='registration_activation_complete'),

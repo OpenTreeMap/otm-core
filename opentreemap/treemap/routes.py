@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from functools import partial
 
@@ -48,7 +46,7 @@ index_page = instance_request(misc_views.index)
 
 map_page = do(
     instance_request,
-    ensure_csrf_cookie,
+    #ensure_csrf_cookie,
     render_template('treemap/map.html'),
     misc_views.get_map_view_context)
 
@@ -104,10 +102,20 @@ species_list = do(
     instance_request,
     misc_views.species_list)
 
+species_list_common = do(
+    json_api_call,
+    instance_request,
+    misc_views.species_list_common)
+
 compile_scss = do(
     require_http_method("GET"),
     string_to_response("text/css"),
     misc_views.compile_scss)
+
+fields = do(
+    json_api_call,
+    instance_request,
+    misc_views.get_plot_field_groups)
 
 #####################################
 # mapfeature
@@ -143,6 +151,11 @@ map_feature_accordion = do(
     render_template('treemap/partials/map_feature_accordion.html'),
     feature_views.context_map_feature_detail)
 
+map_feature_accordion_api = do(
+    instance_request,
+    json_api_call,
+    feature_views.context_map_feature_detail_api)
+
 get_map_feature_sidebar = do(
     instance_request,
     etag(feature_views.map_feature_hash),
@@ -153,6 +166,11 @@ map_feature_popup = do(
     instance_request,
     etag(feature_views.map_feature_hash),
     render_template('treemap/partials/map_feature_popup.html'),
+    feature_views.map_feature_popup)
+
+map_feature_popup_detail = do(
+    instance_request,
+    json_api_call,
     feature_views.map_feature_popup)
 
 canopy_popup = do(
@@ -237,6 +255,11 @@ delete_tree = do(
     route(DELETE=tree_views.delete_tree))
 
 tree_detail = instance_request(tree_views.tree_detail)
+
+search_tree_benefits_api = do(
+    instance_request,
+    json_api_call,
+    tree_views.search_tree_benefits)
 
 search_tree_benefits = do(
     instance_request,

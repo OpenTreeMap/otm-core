@@ -8,5 +8,5 @@ var $ = require('jquery'),
 
 adminPage.init();
 require('importer/lib/importsList.js').init({
-    startImportUrl: reverse['importer:start_import'](config.instance.url_name)
+    startImportUrl: reverse.Urls['importer:start_import'](config.instance.url_name)
 });

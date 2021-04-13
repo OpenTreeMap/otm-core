@@ -64,7 +64,7 @@ module.exports.init = function(options) {
                 var url = null;
                 if (isEmptySite && label == 'empty site') {
 
-                    url = reverse.add_photo_to_map_feature({
+                    url = reverse.Urls.add_photo_to_map_feature({
                         instance_url_name: config.instance.url_name,
                         feature_id: result.featureId,
                     });
@@ -72,7 +72,7 @@ module.exports.init = function(options) {
 
                 } else if (!isEmptySite && label != 'empty site') {
 
-                    url = reverse.add_photo_to_tree_with_label({
+                    url = reverse.Urls.add_photo_to_tree_with_label({
                         instance_url_name: config.instance.url_name,
                         feature_id: result.featureId,
                         tree_id: result.treeId

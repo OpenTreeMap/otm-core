@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import psycopg2
 import json
@@ -10,7 +8,7 @@ from unittest.case import skip
 from django.test.client import RequestFactory
 from django.core.exceptions import (FieldError, ValidationError,
                                     ObjectDoesNotExist)
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django.db import IntegrityError, connection
 from django.contrib.gis.geos import Point
@@ -92,12 +90,12 @@ class ScopeModelTest(OTMTestCase):
         method_instance_2_trees = list(self.instance2.scope_model(Tree))
 
         # Test that it returns the same as using the ORM
-        self.assertEquals(orm_instance_1_trees, method_instance_1_trees)
-        self.assertEquals(orm_instance_2_trees, method_instance_2_trees)
+        self.assertEqual(orm_instance_1_trees, method_instance_1_trees)
+        self.assertEqual(orm_instance_2_trees, method_instance_2_trees)
 
         # Test that it didn't grab all trees
-        self.assertNotEquals(list(all_trees), method_instance_1_trees)
-        self.assertNotEquals(list(all_trees), method_instance_2_trees)
+        self.assertNotEqual(list(all_trees), method_instance_1_trees)
+        self.assertNotEqual(list(all_trees), method_instance_2_trees)
 
         # Models that do not have any relation to Instance should
         # raise an error if you attempt to scope them.
@@ -144,13 +142,13 @@ class AuditTest(OTMTestCase):
                 raise AssertionError('Missing audit record for %s' % act)
 
     def make_audit(self, pk, field, old, new,
-                   action=Audit.Type.Insert, user=None, model=u'Tree'):
+                   action=Audit.Type.Insert, user=None, model='Tree'):
         if field:
-            field = unicode(field)
+            field = str(field)
         if old:
-            old = unicode(old)
+            old = str(old)
         if new:
-            new = unicode(new)
+            new = str(new)
 
         user = user or self.user1
 
@@ -531,7 +529,7 @@ class PendingInsertTest(OTMTestCase):
             .filter(field_name__in=['id', 'geom', 'readonly'])\
             .update(permission_level=FieldPermission.WRITE_DIRECTLY)
 
-        self.assertEquals(Plot.objects.count(), 0)
+        self.assertEqual(Plot.objects.count(), 0)
 
         # new_plot should be created, but there should be
         # a pending record for length (and it should not be
@@ -542,7 +540,7 @@ class PendingInsertTest(OTMTestCase):
 
         new_plot.save_with_user(self.pending_user)
 
-        self.assertEquals(Plot.objects.count(), 1)
+        self.assertEqual(Plot.objects.count(), 1)
 
     @skip("Insert pending approval not implemented at this time")
     def test_insert_writes_when_approved(self):
@@ -553,8 +551,8 @@ class PendingInsertTest(OTMTestCase):
         new_tree = Tree(plot=new_plot, instance=self.instance)
         new_tree.save_with_user(self.pending_user)
 
-        self.assertEquals(Plot.objects.count(), 0)
-        self.assertEquals(Tree.objects.count(), 0)
+        self.assertEqual(Plot.objects.count(), 0)
+        self.assertEqual(Tree.objects.count(), 0)
 
         approve_or_reject_audits_and_apply(
             list(new_tree.audits()) + list(new_plot.audits()),

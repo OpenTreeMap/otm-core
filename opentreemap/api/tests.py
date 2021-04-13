@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
 
-from StringIO import StringIO
+
+from io import BytesIO
 from json import loads, dumps
-from urlparse import urlparse
+from urllib.parse import urlparse
 
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
 import os
 import json
 import base64
 import datetime
 import psycopg2
 from unittest.case import skip
+from django_tinsel.exceptions import HttpBadRequestException
 
 from django.db import connection
 from django.contrib.auth.models import AnonymousUser
@@ -23,7 +24,7 @@ from django.test.client import Client, RequestFactory, ClientHandler
 from django.http import HttpRequest
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.files import File
 
 from treemap.lib.udf import udf_create
@@ -84,9 +85,9 @@ def _get_path(parsed_url):
     """
     # If there are parameters, add them
     if parsed_url[3]:
-        return urllib.unquote(parsed_url[2] + ";" + parsed_url[3])
+        return urllib.parse.unquote(parsed_url[2] + ";" + parsed_url[3])
     else:
-        return urllib.unquote(parsed_url[2])
+        return urllib.parse.unquote(parsed_url[2])
 
 
 def send_json_body(url, body_object, client, method, user=None):
@@ -96,11 +97,11 @@ def send_json_body(url, body_object, client, method, user=None):
     are posting form data, so you need to manually setup the parameters
     to override that default functionality.
     """
-    body_string = dumps(body_object)
-    body_stream = StringIO(body_string)
+    body_binary_string = dumps(body_object).encode()
+    body_stream = BytesIO(body_binary_string)
     parsed_url = urlparse(url)
     client_params = {
-        'CONTENT_LENGTH': len(body_string),
+        'CONTENT_LENGTH': len(body_binary_string),
         'CONTENT_TYPE': 'application/json',
         'PATH_INFO': _get_path(parsed_url),
         'QUERY_STRING': parsed_url[4],
@@ -375,8 +376,8 @@ class Locations(OTMTestCase):
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be '
-                         'a number between 1 and 500')
+                         b'The max_plots parameter must be '
+                         b'a number between 1 and 500')
 
     def test_locations_plots_max_plots_param_cannot_be_greater_than_500(self):
         response = get_signed(
@@ -385,8 +386,8 @@ class Locations(OTMTestCase):
                 API_PFX, self.instance.url_name))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be '
-                         'a number between 1 and 500')
+                         b'The max_plots parameter must be '
+                         b'a number between 1 and 500')
         response = get_signed(
             self.client,
             "%s/instance/%s/locations/0,0/plots?max_plots=500" %
@@ -402,8 +403,8 @@ class Locations(OTMTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The max_plots parameter must be a '
-                         'number between 1 and 500')
+                         b'The max_plots parameter must be a '
+                         b'number between 1 and 500')
         response = get_signed(
             self.client,
             "%s/instance/%s/locations/0,0/plots?max_plots=1" %
@@ -419,7 +420,7 @@ class Locations(OTMTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content,
-                         'The distance parameter must be a number')
+                         b'The distance parameter must be a number')
 
         response = get_signed(
             self.client,
@@ -472,7 +473,7 @@ class CreatePlotAndTree(OTMTestCase):
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
-                         "Create failed:" + response.content)
+                         "Create failed:" + response.content.decode())
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -509,7 +510,7 @@ class CreatePlotAndTree(OTMTestCase):
         self.assertEqual(400,
                          response.status_code,
                          "Expected creating a million foot "
-                         "tall tree to return 400:" + response.content)
+                         "tall tree to return 400:" + response.content.decode())
 
         body_dict = loads(response.content)
         self.assertTrue('fieldErrors' in body_dict,
@@ -548,7 +549,7 @@ class CreatePlotAndTree(OTMTestCase):
                              data, self.client, self.user)
 
         self.assertEqual(200, response.status_code,
-                         "Create failed:" + response.content)
+                         "Create failed:" + response.content.decode())
 
         # Assert that a plot was added
         self.assertEqual(plot_count + 1, Plot.objects.count())
@@ -794,7 +795,7 @@ class UpdatePlotAndTree(OTMTestCase):
         self.assertEqual(3, len(Audit.pending_audits()),
                          "Expected 3 pends, one for each edited field")
 
-        self.assertEqual(3, len(response_json['pending_edits'].keys()),
+        self.assertEqual(3, len(list(response_json['pending_edits'].keys())),
                          "Expected the json response to have a "
                          "pending_edits dict with 3 keys, one for each field")
 
@@ -808,10 +809,10 @@ class UpdatePlotAndTree(OTMTestCase):
 
         self.assertEqual(200, response.status_code)
         response_json = loads(response.content)
-        self.assertFalse("error" in response_json.keys(),
+        self.assertFalse("error" in list(response_json.keys()),
                          "Did not expect an error")
 
-        self.assertFalse("foo" in response_json.keys(),
+        self.assertFalse("foo" in list(response_json.keys()),
                          "Did not expect foo to be added to the plot")
 
     def test_update_creates_tree(self):
@@ -924,7 +925,7 @@ class UpdatePlotAndTree(OTMTestCase):
                          "Expected 1 pend record for the edited field.")
 
         response_json = loads(response.content)
-        self.assertEqual(1, len(response_json['pending_edits'].keys()),
+        self.assertEqual(1, len(list(response_json['pending_edits'].keys())),
                          "Expected the json response to have a"
                          " pending_edits dict with 1 keys")
 
@@ -1334,8 +1335,8 @@ class Instance(LocalMediaTestCase):
              'sort_key': 'Date'}
         ]
         self.instance.save()
-        self.instance.logo.save(Instance.test_png_name,
-                                File(open(Instance.test_png_path, 'r')))
+        with open(Instance.test_png_path, 'rb') as f:
+            self.instance.logo.save(Instance.test_png_name, f)
 
     def test_returns_config_colors(self):
         request = sign_request_as_user(make_request(), self.user)
@@ -1418,7 +1419,7 @@ class Instance(LocalMediaTestCase):
 
         response = instance_info_endpoint(request, 4, self.instance.url_name)
         info_dict = json.loads(response.content)
-        self.assertIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertIn('plot.udf:multi', list(info_dict['fields'].keys()))
         self.assertTrue(any('plot.udf:multi' in group.get('field_keys', [])
                             for group in info_dict['field_key_groups']))
 
@@ -1428,7 +1429,7 @@ class Instance(LocalMediaTestCase):
         response = instance_info_endpoint(request, 3, self.instance.url_name)
         info_dict = json.loads(response.content)
 
-        self.assertNotIn('plot.udf:multi', info_dict['fields'].keys())
+        self.assertNotIn('plot.udf:multi', list(info_dict['fields'].keys()))
         self.assertFalse(any('plot.udf:multi' in group.get('field_keys', [])
                              for group in info_dict['field_key_groups']))
 
@@ -1568,7 +1569,7 @@ class TreePhotoTest(LocalMediaTestCase):
                                                       self.instance.url_name,
                                                       plot_id)
 
-        with open(path) as img:
+        with open(path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1621,7 +1622,7 @@ class UserTest(LocalMediaTestCase):
         url = reverse('update_user_photo', kwargs={'version': 3,
                                                    'user_id': peon.pk})
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1630,7 +1631,7 @@ class UserTest(LocalMediaTestCase):
             response = update_profile_photo_endpoint(req, LATEST_API,
                                                      str(peon.pk))
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         peon = User.objects.get(pk=peon.pk)
         self.assertIsNotNone(peon.photo)
@@ -1648,7 +1649,7 @@ class UserTest(LocalMediaTestCase):
         grunt = make_user(username='grunt', password='pw')
         grunt.save()
 
-        with open(TreePhotoTest.test_jpeg_path) as img:
+        with open(TreePhotoTest.test_jpeg_path, 'rb') as img:
             req = self.factory.post(
                 url, {'name': 'afile', 'file': img})
 
@@ -1657,7 +1658,7 @@ class UserTest(LocalMediaTestCase):
             response = update_profile_photo_endpoint(req, LATEST_API,
                                                      str(grunt.pk))
 
-        self.assertEquals(response.status_code, 403)
+        self.assertEqual(response.status_code, 403)
 
     def testCreateUser(self):
         rslt = create_user(self.make_post_request(self.defaultUserDict))
@@ -1665,7 +1666,7 @@ class UserTest(LocalMediaTestCase):
 
         user = User.objects.get(pk=pk)
 
-        for field, target_value in self.defaultUserDict.iteritems():
+        for field, target_value in self.defaultUserDict.items():
             if field != 'password':
                 self.assertEqual(getattr(user, field), target_value)
 
@@ -1758,12 +1759,12 @@ class UserTest(LocalMediaTestCase):
         updatePeonRequest({'last_name': 'l1'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l1')
+        self.assertEqual(peon.last_name, 'l1')
 
         updatePeonRequest({'last_name': 'l2'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l2')
+        self.assertEqual(peon.last_name, 'l2')
 
         updatePeonRequest({'password': 'whateva'})
 
@@ -1785,12 +1786,12 @@ class UserTest(LocalMediaTestCase):
         updatePeonRequest({'lastname': 'l1'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l1')
+        self.assertEqual(peon.last_name, 'l1')
 
         updatePeonRequest({'lastname': 'l2'})
 
         peon = User.objects.get(pk=peon.pk)
-        self.assertEquals(peon.last_name, 'l2')
+        self.assertEqual(peon.last_name, 'l2')
 
     def testCantRemoveRequiredFields(self):
         peon = make_user(username='peon', password='pw')
@@ -1802,7 +1803,7 @@ class UserTest(LocalMediaTestCase):
         resp = put_json(url, {'username': ''},
                         self.client, user=peon)
 
-        self.assertEquals(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 400)
 
     def testCanOnlyUpdateLoggedInUser(self):
         peon = make_user(username='peon', password='pw')
@@ -1817,7 +1818,7 @@ class UserTest(LocalMediaTestCase):
         resp = put_json(url, {'password': 'whateva'},
                         self.client, user=grunt)
 
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
 
 class SigningTest(OTMTestCase):
@@ -1876,7 +1877,7 @@ class SigningTest(OTMTestCase):
         sig = get_signature_for_request(
             req, b'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY')
 
-        self.assertEquals(
+        self.assertEqual(
             sig, 'i91nKc4PWAt0JJIdXwz9HxZCJDdiy6cf/Mj6vPxyYIs=')
 
     def testTimestampVoidsSignature(self):
@@ -1884,6 +1885,7 @@ class SigningTest(OTMTestCase):
         url = ('http://testserver.com/test/blah?'
                'timestamp=%%s&'
                'k1=4&k2=a&access_key=%s' % acred.access_key)
+               #'k1=4&k2=a&access_key=%s' % acred.access_key.decode())
 
         curtime = datetime.datetime.now()
         invalid = curtime - datetime.timedelta(minutes=100)
@@ -1902,7 +1904,7 @@ class SigningTest(OTMTestCase):
         url = "%s/i/plots/1/tree/photo" % API_PFX
 
         def get_sig(path):
-            with open(path) as img:
+            with open(path, 'rb') as img:
                 req = self.factory.post(
                     url, {'name': 'afile', 'file': img})
 
@@ -1950,6 +1952,7 @@ class SigningTest(OTMTestCase):
         url = ('http://testserver.com/test/blah?'
                'timestamp=%%s&'
                'k1=4&k2=a&access_key=%s' % acred.access_key)
+               #'k1=4&k2=a&access_key=%s' % acred.access_key.decode())
 
         req = self.sign_and_send(url % ('%sFAIL' % timestamp),
                                  acred.secret_key)
@@ -1957,6 +1960,7 @@ class SigningTest(OTMTestCase):
         self.assertEqual(req.status_code, 400)
 
         req = self.sign_and_send(url % timestamp, acred.secret_key)
+        #req = self.sign_and_send(url % timestamp, acred.secret_key.decode())
 
         self.assertRequestWasSuccess(req)
 
@@ -1972,6 +1976,7 @@ class SigningTest(OTMTestCase):
 
         self.assertEqual(req.status_code, 400)
 
+        #req = self.sign_and_send('%s&access_key=%s' % (url, acred.access_key.decode()),
         req = self.sign_and_send('%s&access_key=%s' % (url, acred.access_key),
                                  acred.secret_key)
 
@@ -1988,8 +1993,9 @@ class SigningTest(OTMTestCase):
                                  'timestamp=%s&'
                                  'k1=4&k2=a&access_key=%s' %
                                  (timestamp, acred.access_key),
+                                 #(timestamp, acred.access_key.decode()),
                                  acred.secret_key)
-
+                                 #acred.secret_key.decode())
         self.assertEqual(req.user.pk, peon.pk)
 
 
@@ -2003,7 +2009,7 @@ class Authentication(OTMTestCase):
         self.assertEqual(ret.status_code, 401)
 
     def test_ok(self):
-        auth = base64.b64encode("jim:password")
+        auth = base64.b64encode(b"jim:password")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
@@ -2015,14 +2021,14 @@ class Authentication(OTMTestCase):
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
-        auth = base64.b64encode("foobar")
+        auth = base64.b64encode(b"foobar")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
         self.assertEqual(ret.status_code, 401)
 
     def test_bad_cred(self):
-        auth = base64.b64encode("jim:passwordz")
+        auth = base64.b64encode(b"jim:passwordz")
         withauth = {"HTTP_AUTHORIZATION": "Basic %s" % auth}
 
         ret = get_signed(self.client, "%s/user" % API_PFX, **withauth)
@@ -2034,8 +2040,8 @@ class Authentication(OTMTestCase):
         ijim.reputation = 1001
         ijim.save()
 
-        auth = base64.b64encode("jim:password")
-        withauth = dict(self.sign.items() +
+        auth = base64.b64encode(b"jim:password")
+        withauth = dict(list(self.sign.items()) +
                         [("HTTP_AUTHORIZATION", "Basic %s" % auth)])
 
         ret = self.client.get("%s/user" % API_PFX, **withauth)
@@ -2060,18 +2066,18 @@ class UserApiExportsTest(UserExportsTestCase):
         iuser.save_with_user(iuser)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         iuser.admin = True
         iuser.save_with_user(self.user1)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         iuser.delete_with_user(self.user1)
 
         resp = get_signed(self.client, url, user=self.user1)
-        self.assertEquals(resp.status_code, 401)
+        self.assertEqual(resp.status_code, 401)
 
     def test_csv_requires_admin(self):
         self._test_requires_admin_access('users_csv')
@@ -2089,7 +2095,7 @@ class PasswordResetTest(OTMTestCase):
         url = "%s/send-password-reset-email?email=%s"
         response = post_json(url % (API_PFX, self.jim.email),
                              {}, self.client, None)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
 
 class SpeciesListTest(OTMTestCase):

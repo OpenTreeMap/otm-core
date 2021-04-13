@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 from django.conf.urls import url
 
@@ -23,6 +21,8 @@ urlpatterns = [
     url(r'^boundaries/$', routes.boundary_autocomplete, name='boundary_list'),
     url(r'^edits/$', routes.edits_page, name='edits'),
     url(r'^species/$', routes.species_list, name="species_list_view"),
+    url(r'^species-common/$', routes.species_list_common, name="species_list_common_view"),
+    url(r'^fields/$', routes.fields, name='fields'),
 
     url(r'^map/$', routes.map_page, name='map'),
 
@@ -36,6 +36,8 @@ urlpatterns = [
         routes.edit_map_feature_detail, name='map_feature_detail_edit'),
     url(r'^features/(?P<feature_id>\d+)/popup$',
         routes.map_feature_popup, name='map_feature_popup'),
+    url(r'^features/(?P<feature_id>\d+)/popup_detail$',
+        routes.map_feature_popup_detail, name='map_feature_popup_detail'),
     url(r'^canopy-popup$', routes.canopy_popup, name='canopy_popup'),
     url(r'^features/(?P<feature_id>\d+)/trees/(?P<tree_id>\d+)/$',
         routes.delete_tree, name='delete_tree'),
@@ -47,6 +49,8 @@ urlpatterns = [
 
     url(r'^features/(?P<feature_id>\d+)/accordion$',
         routes.map_feature_accordion, name='map_feature_accordion'),
+    url(r'^features/(?P<feature_id>\d+)/accordion_api$',
+        routes.map_feature_accordion_api, name='map_feature_accordion_api'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/detail$',
         routes.map_feature_photo_detail, name='map_feature_photo_detail'),
     url('^features/(?P<feature_id>\d+)/photo/(?P<photo_id>\d+)/label$',
@@ -80,6 +84,8 @@ urlpatterns = [
         routes.instance_settings_js, name='settings'),
     url(r'^benefit/search$', routes.search_tree_benefits,
         name='benefit_search'),
+    url(r'^benefit/search/api$', routes.search_tree_benefits_api,
+        name='benefit_search_api'),
     #url(r'^users/%s/$' % USERNAME_PATTERN, routes.instance_user_page,
     #    name="user_profile"),
     url(r'^users/%s/edits/$' % USERNAME_PATTERN, routes.instance_user_audits),

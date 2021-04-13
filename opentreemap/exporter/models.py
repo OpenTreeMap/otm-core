@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
+
 
 import datetime
 
@@ -34,11 +32,11 @@ class ExportJob(models.Model):
         COMPLETE: 'Ready',
     }
 
-    instance = models.ForeignKey(Instance)
+    instance = models.ForeignKey(Instance, on_delete=models.CASCADE)
 
-    status = models.IntegerField(choices=STATUS_CHOICES.items(),
+    status = models.IntegerField(choices=list(STATUS_CHOICES.items()),
                                  default=PENDING)
-    user = models.ForeignKey(User, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     outfile = models.FileField(upload_to="exports/%Y/%m/%d")
     created = models.DateTimeField(null=True, blank=True)
     modified = models.DateTimeField(null=True, blank=True)

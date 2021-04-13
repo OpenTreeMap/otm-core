@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from django.conf import settings
@@ -17,36 +17,36 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='treeimportrow',
             name='plot',
-            field=models.ForeignKey(blank=True, to='treemap.Plot', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.Plot', null=True),
         ),
         migrations.AddField(
             model_name='treeimportevent',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='treeimportevent',
             name='owner',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='speciesimportrow',
             name='import_event',
-            field=models.ForeignKey(to='importer.SpeciesImportEvent'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='importer.SpeciesImportEvent'),
         ),
         migrations.AddField(
             model_name='speciesimportrow',
             name='species',
-            field=models.ForeignKey(blank=True, to='treemap.Species', null=True),
+            field=models.ForeignKey(on_delete=models.CASCADE, blank=True, to='treemap.Species', null=True),
         ),
         migrations.AddField(
             model_name='speciesimportevent',
             name='instance',
-            field=models.ForeignKey(to='treemap.Instance'),
+            field=models.ForeignKey(on_delete=models.CASCADE, to='treemap.Instance'),
         ),
         migrations.AddField(
             model_name='speciesimportevent',
             name='owner',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=models.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
     ]
