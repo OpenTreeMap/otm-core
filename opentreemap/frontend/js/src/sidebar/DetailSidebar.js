@@ -11,7 +11,8 @@ export function DetailSidebar(props) {
     const accordionRef = useRef(null);
 
     const [activeId, setActiveId] = useState('1');
-    const [expanded, setExpanded] = useState(false);
+    const [expandedDetails, setExpandedDetails] = useState(false);
+    const [expandedBenefits, setExpandedBenefits] = useState(false);
 
     // to keep track of previous center for expanding and collapsing
     const [mapCenter, setMapCenter] = useState(false);
@@ -22,7 +23,8 @@ export function DetailSidebar(props) {
             ? '0'
             : '1'
         );
-        setExpanded(false);
+        setExpandedDetails(false);
+        setExpandedBenefits(false);
     }, [sidebarInfo]);
 
     const toggleActiveId = (id) => {
@@ -32,10 +34,10 @@ export function DetailSidebar(props) {
         );
     }
 
-    const toggleExpanded = () => {
-        var expandedNew = !expanded;
+    const toggleExpandedDetails = () => {
+        var expandedDetailsNew = !expandedDetails;
         var newMapCenter = null;
-        if (expandedNew){
+        if (expandedDetailsNew){
             // save the previous center, move to this data point
             setMapCenter(map.getCenter());
             newMapCenter = addSelectedMarkerInfo.latLng;
@@ -48,7 +50,7 @@ export function DetailSidebar(props) {
             document.body.classList.remove('hide-search');
         }
 
-        setExpanded(expandedNew);
+        setExpandedDetails(expandedDetailsNew);
 
         setTimeout(() => {
             map.invalidateSize();
@@ -61,9 +63,22 @@ export function DetailSidebar(props) {
         }, 500);
     }
 
+    const toggleExpandedBenefits = () => {
+        var expandedBenefitsNew = !expandedBenefits;
+        if (expandedBenefitsNew){
+            document.body.classList.add('open');
+            document.body.classList.add('hide-search');
+        } else {
+            document.body.classList.remove('open');
+            document.body.classList.remove('hide-search');
+        }
+
+        setExpandedBenefits(expandedBenefitsNew);
+    }
+
     return (<>
         <Accordion defaultActiveKey={activeId} className="panel" ref={accordionRef} activeKey={activeId}>
-            <Card className={`panel-group ${expanded ? 'expanded with-map' : ''}`}>
+            <Card className={`panel-group ${expandedDetails ? 'expanded with-map' : ''}`}>
                 <Accordion.Toggle
                     as={Card.Header}
                     onClick={() => toggleActiveId('0')}
@@ -83,14 +98,14 @@ export function DetailSidebar(props) {
                 >
                 {sidebarInfo != null
                     ? <MapFeatureDetailAccordion
-                        onToggleClick={() => toggleExpanded()}
+                        onToggleClick={() => toggleExpandedDetails()}
                         {...sidebarInfo}
                         />
                     : <div></div>
                 }
                 </Accordion.Collapse>
             </Card>
-            <Card className="panel-group">
+            <Card className={`panel-group ${expandedBenefits ? 'expanded' : ''}`}>
                 <Accordion.Toggle
                     as={Card.Header}
                     eventKey="1"
@@ -110,7 +125,7 @@ export function DetailSidebar(props) {
                     <EcobenefitsPanel
                         benefits={benefits?.benefits}
                         basis={benefits?.basis}
-                        onToggleClick={() => toggleExpanded()}
+                        onToggleClick={() => toggleExpandedBenefits()}
                     />
                 </Accordion.Collapse>
             </Card>

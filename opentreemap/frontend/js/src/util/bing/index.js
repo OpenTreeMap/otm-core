@@ -1,0 +1,1 @@
+export { BingLayer } from "./Bing";

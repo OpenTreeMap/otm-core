@@ -27,7 +27,7 @@ module.exports.init = function(options) {
     $imageContainer.on('slide', function(e) {
         var $thumbnailList = $imageContainer.find('.carousel-indicators'),
             $thumbnailListContainer = $thumbnailList.parent(),
-            index = $imageContainer.find('.carousel-inner .item').index(e.relatedTarget),
+            index = $imageContainer.find('.carousel-inner .carousel-item').index(e.relatedTarget),
             $thumbnail = $thumbnailList.find('[data-slide-to="' + index + '"]'),
 
             // The $thumbnailListContainer has overflow-x:auto on it, and
@@ -47,8 +47,8 @@ module.exports.init = function(options) {
     // To make the thumbnail scrolling work we need to prevent wrapping
     // from the first to the last item, and vice versa
     $imageContainer.on('slid', function(e) {
-        var isFirst = $imageContainer.find('.carousel-inner .item:first').hasClass('active'),
-            isLast = $imageContainer.find('.carousel-inner .item:last').hasClass('active');
+        var isFirst = $imageContainer.find('.carousel-inner .carousel-item:first').hasClass('active'),
+            isLast = $imageContainer.find('.carousel-inner .carousel-item:last').hasClass('active');
         $imageContainer
             .find('.carousel-control')
             .attr('href', '#' + $imageContainer.attr('id'))
@@ -78,7 +78,7 @@ module.exports.init = function(options) {
     }
 
     function isPhotoDeletable () {
-        var $deleteControl = $imageContainer.find('.item.active .delete-photo');
+        var $deleteControl = $imageContainer.find('.carousel-item.active .delete-photo');
         return 0 < $deleteControl.length;
     }
 
@@ -86,7 +86,7 @@ module.exports.init = function(options) {
     // $imageContainer.on('click', '[href="' + options.lightbox + '"]', function(e) {
     $lightbox.on('show.bs.modal', function(e) {
         var $toggle = $(e.relatedTarget),
-            $active = $toggle.parents('.item.active'),
+            $active = $toggle.parents('.carousel-item.active'),
             $endpointEl = $active.find('[data-endpoint]'),
             $deleteToggleEl = $active.find('.delete-photo'),
             mode = $toggle.is($deleteToggleEl) ? 'delete' : 'view',

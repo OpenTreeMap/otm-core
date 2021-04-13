@@ -20,7 +20,10 @@
             last_login: "{{ request.user.last_login }}",
             is_authenticated: "{{ request.user.is_authenticated|yesno:"true,false" }}" == "true",
         },
-        shouldAddTree: "{{ shouldAddTree|yesno:"true,false"}}" == "true"
+        shouldAddTree: "{{ shouldAddTree|yesno:"true,false"}}" == "true",
+        googleApiKey: "{{settings.GOOGLE_MAPS_API_KEY}}",
+        bingApiKey: "{{settings.BING_API_KEY}}",
+        logoUrl: "{{ request.instance.logo.url }}"
     };
 </script>
 <div id="app" style="height: 100%;" class="app-wrapper"></div>

@@ -12,8 +12,6 @@ export function Photos(props) {
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
-        console.log('changed');
-        console.log(isEmptyTreePit);
         clearPhotos();
     }, [isEmptyTreePit])
 

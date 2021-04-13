@@ -196,7 +196,7 @@ def context_dict_for_plot(request, plot, tree_id=None, **kwargs):
     if tree:
         tree.convert_to_display_units()
 
-    context['units'] = {**tree.units(), **plot.units()}
+    context['units'] = {**(tree.units() if tree else {}), **plot.units()}
     if tree is not None:
         photos = tree.photos()
         # can't send a regular photo qs because the API will

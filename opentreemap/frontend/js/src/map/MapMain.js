@@ -58,12 +58,10 @@ export default class MapMain extends Component {
                 this.setState({
                     benefits: res.data
                 });
-                console.log(res);
             }).catch(res => {
                 this.setState({
                     benefits: null
                 });
-                console.log(res);
             });
     }
 
@@ -150,14 +148,10 @@ export default class MapMain extends Component {
                     this.setState({
                         sidebarInfo: res.data
                     });
-                    console.log('success');
-                    console.log(res);
                 }).catch(err => {
                     this.setState({
                         sidebarInfo: null
                     });
-                    console.log('error');
-                    console.log(err);
                 });
 
             // add the feature-selected to the body for legacy css purposes
@@ -228,8 +222,8 @@ export default class MapMain extends Component {
                     latLng={addTreeMarkerInfo.latLng}
                     clearLatLng={() => this.setState({
                         addTreeMarkerInfo: {
-                            show: true,
-                            latLng: {lat: lat, lng: lng}
+                            show: false,
+                            latLng: {lat: null, lng: null}
                         }})}
                     map={map}
                     onMapClick={this.onMapClick}
@@ -243,6 +237,9 @@ export default class MapMain extends Component {
                 />;
 
         const plotTileLayer = (<PlotTileLayer geoRevHash={geoRevHash}/>);
+        const homeUrl = reverse.Urls.react_map({
+            instance_url_name: window.django.instance_url,
+        });
 
         // FIXME use something less hacky for the navbar
         return (
@@ -251,15 +248,22 @@ export default class MapMain extends Component {
                 style={{ width: '110px', zIndex: 10000 }}>
                 <ul className="navbar-nav nav mr-auto">
                     <li className="nav-item">
-                        <a
+                    {isAuthenticated
+                        ? (<a
                             className="nav-link"
                             onClick={() => this.setState({showAddTree: true})}>Add a Tree</a>
+                        )
+                        : (<a
+                            className="nav-link"
+                            onClick={() => {}}>Please login to add a tree</a>
+                        )
+                    }
                     </li>
                 </ul>
             </div>
             <div className={`header instance-header collapsed ${showAddTree ? "hide-search" : ""}`}>
                 <div className="logo">
-                    <a href="/jerseycity/map/"><img id="site-logo" src="/media/logos/logo-jerseycity-f9414dae710646a22b3ad0e7480a4fce.png" alt="OpenTreeMap"></img>
+                    <a href={homeUrl}><img id="site-logo" src={window.django.logoUrl} alt="OpenTreeMap"></img>
                     </a>
                 </div>
                 <div className="toolbar-wrapper"></div>

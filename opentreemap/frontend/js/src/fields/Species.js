@@ -57,7 +57,6 @@ export function Species(props) {
                     setAllSpecies(x.data);
                 }).catch(x => {
                     console.log('Error getting all species');
-                    console.log(x);
                 });
         }
     }, [shouldUseAllSpecies]);

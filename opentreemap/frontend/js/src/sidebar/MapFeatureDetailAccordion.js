@@ -11,6 +11,7 @@ import { FieldReadOnly } from '../fields/FieldGroup';
 
 export function MapFeatureDetailAccordion(props) {
     const { benefits, tree, feature, plot, units, onToggleClick } = props;
+    const hasTree = tree.id != null;
 
     const featureUrl = reverse.Urls.map_feature_detail({
         instance_url_name: window.django.instance_url,
@@ -31,26 +32,28 @@ export function MapFeatureDetailAccordion(props) {
                 className="visible-xs-block feature-info d-block d-sm-none"
                 onClick={() => onToggleClick()}
             >
-                <h4>{tree.species.common_name}</h4>
+                <h4>{hasTree ? tree.species.common_name : "Empty Tree Pit"}</h4>
             </Accordion.Toggle>
 
-            <form id="details-form">
-                <SpeciesTitle
-                    commonName={tree.species.common_name}
-                    scientificName={tree.species.scientific_name}
-                />
+            {hasTree
+                ? <form id="details-form">
+                    <SpeciesTitle
+                        commonName={tree.species.common_name}
+                        scientificName={tree.species.scientific_name}
+                    />
 
-                <FieldReadOnly
-                    label={"Trunk Diameter"}
-                    units={units['tree.diameter']}
-                    value={tree.diameter} />
-                <FieldReadOnly
-                    label={"Tree Height"}
-                    units={units['tree.height']}
-                    value={tree.height} />
+                    <FieldReadOnly
+                        label={"Trunk Diameter"}
+                        units={units['tree.diameter']}
+                        value={tree.diameter} />
+                    <FieldReadOnly
+                        label={"Tree Height"}
+                        units={units['tree.height']}
+                        value={tree.height} />
 
-                <EcobenefitsPanel benefits={benefits} />
-            </form>
+                    <EcobenefitsPanel benefits={benefits} />
+                </form>
+                : ''}
         </div>
 
     </div>);

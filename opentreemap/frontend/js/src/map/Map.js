@@ -1,8 +1,10 @@
 import React, { Component, useEffect } from 'react';
 import L from 'leaflet';
 import { Container, Col, Row } from 'react-bootstrap';
-import { LayersControl, MapContainer, TileLayer, Marker, Overlay, Popup, useMapEvents, useMap } from "react-leaflet";
+import { LayersControl, LayerGroup, MapContainer, TileLayer, ImageOverlay, Marker, Overlay, Popup, useMapEvents, useMap, WMSTileLayer } from "react-leaflet";
+import { ImageMapLayer, BasemapLayer, TiledMapLayer } from 'react-esri-leaflet';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import { BingLayer } from '../util/bing/Bing';
 import { createSignature } from '../common/util/ApiRequest';
 import axios from 'axios';
 import config from 'treemap/lib/config';
@@ -30,7 +32,6 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const key = '';
 
 
 export default class Map extends Component {
@@ -74,6 +75,9 @@ export default class Map extends Component {
             mapRef.on('locationfound', onLocationFound)
         }
 
+        const googleKey = window.django.googleApiKey;
+        const bingKey = window.django.bingApiKey;
+
         return (
         <>
             <MapContainer
@@ -89,40 +93,70 @@ export default class Map extends Component {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             maxNativeZoom={19}
                             maxZoom={25}
+                            zIndex={1}
                         />
                     </LayersControl.BaseLayer>
                     <LayersControl.BaseLayer name='Google Hybrid'>
                         <ReactLeafletGoogleLayer
-                            apiKey={key}
-                            type={'satellite'}
+                            apiKey={googleKey}
+                            type={'hybrid'}
                             maxNativeZoom={19}
                             maxZoom={25}
+                            zIndex={1}
                         />
                     </LayersControl.BaseLayer>
                     <LayersControl.BaseLayer name='Google Streets'>
                         <ReactLeafletGoogleLayer
-                            apiKey={key}
+                            apiKey={googleKey}
                             type={'roadmap'}
                             maxNativeZoom={19}
                             maxZoom={25}
+                            zIndex={1}
+                        />
+                    </LayersControl.BaseLayer>
+                    <LayersControl.BaseLayer name='Esri Hybrid'>
+                        <LayerGroup>
+                        <BasemapLayer
+                            name="Imagery"
+                            maxNativeZoom={19}
+                            maxZoom={25}
+                            zIndex={1}
+                        />
+                        <BasemapLayer
+                            name="ImageryTransportation"
+                            maxNativeZoom={19}
+                            maxZoom={25}
+                            zIndex={1}
+                        />
+                        </LayerGroup>
+                    </LayersControl.BaseLayer>
+                    <LayersControl.BaseLayer name='Bing Hybrid'>
+                        <BingLayer
+                            maxNativeZoom={19}
+                            maxZoom={25}
+                            zIndex={1}
+                            bingkey={bingKey}
+                            type="AerialWithLabels"
                         />
                     </LayersControl.BaseLayer>
                 </LayersControl>
-                <LayersControl position='topright'>
-                    <LayersControl.Overlay name='Ward'>
+                <LayersControl position='topright' autoZIndex={false}>
+                    <LayersControl.Overlay name='Wards'>
                         <BoundaryTileLayer tilerArgs={{'category': 'Ward'}} layerOptions={{'category': 'Ward'}}/>
                     </LayersControl.Overlay>
-                    <LayersControl.Overlay name='Main Neighborhood'>
+                    <LayersControl.Overlay name='Main Neighborhoods'>
                         <BoundaryTileLayer tilerArgs={{'category': 'Main Neighborhood'}} layerOptions={{'category': 'Main Neighborhood'}}/>
                     </LayersControl.Overlay>
-                    <LayersControl.Overlay name='Neighborhood'>
+                    <LayersControl.Overlay name='Neighborhoods'>
                         <BoundaryTileLayer tilerArgs={{'category': 'Neighborhood'}} layerOptions={{'category': 'Neighborhood'}}/>
                     </LayersControl.Overlay>
-                    <LayersControl.Overlay name='Park'>
+                    <LayersControl.Overlay name='Parks'>
                         <BoundaryTileLayer tilerArgs={{'category': 'Park'}} layerOptions={{'category': 'Park'}}/>
                     </LayersControl.Overlay>
+                    <LayersControl.Overlay name='SIDs'>
+                        <BoundaryTileLayer tilerArgs={{'category': 'SID'}} layerOptions={{'category': 'SID'}}/>
+                    </LayersControl.Overlay>
                 </LayersControl>
-                <LocateControl map={mapRef} />
                 <PlotUtfTileLayer eventHandlers={this.props.utfEventHandlers} />
                 {this.props.children}
                 {popup}

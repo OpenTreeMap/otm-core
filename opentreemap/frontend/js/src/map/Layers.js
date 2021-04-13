@@ -14,7 +14,7 @@ export function PlotTileLayer(props) {
     // Min zoom level for detail layers
     const MIN_ZOOM_OPTION = {minZoom: 15};
 
-    const FEATURE_LAYER_OPTION = {zIndex: 4};
+    const FEATURE_LAYER_OPTION = {zIndex: 6};
 
     const ref = useRef(null);
     const options = _.extend(layerOptions || {}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
@@ -42,7 +42,7 @@ export function BoundaryTileLayer(props) {
     // Min zoom level for detail layers
     const MIN_ZOOM_OPTION = {minZoom: 15};
 
-    const FEATURE_LAYER_OPTION = {zIndex: 4};
+    const FEATURE_LAYER_OPTION = {zIndex: 5};
 
     const ref = useRef(null);
     const options = _.extend(layerOptions || {}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
@@ -62,7 +62,7 @@ export function PlotUtfTileLayer(props) {
     const [showMarker, setShowMarker] = useState(false);
     const [latLng, setLatLng] = useState({ lat: null, lng: null});
 
-    const FEATURE_LAYER_OPTION = {zIndex: 4};
+    const FEATURE_LAYER_OPTION = {zIndex: 6};
 
     const options = _.extend({resolution: 4}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
     const url = getUrlMaker('treemap_mapfeature', 'grid.json')();

@@ -6,8 +6,6 @@ import DatePicker from "react-datepicker";
 
 export function FieldGroup(props) {
     const { errors, fieldGroup, filterFields, updateTreeData, treeData } = props;
-    console.log(fieldGroup);
-    console.log(treeData);
     return (
         <>
         <h3>{fieldGroup.header}</h3>

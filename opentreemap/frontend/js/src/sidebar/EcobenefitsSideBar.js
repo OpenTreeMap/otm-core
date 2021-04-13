@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { Accordion, Card, useAccordionToggle } from 'react-bootstrap';
 
 export function EcobenefitsSideBar(props) {
-    const { benefits } = props;
+    const { benefits, onToggleClick } = props;
+    const [expanded, setExpanded] = useState(false);
     //const instance_url = window.django.instance_url;
     //const [benefits, setBenefits] = useState(null);
 
@@ -35,8 +37,8 @@ export function EcobenefitsSideBar(props) {
                             </span>
                         </a>
                     </div>
-                    <div className="panel-body collape in">
-                        <EcobenefitsPanel benefits={benefits} />
+                    <div className="collape in panel-body">
+                        <EcobenefitsPanel benefits={benefits} onToggleClick={onToggleClick} />
                     </div>
                 </div>
             </div>
@@ -45,18 +47,26 @@ export function EcobenefitsSideBar(props) {
 }
 
 export function EcobenefitsPanel(props) {
-    const { benefits, basis } = props;
+    const { benefits, basis, onToggleClick } = props;
     if (benefits == null) return (<div></div>);
 
     return (
-        <div className="panel-inner benefit-values">
-            <BenefitRow isTotal={true} {...benefits.all.totals} />
-            <div className="benefit-value-title">Tree Benefits</div>
-            {Object.values(benefits.plot).map((x, i) => {
-                return <BenefitRow key={i} {...x} />;
-            })}
-            <div className="benefit-tree-count">
-                Based on {basis?.plot?.n_objects_used?.toLocaleString()} out of {basis?.plot?.n_total.toLocaleString()} total trees.
+        <div className="panel-body">
+            <div className="panel-inner benefit-values">
+                <a
+                    className="sidebar-panel-toggle visible-xs-block d-block d-sm-none"
+                    onClick={() => onToggleClick()}
+                >
+                    <i className="icon-right-open"></i>
+                </a>
+                <BenefitRow isTotal={true} {...benefits.all.totals} />
+                <div className="benefit-value-title">Tree Benefits</div>
+                {Object.values(benefits.plot).map((x, i) => {
+                    return <BenefitRow key={i} {...x} />;
+                })}
+                <div className="benefit-tree-count">
+                    Based on {basis?.plot?.n_objects_used?.toLocaleString()} out of {basis?.plot?.n_total.toLocaleString()} total trees.
+                </div>
             </div>
         </div>
     );

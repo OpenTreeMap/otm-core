@@ -9,11 +9,12 @@ config.output.filename = '[name]-[chunkhash].js';
 // Allows require-ing the static file created by django-js-reverse
 config.resolve.alias.reverse = reversePath;
 
-//config.devtool = false;
+config.devtool = false;
+config.mode = 'production';
 //config.devtool = 'eval-cheap-source-map';
 //config.devtool = 'eval';
-config.devtool = 'inline-source-map';
-config.mode = 'development';
+//config.devtool = 'inline-source-map';
+//config.mode = 'development';
 
 /*
 config.watch = true;

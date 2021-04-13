@@ -85,7 +85,7 @@ def geocode(request):
     Search for specified address, returning candidates with lat/long
     """
     key = request.GET.get('key')
-    address = request.GET.get('address').encode('utf-8')
+    address = request.GET.get('address')
     for_storage = 'forStorage' in request.GET
 
     if key:

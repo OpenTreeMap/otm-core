@@ -25,7 +25,6 @@
     <a class="delete-photo" title="{% trans 'Delete photo number' %} {{ forloop.counter }}"
         data-toggle="modal" href="#photo-lightbox"><i class="icon-trash-1"></i>
     </a>
-
     {% endif %}
     {% if photo.has_label %}
     <button class="btn btn-xs photo-label" disabled="true">{{ photo.label }}</button>
@@ -39,22 +38,22 @@
   {% endif %}
 {% endfor %}
 </div>
-<div id="tree-photo-thumbnails">
-  <div>
-    <ol class="carousel-indicators">{% for photo in photos %}
-      <li data-target="#photo-carousel" data-slide-to="{{ forloop.counter0 }}"
-            class="{{ forloop.first|yesno:"active," }}">
-        <img src="{{ photo.thumbnail }}" alt="">
-      </li>
-    {% endfor %}</ol>
-  </div>
-</div>
 {% if photos|length > 1 %}
 <!--a class="carousel-control-prev left" href="#photo-carousel" data-slide="prev"><i class="icon-left-circled"></i></a-->
 <a class="carousel-control-prev" href="#photo-carousel" role="button" data-slide="prev"><i class="icon-left-circled"></i></a>
 <!--a class="carousel-control right" href="#photo-carousel" data-slide="next"><i class="icon-right-circled"></i></a-->
 <a class="carousel-control-next" href="#photo-carousel" role="button" data-slide="next"><i class="icon-right-circled"></i></a>
 {% endif %}
+<div id="tree-photo-thumbnails">
+  <div>
+    <ol class="carousel-indicators list-inline">{% for photo in photos %}
+      <li data-target="#photo-carousel" data-slide-to="{{ forloop.counter0 }}"
+            class="{{ forloop.first|yesno:"active," }} list-inline-item">
+        <img src="{{ photo.thumbnail }}" alt="">
+      </li>
+    {% endfor %}</ol>
+  </div>
+</div>
 {% if error %}
 {# The data-photo-upload-failed attribute must appear on an element if there was a validation error #}
 <div class="alert alert-danger" data-photo-upload-failed>{{ error }}</div>

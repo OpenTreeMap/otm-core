@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from treemap.decorators import instance_request
 from django_tinsel.decorators import render_template
 from functools import partial
+from django.conf import settings
 
 
 a = partial(
@@ -20,7 +21,8 @@ a = partial(
 def get_map_view_context(request, instance):
     # the add tree link goes to this page with the query parameter m for mode
     return {
-        "shouldAddTree": request.GET.get('m', '') == 'addTree'
+        "shouldAddTree": request.GET.get('m', '') == 'addTree',
+        "googleApiKey": settings.GOOGLE_MAPS_API_KEY
     }
 
 react_map_page = do(

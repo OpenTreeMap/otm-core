@@ -87,14 +87,13 @@
         <div class="row">
             <div class="col-md-3">
                 <div class="photo-container">
-                    <div id="photo-carousel" class="carousel slide" data-interval="">
+                    <div id="photo-carousel" class="carousel slide" data-interval="0">
                         {% include "treemap/partials/photo_carousel.html" %}
                     </div>
                     <button data-toggle="modal"
                             data-target="#upload-panel"
                             data-href="{{ request.get_full_path }}"
                             data-always-enable="{{ last_effective_instance_user|photo_is_addable:feature }}"
-                            disabled="disabled"
                             {% if feature.is_plot %}
                             data-disabled-title="{% trans "Adding tree photos is not available to all users" %}"
                             {% else %}

@@ -6,6 +6,7 @@ import { Diameter } from '../fields/Diameter';
 import { FieldGroup } from '../fields/FieldGroup';
 import { Species } from '../fields/Species';
 import { Photos } from '../fields/Photos';
+import { GeolocateTypeahead } from '../common/GeolocateTypeahead';
 
 import { useMapEvents } from "react-leaflet";
 
@@ -43,12 +44,14 @@ export function AddTreeSidebar(props) {
     // clear out only the geometry for adding a new one
     const addTreeSame = (data) => {
         setStepNumber(1);
+        clearPhotos();
         clearLatLng();
     }
 
     // clear our everything to add a new one
     const addTreeNew = (data) => {
         setStepNumber(1);
+        clearLatLng();
         setTreeData({});
     }
 
@@ -84,7 +87,7 @@ export function AddTreeSidebar(props) {
     }
 
     const updateTreeData = (identifier, value) => {
-        console.log(`Changed ${identifier} to ${value}`);
+        //console.log(`Changed ${identifier} to ${value}`);
         setTreeData({
             ...treeData,
             [identifier]: value,
@@ -105,26 +108,30 @@ export function AddTreeSidebar(props) {
      * Clear out all photo info in the tree data
      */
     const clearPhotos = () => {
-        const treeData = Object
-            .keys(photos)
+        const treeDataUpdated = Object
+            .keys(treeData)
             .filter(x => x.match(/has_\w*_photo/))
             .reduce((obj, key) => {obj[key] = false; return obj}, {...treeData})
 
         setPhotos({});
-        setTreeData(treeData);
+        setTreeData(treeDataUpdated);
     }
 
     const submitPhotos = (data) => {
-        console.log(photos);
         const featureId = data.featureId;
         if (isEmptyTreePit) {
             const url = reverse.Urls.add_photo_to_map_feature({
                 instance_url_name: window.django.instance_url,
                 feature_id: featureId
             });
-            return axios.post(url,
-                {'file': null},
-                {withCredential: true, headers: {"X-CSRFToken": csrfToken}});
+            const label = "site";
+            const formData = new FormData();
+            formData.append('label', label);
+            formData.append('file', photos[label]);
+            return axios.post(url, formData,
+                {withCredential: true,
+                 headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'multipart/form-data'}
+                });
         }
 
         const url = reverse.Urls.add_photo_to_tree_with_label({
@@ -141,7 +148,7 @@ export function AddTreeSidebar(props) {
                 {withCredential: true,
                  headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'multipart/form-data'}
                 });
-        }));
+        })).then(response => data);
     }
 
     useEffect(() => {
@@ -172,8 +179,6 @@ export function AddTreeSidebar(props) {
                     ...collectionUdfs
                 });
             }).catch(res => {
-                console.log('error');
-                console.log(res);
             });
     }, []);
 
@@ -184,7 +189,6 @@ export function AddTreeSidebar(props) {
     }
 
     const onComplete = () => {
-        console.log(treeData);
         const treeDataFormatted = {
             // fix the dates, because we don't want to fix them on the backend yet
             ...Object.keys(treeData).reduce((obj, key) => {
@@ -202,7 +206,10 @@ export function AddTreeSidebar(props) {
             // species for the server is just the ID
             "tree.species": treeData["tree.species"]?.id,
             "is_empty_site": isEmptyTreePit
-        }
+        };
+
+        // hacky, and this should happen on the backend
+        delete treeDataFormatted['has_site_photo'];
 
         const url = reverse.Urls.addPlot(instance_url);
         setSaving(true);
@@ -210,19 +217,17 @@ export function AddTreeSidebar(props) {
                 treeDataFormatted,
                 {withCredential: true, headers: {"X-CSRFToken": csrfToken}},
             ).then(res => {
-            /*
-                console.log('submitted tree');
-                console.log(res);
                 setFeatureId(res.data.featureId);
                 return submitPhotos(res.data);
-            }).then(res => {
-            */
-                onAddMapFeature(res.data);
-                postCreateActionMap[postCreateAction](res.data);
+            }).then(data => {
                 setFeatureId(0);
                 setSaving(false);
+                postCreateActionMap[postCreateAction](data);
+                onAddMapFeature(data);
             }).catch(err => {
-                handleErrors(err.response.data);
+                if (err?.response?.data != null) {
+                    handleErrors(err.response.data);
+                }
                 setFeatureId(0);
                 setSaving(false);
             });
@@ -325,27 +330,13 @@ function Step(props) {
 
 function FirstStep(props) {
     const { map, onMapClick } = props;
-    //const [position, setPosition] = useState(null);
-    //const markerRef = useRef(null);
-
-    /*
-    const eventHandlers = useMemo(
-        () => ({
-            dragend() {
-                const marker = markerRef.current;
-                if (marker != null) {
-                    setPosition(marker.getLatLng());
-                }
-            }
-        }),
-        [],
-    );
-    */
+    const [ errors, setErrors ] = useState(null);
 
     const onLocationFound = (e) => {
         map.flyTo(e.latlng, map.getZoom());
         onMapClick(e);
     }
+    const ref = useRef();
 
     useEffect(() => {
         if (map != null) {
@@ -354,10 +345,6 @@ function FirstStep(props) {
     }, [map]);
 
     const stepHeader = "1. Set the tree's location";
-    /*
-        <input type="text" className="form-control tt-input" placeholder="Address" />
-        <button className="btn geocode">Search</button>
-    */
     return (
         <Step
             stepNumber={1}
@@ -365,8 +352,12 @@ function FirstStep(props) {
             withMap={true}
             {...props}
         >
-        <form className="form-inline">
-        </form>
+
+        <GeolocateTypeahead
+            onLocationFound={onLocationFound}
+            handleErrors={(e) => setErrors(e)}
+        />
+
         <div>
             <a className="geolocate" onClick={() => map.locate()}><i className="icon-direction"></i> Use current location</a>
         </div>
@@ -429,12 +420,18 @@ function SecondStep(props) {
             {...speciesFieldProps} />
         : '';
 
+    const isErrorsEmpty = errors && Object.keys(errors).length === 0 && errors.constructor === Object;
+
     return (
         <Step
             stepNumber={2}
             stepHeader={stepHeader}
             {...props}
         >
+            {!isErrorsEmpty
+                ? <div className="alert-danger">Please correct all errors (scroll below)</div>
+                : ''
+            }
             <Photos
                 updateTreeData={updateTreeData}
                 treeData={treeData}
