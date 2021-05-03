@@ -139,23 +139,7 @@
                 </ul>
               </li>
             {% else %}
-              <li class="hidden-xs d-none d-sm-block"><a class="nav-link" id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
-              <!--
-              {% block signup %}
-              <li class="hidden-xs d-none d-sm-block"><a href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
-              {% endblock signup %}
-              --!>
-              <li class="add-menu dropdown visible-xs-inline-block d-block d-sm-none">
-              <a class="nav-link dropdown-toggle" data-toggle="dropdown">
-                  <i class="icon-cog"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-pull-left">
-                  <li><a class="nav-link" id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
-                  {% block signup_small %}
-                  <li><a class="nav-link" href="{% url 'registration_register' %}">{% trans "Sign Up" %}</a></li>
-                  {% endblock signup_small %}
-                </ul>
-              </li>
+              <li><a class="nav-link" id="login" href="{% url 'auth_login' %}{% login_forward %}">{% trans "Login" %}</a></li>
             {% endif %}
           </ul>
         </div>

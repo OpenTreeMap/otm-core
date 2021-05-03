@@ -7,7 +7,7 @@
 {% load auth_extras %}
 {% load comment_sequence %}
 
-<div class="detail-header">
+<div class="detail-header col-md-12">
     {% if request.instance.is_public %}
         <div class="js-container pull-right" style="display: none">
             <a target="_blank" href="http://www.facebook.com/sharer/sharer.php?u={{ share.url }}">

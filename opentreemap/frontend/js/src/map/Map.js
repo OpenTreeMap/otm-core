@@ -92,7 +92,7 @@ export default class Map extends Component {
                             attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                         />
                     </LayersControl.BaseLayer>
@@ -101,7 +101,7 @@ export default class Map extends Component {
                             apiKey={googleKey}
                             type={'hybrid'}
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                         />
                     </LayersControl.BaseLayer>
@@ -110,7 +110,7 @@ export default class Map extends Component {
                             apiKey={googleKey}
                             type={'roadmap'}
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                         />
                     </LayersControl.BaseLayer>
@@ -119,13 +119,13 @@ export default class Map extends Component {
                         <BasemapLayer
                             name="Imagery"
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                         />
                         <BasemapLayer
                             name="ImageryTransportation"
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                         />
                         </LayerGroup>
@@ -133,7 +133,7 @@ export default class Map extends Component {
                     <LayersControl.BaseLayer name='Bing Hybrid'>
                         <BingLayer
                             maxNativeZoom={19}
-                            maxZoom={25}
+                            maxZoom={21}
                             zIndex={1}
                             bingkey={bingKey}
                             type="AerialWithLabels"

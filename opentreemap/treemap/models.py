@@ -646,7 +646,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
     # subclass responsibilities
     area_field_name = None
-    is_editable = None
+    is_editable = True
 
     # When querying MapFeatures (as opposed to querying a subclass like Plot),
     # we get a heterogenous collection (some Plots, some RainBarrels, etc.).
@@ -678,7 +678,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     @classproperty
     def do_not_track(cls):
         return PendingAuditable.do_not_track | UDFModel.do_not_track | {
-            'is_plot', 'title', 'feature_type', 'mapfeature_ptr', 'hide_at_zoom'}
+            'is_editable', 'is_plot', 'title', 'feature_type', 'mapfeature_ptr', 'hide_at_zoom'}
 
     @property
     def _is_generic(self):
@@ -934,6 +934,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
         """
         data = super(MapFeature, self).as_dict()
         data['title'] = self.title()
+
         data['is_editable'] = self.is_editable
         data['is_plot'] = self.is_plot
         return data

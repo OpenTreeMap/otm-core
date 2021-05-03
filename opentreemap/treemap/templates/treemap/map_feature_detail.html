@@ -107,27 +107,26 @@
             </div>
 
             <div class="col-md-9">
-                <div class="row">
-                    <div id="mapFeaturePartial">
+                <div>
+                    <div id="mapFeaturePartial" class="row">
                         {% include map_feature_partial %}
-                    </div>
-                    <!-- Maps -->
-                    <div class="col-md-4">
-                        <div id="map" class="map-small"
-                             data-has-boundaries="False"
-                             data-has-polygons="{{ has_polygons }}">
+                        <!-- Maps -->
+                        <div class="col-md-4">
+                            <div id="map" class="map-small"
+                                data-has-boundaries="False"
+                                data-has-polygons="{{ has_polygons }}">
+                            </div>
+                            {% if feature.is_editable %}
+                                <button
+                                        data-href="{{ request.get_full_path }}"
+                                        style="display:none"
+                                        id="edit-location"
+                                        class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
+                                <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
+                            {% endif %}
+                            <br>
+                            <div id="street-view" class="street-view-small" style="display: none;"></div>
                         </div>
-                        {{ feature.is_editable }}
-                        {% if feature.is_editable %}
-                            <button
-                                    data-href="{{ request.get_full_path }}"
-                                    style="display:none"
-                                    id="edit-location"
-                                    class="btn btn-block btn-sm btn-otmsecondary">{% trans "Move Location" %}</button>
-                            <button class="btn btn-block btn-sm btn-alert" style="display:none" id="cancel-edit-location">{% trans "Cancel Move Location" %}</button>
-                        {% endif %}
-                        <br>
-                        <div id="street-view" class="street-view-small" style="display: none;"></div>
                     </div>
                 </div>
             </div>
