@@ -1805,8 +1805,7 @@ leaflet-pip@~1.0.0:
   dependencies:
     geojson-utils "~1.1.0"
 
-"leaflet.gridlayer.googlemutant @~0.4.3":
-  name leaflet.gridlayer.googlemutant
+leaflet.gridlayer.googlemutant@~0.4.3:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/leaflet.gridlayer.googlemutant/-/leaflet.gridlayer.googlemutant-0.4.4.tgz#64bad7d091df5fc150b6efb0cbd67474f8ba531c"
 
@@ -1910,9 +1909,9 @@ lodash@3.7.x:
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.7.0.tgz#3678bd8ab995057c07ade836ed2ef087da811d45"
 
-lodash@^4.0.0, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.4:
-  version "4.17.4"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
+lodash@^4.0.0, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
 
 lodash@~2.3.0:
   version "2.3.0"
