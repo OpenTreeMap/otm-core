@@ -457,6 +457,12 @@ function getBasemapLayers(type) {
         return L.esri.basemapLayer(key, options);
     }
 
+    return {
+        'Bing': makeBingLayer('AerialWithLabels'),
+        'Google': makeGoogleLayer('hybrid'),
+        'Streets': makeGoogleLayer('roadmap'),
+    };
+
     if (type === 'bing') {
         return {
             'Road': makeBingLayer('Road'),

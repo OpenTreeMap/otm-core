@@ -123,8 +123,9 @@ function init() {
         });
     form.saveOkStream.merge(imageFinishedStream)
         .onValue(function () {
-            $(dom.detail).load(refreshDetailUrl, initDetailAfterRefresh);
-            $(dom.sidebar).load(refreshSidebarUrl);
+            //$(dom.detail).load(refreshDetailUrl, initDetailAfterRefresh);
+            //$(dom.sidebar).load(refreshSidebarUrl);
+            location.reload();
         });
 
     form.inEditModeProperty.onValue(function(inEditMode) {
