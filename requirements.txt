@@ -45,5 +45,5 @@ requests==2.20.0
 rollbar==0.13.12                         # https://github.com/rollbar/pyrollbar/blob/master/CHANGELOG.md
 six==1.10.0
 unicodecsv==0.14.1
-urllib3==1.23
+urllib3==1.26.5
 wsgiref==0.1.2
