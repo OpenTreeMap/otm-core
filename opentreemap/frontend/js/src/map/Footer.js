@@ -1,6 +1,9 @@
 import React from 'react';
 
 export function Footer(props) {
+    const isEmbedded = new URLSearchParams(window.location.search).get('embed') == "1";
+    if (isEmbedded) return '';
+
     return (
         <footer className="hidden-xs d-none d-sm-block">
             <div className="footer-inner">

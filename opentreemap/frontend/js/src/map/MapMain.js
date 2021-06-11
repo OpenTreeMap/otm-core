@@ -241,6 +241,8 @@ export default class MapMain extends Component {
             instance_url_name: window.django.instance_url,
         });
 
+        const isEmbedded = new URLSearchParams(window.location.search).get('embed') == "1";
+
         // FIXME use something less hacky for the navbar
         return (
         <>
@@ -284,7 +286,7 @@ export default class MapMain extends Component {
                         <span>{benefits?.n_trees?.toLocaleString()}</span> trees, <span>{benefits?.n_empty_plots?.toLocaleString()}</span> empty sites
                         </div>
                     </div>
-                    {isAuthenticated
+                    {isAuthenticated && !isEmbedded
                         ? (<div className="addBtn hidden-xs d-none d-sm-block">
                             <Button onClick={() => this.setShowAddTree(true)}>+ Add a Tree</Button>
                         </div>)

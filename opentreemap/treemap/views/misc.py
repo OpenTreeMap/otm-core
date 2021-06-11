@@ -67,8 +67,10 @@ def edits(request, instance):
 
 
 def index(request, instance):
-    return HttpResponseRedirect(reverse('map', kwargs={
+    return HttpResponseRedirect(reverse('react_map_index', kwargs={
         'instance_url_name': instance.url_name}))
+    #return HttpResponseRedirect(reverse('map', kwargs={
+    #    'instance_url_name': instance.url_name}))
 
 
 def get_map_view_context(request, instance):

@@ -70,14 +70,6 @@ ga('set', 'page', pathname);
   </a>
 </li>
 
-<li class="nav-item explore-map">
-    <a class="nav-link" href="{% url 'map' instance_url_name=request.instance.url_name %}{% block map_query %}{% endblock %}"
-       {% if embed %}target="_blank"{% endif %}>
-    <span class="hidden-xs d-none d-sm-block">{% trans "Explore Map - Legacy" %}</span>
-    <!-- We hide the logo on mobile, so we show the instance name instead of "Explore Map" to give context about which map you are on -->
-  </a>
-</li>
-
 {% if last_effective_instance_user|has_permission:'modeling' %}
   <li class="{% block activemodeling %}{% endblock %} hidden-xs d-none d-sm-block">
     <a href="{% url 'model_trees' instance_url_name=request.instance.url_name %}">
