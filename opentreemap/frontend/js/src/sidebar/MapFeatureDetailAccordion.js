@@ -19,11 +19,15 @@ export function MapFeatureDetailAccordion(props) {
     });
 
     //<a className="btn" id="full-details-btn" href={featureUrl}>More Details</a>
+    const isEmbedded = new URLSearchParams(window.location.search).get('embed') == "1";
 
     return (<div className="panel-body">
         <div className="panel-body-buttons-wrapper">
             <div className="panel-body-buttons">
-                <a className="btn" id="full-details-btn" href={featureUrl}>More Details</a>
+            {!isEmbedded
+                ? (<a className="btn" id="full-details-btn" href={featureUrl}>More Details</a>)
+                : ''
+            }
             </div>
         </div>
         <div className="panel-inner" onClick={() => onToggleClick()}>

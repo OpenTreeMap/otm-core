@@ -45,9 +45,9 @@
 }
 
 .instance-header .logo {
-    @media #{$screen-ltmd} {
-        display: none;
-    }
+    //@media #{$screen-ltmd} {
+    //    display: none;
+    //}
 }
 
 .toolbar-wrapper {

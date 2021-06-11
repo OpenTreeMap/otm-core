@@ -50,6 +50,7 @@ export function TreePopup(props) {
         feature_id: ids[0],
         edit: 'edit'
     });
+    const isEmbedded = new URLSearchParams(window.location.search).get('embed') == "1";
 
     return (
         <Popup position={latLng}>
@@ -57,8 +58,11 @@ export function TreePopup(props) {
                 <div className="popup-content">
                     <h4>{title}</h4>
                     <div className="popup-btns">
-                        <a href={featureUrl} className="btn btn-sm btn-secondary">More Details</a>
-                        { canEdit
+                        {!isEmbedded
+                            ? (<a href={featureUrl} className="btn btn-sm btn-secondary">More Details</a>)
+                            : (<a href={featureUrl} target="_blank" className="btn btn-sm btn-secondary">More Details</a>)
+                        }
+                        { !isEmbedded && canEdit
                             ? <a href={featureEditUrl} className="btn btn-sm btn-info">Edit</a>
                             : ""
                         }
