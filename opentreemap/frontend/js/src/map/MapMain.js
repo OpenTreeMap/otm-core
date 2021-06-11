@@ -311,7 +311,6 @@ export default class MapMain extends Component {
                     { sideBar }
                 </div>
             </div>
-            <Footer />
         </>);
     }
 }
