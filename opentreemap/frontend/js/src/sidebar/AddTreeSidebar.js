@@ -21,7 +21,8 @@ export function AddTreeSidebar(props) {
     const instance_url = window.django.instance_url;
     const csrfToken = window.django.csrf;
 
-    const { latLng, onClose, map, onMapClick, clearLatLng, onAddMapFeature } = props;
+    const { addTreeMarkerInfo, onClose, map, onMapClick, clearLatLng, onAddMapFeature } = props;
+    const latLng = addTreeMarkerInfo.latLng;
     const [stepNumber, setStepNumber] = useState(1);
     const [ fieldGroups, setFieldGroups ] = useState(null);
 
@@ -87,7 +88,6 @@ export function AddTreeSidebar(props) {
     }
 
     const updateTreeData = (identifier, value) => {
-        //console.log(`Changed ${identifier} to ${value}`);
         setTreeData({
             ...treeData,
             [identifier]: value,

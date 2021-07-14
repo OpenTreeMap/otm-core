@@ -219,7 +219,7 @@ export default class MapMain extends Component {
         const sideBar = showAddTree
             ? <AddTreeSidebar
                     onClose={() => this.setShowAddTree(false)}
-                    latLng={addTreeMarkerInfo.latLng}
+                    addTreeMarkerInfo={addTreeMarkerInfo}
                     clearLatLng={() => this.setState({
                         addTreeMarkerInfo: {
                             show: false,
@@ -337,19 +337,16 @@ function AddTreeMarker(props) {
         iconAnchor: [36, 62],
     });
 
-    const eventHandlers = useMemo(
-        () => ({
-            dragend() {
-                const marker = markerRef.current
-                if (marker != null) {
-                    const latLng = marker.getLatLng()
-                    updateLatLng(latLng['lat'], latLng['lng']);
-                    setPosition(latLng);
-                }
-            },
-        }),
-        [],
-    )
+    const eventHandlers = {
+        dragend: (e) => {
+            const marker = markerRef.current
+            if (marker != null) {
+                const latLng = e.target.getLatLng()
+                setPosition(latLng);
+                updateLatLng(latLng['lat'], latLng['lng']);
+            }
+        }
+    };
 
     return (
         <Marker
