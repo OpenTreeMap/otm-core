@@ -692,6 +692,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
     def latlon(self):
         latlon = Point(self.geom.x, self.geom.y, srid=3857)
         latlon.transform(4326)
+        #latlon = Point(self.geom.x, self.geom.y, srid=4326)
         return latlon
 
     @property
@@ -724,6 +725,7 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
         self.updated_at = timezone.now()
         self.updated_by = user
+        self.geom.transform(4326)
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
 
     def clean(self):
