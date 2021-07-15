@@ -1,3 +1,5 @@
+import csv
+from collections import Counter
 import dateutil.parser
 import datetime
 import time
@@ -94,52 +96,130 @@ def add_photo_to_observation(token, observation_id, photo):
     return response.json()
 
 
+def get_majority_identification(identifications):
+    """
+    Find the majority of an identification
+    """
+    _identifications = [{
+        'user': identification['user']['login'],
+        'taxon_id': identification['taxon']['id'],
+        'taxon': identification['taxon']['name']
+    } for identification in identifications]
+
+    most_common = Counter([i['taxon'] for i in _identifications]).most_common()
+    (taxon, count) = most_common[0] if most_common else ('', 0)
+
+    users = [i['user'] for i in _identifications if i['taxon'] == taxon]
+
+    return {
+        'taxon': taxon,
+        'users': ','.join(users),
+        'total_count': len(_identifications),
+        'count': count
+    }
+
+
+def is_species_match(taxon_otm, taxon_inaturalist):
+    """
+    Tons of weird mismatches, so we need a mapping
+    """
+    taxon_inaturalist_map = {
+        'prunus × yedoensis': 'prunus yedoensis'
+    }
+    _taxon_inaturalist = taxon_inaturalist_map.get(taxon_inaturalist, taxon_inaturalist)
+    return taxon_otm in _taxon_inaturalist or _taxon_inaturalist in taxon_otm
+
+
 def sync_identifications():
     """
     Goes through all unidentified observations and updates them with taxonomy on iNaturalist
     """
     o9n_models = INaturalistObservation.objects.filter(is_identified=False)
 
-    observations = get_all_observations()
+    observations = get_all_observations([o.observation_id for o in o9n_models])
+    id_info = []
 
     for o9n_model in o9n_models:
-        taxonomy = observations.get(o9n_model.observation_id)
-        if taxonomy:
-            _set_identification(o9n_model, taxonomy)
+        observation = observations.get(o9n_model.observation_id)
+        if not observation:
+            continue
+
+        identifications = observation['identifications']
+        identification_majority = get_majority_identification(identifications)
+        if not o9n_model.tree or not o9n_model.tree.species:
+            continue
+
+        taxon_otm = o9n_model.tree.species.scientific_name
+
+        species_match = is_species_match(taxon_otm.lower(), identification_majority['taxon'].lower())
+
+        try:
+            id_info.append({
+                'map_feature_id': o9n_model.map_feature.id,
+                'tree_id': o9n_model.tree.id,
+                'matches': species_match,
+                'species_otm': taxon_otm,
+                'species_inaturalist': identification_majority['taxon'],
+                'users_majority': identification_majority['users'],
+                'sjc_in_majority': 'sustainablejc' in identification_majority['users'],
+                'count_identification': len(identifications),
+                'count_most_votes': identification_majority['total_count'],
+                'num_identification_agreements_inat': observation['num_identification_agreements'],
+                'num_identification_disagreements_inat': observation['num_identification_disagreements'],
+                'identifications_most_disagree_inat': observation['identifications_most_disagree'],
+                'taxons_inaturalist': ','.join([i['taxon']['name'] for i in identifications])
+            })
+        except Exception as e:
+            continue
+
+        #_set_identification(o9n_model, taxonomy)
+
+    with open('inaturalist_compare.csv', 'w') as csvfile:
+        fieldnames = id_info[0].keys()
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(id_info)
 
 
-def get_all_observations():
+def get_all_observations(observation_ids):
     """
     Retrieve iNaturalist observation by ID
-    API docs: https://www.inaturalist.org/pages/api+reference#get-observations-id
+    SWAGGER docs: https://api.inaturalist.org/v1
 
     We want to retrieve all observations that have at least two observations in agreement
 
     :param o9n_id: observation ID
     :return: observation JSON as a dict
     """
-    all_data = []
+    identifications = {}
     page = 1
     per_page = 100
-    while(True):
+    base_url = 'https://api.inaturalist.org/v1'
+    for observation_batch in [observation_ids[x:x+per_page] for x in range(0, len(observation_ids), per_page)]:
         data = requests.get(
-            url="{base_url}/observations.json".format( base_url=base_url),
-            params={
-                'user_id': 'sustainablejc',
-                'identifications': 'most_agree',
-                'per_page': per_page,
-                'page': page
-            }
+            url="{base_url}/observations/{ids}".format(
+                base_url=base_url,
+                ids=','.join([str(o) for o in observation_batch])),
         ).json()
+
         if (not data):
             break
 
-        all_data.extend(data)
+        results = data['results']
+        for result in results:
+            try:
+                identifications[result['id']] = {
+                    'identifications': result['identifications'],
+                    'num_identification_agreements': result['num_identification_agreements'],
+                    'num_identification_disagreements': result['num_identification_disagreements'],
+                    'identifications_most_disagree': result['identifications_most_disagree']
+                }
+            except Exception as e:
+                pass
 
-        page += 1
-        time.sleep(10)
+        time.sleep(5)
 
-    return {d['id']: {'updated_at': d['updated_at'], 'taxon': d['taxon']} for d in all_data}
+    return identifications
 
 
 def get_o9n(o9n_id):
@@ -171,7 +251,7 @@ def get_features_for_inaturalist(tree_id=None):
         tree_filter_clause = "t.id = {}".format(tree_id)
 
     query = """
-        SELECT  photo.map_feature_id, photo.instance_id
+        SELECT  photo.map_feature_id, photo.instance_id, t.id as tree_id
         FROM    treemap_mapfeaturephoto photo
         JOIN    treemap_mapfeaturephotolabel label on label.map_feature_photo_id = photo.id
         JOIN    treemap_tree t on t.plot_id = photo.map_feature_id
@@ -188,7 +268,7 @@ def get_features_for_inaturalist(tree_id=None):
         -- if we should filter a specific tree, do it here
         and     {}
 
-        group by photo.map_feature_id, photo.instance_id
+        group by photo.map_feature_id, photo.instance_id, t.id
         having sum(case when label.name = 'shape' then 1 else 0 end) > 0
         and sum(case when label.name = 'bark'  then 1 else 0 end) > 0
         and sum(case when label.name = 'leaf'  then 1 else 0 end) > 0
@@ -200,7 +280,8 @@ def get_features_for_inaturalist(tree_id=None):
         results = cursor.fetchall()
 
     return [{'feature_id': r[0],
-             'instance_id': r[1]}
+             'instance_id': r[1],
+             'tree_id': r[2]}
             for r in results]
 
 

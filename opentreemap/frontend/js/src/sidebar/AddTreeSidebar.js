@@ -224,6 +224,16 @@ export function AddTreeSidebar(props) {
                 setSaving(false);
                 postCreateActionMap[postCreateAction](data);
                 onAddMapFeature(data);
+                if (data.treeId) {
+                    var url = reverse.Urls.inaturalist_create_observation_for_tree({
+                        instance_url_name: instance_url,
+                        tree_id: data.treeId
+                    });
+                    return axios.post(
+                        url,
+                        {withCredential: true, headers: {"X-CSRFToken": csrfToken}});
+                }
+                return new Promise((resolve, reject) => {});
             }).catch(err => {
                 if (err?.response?.data != null) {
                     handleErrors(err.response.data);
