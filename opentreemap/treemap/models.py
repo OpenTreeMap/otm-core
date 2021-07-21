@@ -725,7 +725,6 @@ class MapFeature(Convertible, UDFModel, PendingAuditable):
 
         self.updated_at = timezone.now()
         self.updated_by = user
-        self.geom.transform(4326)
         super(MapFeature, self).save_with_user(user, *args, **kwargs)
 
     def clean(self):
