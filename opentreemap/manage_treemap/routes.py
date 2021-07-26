@@ -17,7 +17,7 @@ from importer.views import list_imports
 from manage_treemap.views import update_instance_fields_with_validator
 from manage_treemap.views.roles import roles_list, roles_update, roles_create
 from manage_treemap.views.groups import groups_list, get_groups_data
-from manage_treemap.views.reports import get_reports_data, reports
+from manage_treemap.views.reports import get_reports_data as _get_reports_data, reports, check_report_query_parameters, include_user
 from manage_treemap.views.udf import (udf_bulk_update, udf_create, udf_list,
                                       udf_delete_popup, udf_delete,
                                       udf_update_choice,
@@ -255,5 +255,14 @@ get_reports_data = do(
     json_api_call,
     instance_request,
     #admin_instance_request,
-    get_reports_data
+    _get_reports_data
+)
+
+
+get_reports_user_data = do(
+    json_api_call,
+    instance_request,
+    check_report_query_parameters,
+    include_user,
+    _get_reports_data
 )

@@ -70,4 +70,5 @@ urlpatterns = [
     url(r'^reports/$', routes.reports, name='reports_endpoint'),
     url(r'^reports/(?P<data_set>\w+)/(?P<aggregation_level>(neighborhood|ward|park|sid|none))/$',
         routes.get_reports_data, name='get_reports_data'),
+    url(r'^reports-user-data/$', routes.get_reports_user_data, name='get_reports_user_data'),
 ]

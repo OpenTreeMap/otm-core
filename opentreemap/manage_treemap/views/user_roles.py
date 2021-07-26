@@ -195,9 +195,10 @@ def invite_user_with_email_to_instance(request, email, instance):
         email__iexact=email, instance=instance)
 
     if existing_invites.exists():
-        raise ValidationError(
-            _("A user with email address '%s' has already been invited.") %
-            email)
+        ctxt = {'request': request,
+                'instance': instance,
+                'invite': existing_invites}
+        send_email('invite_to_new_user', ctxt, (email,))
 
     invite = InstanceInvitation.objects.create(instance=instance,
                                                email=email,

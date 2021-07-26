@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% extends "instance_base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block header %}
+{% endblock header %}
+{% block subhead %}
+{% endblock subhead %}
+
+{% block content %}
+<script>
+    window.django = {
+        csrf: "{{ csrf_token }}",
+        instance_url: "{{ request.instance.url_name }}",
+        user: {
+            username: "{{ request.user.username }}",
+            full_name: "{{ request.user.get_full_name }}",
+            last_login: "{{ request.user.last_login }}",
+            is_authenticated: "{{ request.user.is_authenticated|yesno:"true,false" }}" == "true",
+        },
+        logoUrl: "{{ request.instance.logo.url }}"
+    };
+</script>
+<div id="app" style="height: 100%;" class="app-wrapper"></div>
+  {% render_bundle 'js/frontend/account_profile' %}
+{% endblock content %}
