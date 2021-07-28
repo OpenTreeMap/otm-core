@@ -56,19 +56,26 @@ export function BoundaryTileLayer(props) {
 
 
 export function PlotUtfTileLayer(props) {
+    const { eventHandlers, geoRevHash } = props;
     const MAX_ZOOM_OPTION = {maxZoom: 21};
     // Min zoom level for detail layers
     const MIN_ZOOM_OPTION = {minZoom: 15};
     const [showMarker, setShowMarker] = useState(false);
     const [latLng, setLatLng] = useState({ lat: null, lng: null});
+    const [url, setUrl] = useState(filterableLayer('treemap_mapfeature', 'grid.json', options, {}, geoRevHash));
 
     const FEATURE_LAYER_OPTION = {zIndex: 6};
 
     const options = _.extend({resolution: 4}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
-    const url = getUrlMaker('treemap_mapfeature', 'grid.json')();
+    //const url = getUrlMaker('treemap_mapfeature', 'grid.json')();
+
+    useEffect(() => {
+        const url = filterableLayer('treemap_mapfeature', 'grid.json', options, {}, geoRevHash);
+        setUrl(url);
+    }, [geoRevHash]);
 
     //return (<UtfGrid url={url} eventHandlers={eventHandlers} {...options}>
-    return (<UtfGrid url={url} eventHandlers={props.eventHandlers} {...options} />);
+    return (<UtfGrid url={url} eventHandlers={eventHandlers} {...options} />);
 }
 
 

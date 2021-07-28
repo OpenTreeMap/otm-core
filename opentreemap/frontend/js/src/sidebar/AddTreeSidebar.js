@@ -117,6 +117,16 @@ export function AddTreeSidebar(props) {
         setTreeData(treeDataUpdated);
     }
 
+    useEffect(() => {
+        clearPhotos();
+    }, [isEmptyTreePit])
+
+    /**
+     * Submit photos if available.
+     * Always return back the original data, which contains
+     * the original geo_rev_hash of the created element.
+     * The geo_rev_hash is used for map updating
+     */
     const submitPhotos = (data) => {
         const featureId = data.featureId;
         if (isEmptyTreePit) {
@@ -125,13 +135,18 @@ export function AddTreeSidebar(props) {
                 feature_id: featureId
             });
             const label = "site";
+
+            if (!(label in photos)) {
+                return Promise.resolve(data);
+            }
+
             const formData = new FormData();
             formData.append('label', label);
             formData.append('file', photos[label]);
             return axios.post(url, formData,
                 {withCredential: true,
                  headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'multipart/form-data'}
-                });
+                }).then(response => data);
         }
 
         const url = reverse.Urls.add_photo_to_tree_with_label({
@@ -209,7 +224,9 @@ export function AddTreeSidebar(props) {
         };
 
         // hacky, and this should happen on the backend
-        delete treeDataFormatted['has_site_photo'];
+        if (!isEmptyTreePit) {
+            delete treeDataFormatted['has_site_photo'];
+        }
 
         const url = reverse.Urls.addPlot(instance_url);
         setSaving(true);
@@ -457,17 +474,19 @@ function SecondStep(props) {
 
             <hr />
 
-            {diameterField}
+            {isEmptyTreePit ? '' : diameterField}
 
             <hr />
 
-            {fieldGroups.map((fieldGroup, i) => <FieldGroup
-                key={i}
-                fieldGroup={fieldGroup}
-                updateTreeData={updateTreeData}
-                treeData={treeData}
-                errors={errors}
-                filterFields={[diameter, species]} />)}
+            {fieldGroups
+                .filter(x => x.model == 'plot' || (x.model == 'tree' && !isEmptyTreePit))
+                .map((fieldGroup, i) => <FieldGroup
+                    key={i}
+                    fieldGroup={fieldGroup}
+                    updateTreeData={updateTreeData}
+                    treeData={treeData}
+                    errors={errors}
+                    filterFields={[diameter, species]} />)}
         </Step>
     );
 }

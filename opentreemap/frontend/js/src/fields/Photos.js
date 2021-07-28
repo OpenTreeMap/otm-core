@@ -11,10 +11,6 @@ export function Photos(props) {
 
     const [showAlert, setShowAlert] = useState(false);
 
-    useEffect(() => {
-        clearPhotos();
-    }, [isEmptyTreePit])
-
     // pass in the name of the element, the function to use for updating,
     // and the treeDataVariable
     const handleImageUpload = (name) => {

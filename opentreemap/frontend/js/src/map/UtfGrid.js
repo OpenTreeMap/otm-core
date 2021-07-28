@@ -29,7 +29,15 @@ export const UtfGrid = createTileLayerComponent(
             context,
         }
     },
-    updateGridLayer);
+    (layer, props, prevProps) => {
+        const { url } = props;
+        updateGridLayer(layer, props, prevProps);
+        if (url != null && url !== prevProps.url) {
+            layer.setUrl(url);
+            layer.redraw();
+        }
+    });
+    //updateGridLayer);
 
 /*
 export const UtfGrid = (props) => {

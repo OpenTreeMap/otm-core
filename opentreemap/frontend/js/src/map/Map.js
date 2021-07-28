@@ -53,8 +53,8 @@ export default class Map extends Component {
     */
 
     render() {
-        const {loading, startingLongitude, startingLatitude, popupInfo, mapRef} = this.state;
-        const { popup, setMap } = this.props;
+        const { loading, startingLongitude, startingLatitude, popupInfo, mapRef } = this.state;
+        const { popup, setMap, geoRevHash } = this.props;
 
         if (loading) return (<div>Loading...</div>);
 
@@ -157,7 +157,6 @@ export default class Map extends Component {
                         <BoundaryTileLayer tilerArgs={{'category': 'SID'}} layerOptions={{'category': 'SID'}}/>
                     </LayersControl.Overlay>
                 </LayersControl>
-                <PlotUtfTileLayer eventHandlers={this.props.utfEventHandlers} />
                 {this.props.children}
                 {popup}
             </MapContainer>

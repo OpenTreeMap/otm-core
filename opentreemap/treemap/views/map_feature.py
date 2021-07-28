@@ -292,17 +292,26 @@ def update_map_feature(request_dict, user, feature):
         has_bark_photo = request_dict.pop('has_bark_photo', False)
         has_leaf_photo = request_dict.pop('has_leaf_photo', False)
 
-        if is_empty_site:
-            return
+        has_site_photo = request_dict.pop('has_site_photo', False)
 
-        if not (has_shape_photo and has_bark_photo and has_leaf_photo):
+        if is_empty_site and not has_site_photo:
+            raise ValidationError(
+                {'tree.photos': 'Please submit empty site photo'}
+            )
+
+        if not is_empty_site and not (has_shape_photo and has_bark_photo and has_leaf_photo):
             # FIXME eventually, do not put a validation error on the species
             raise ValidationError(
                 {'tree.photos': 'Please submit all photos'}
             )
 
-    def check_required_fields(request_dict, feature, tree):
+    def check_required_fields(request_dict, feature, tree, is_empty_site):
         errors = {}
+
+        # skip validations for empty sites
+        if is_empty_site:
+            return
+
         if feature.feature_type == 'Plot':
             for field in feature.REQUIRED_FIELDS:
                 if not getattr(feature, field):
@@ -376,7 +385,8 @@ def update_map_feature(request_dict, user, feature):
         elif identifier in ['tree.species', 'tree.diameter']:
             rev_updates.append('eco_rev')
 
-    check_required_fields(request_dict, feature, tree)
+    is_empty_site = request_dict.pop('is_empty_site', False)
+    check_required_fields(request_dict, feature, tree, is_empty_site)
 
     if feature.fields_were_updated():
         errors.update(save_and_return_errors(feature, user))

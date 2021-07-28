@@ -12,7 +12,7 @@ import './Map.css';
 import { TreePopup } from './TreePopup';
 import { Marker, Popup } from "react-leaflet";
 
-import { PlotTileLayer } from './Layers';
+import { PlotTileLayer, PlotUtfTileLayer } from './Layers';
 import { DetailSidebar } from '../sidebar/DetailSidebar';
 import { AddTreeSidebar } from '../sidebar/AddTreeSidebar';
 import { Footer } from './Footer';
@@ -237,6 +237,7 @@ export default class MapMain extends Component {
                 />;
 
         const plotTileLayer = (<PlotTileLayer geoRevHash={geoRevHash}/>);
+        const plotUtfTileLayer = (<PlotUtfTileLayer eventHandlers={utfEventHandlers} geoRevHash={geoRevHash} />);
         const homeUrl = reverse.Urls.react_map({
             instance_url_name: window.django.instance_url,
         });
@@ -305,6 +306,7 @@ export default class MapMain extends Component {
                     <MapEventContainer
                         onClick={this.onMapClick}
                     />
+                    {plotUtfTileLayer}
                     {plotTileLayer}
                 </Map>
                 <div className="sidebar">
