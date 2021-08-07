@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import axios from 'axios';
 import { Button } from 'react-bootstrap';
+import L from 'leaflet';
 
 import { Diameter } from '../fields/Diameter';
 import { FieldGroup } from '../fields/FieldGroup';
@@ -21,8 +22,8 @@ export function AddTreeSidebar(props) {
     const instance_url = window.django.instance_url;
     const csrfToken = window.django.csrf;
 
-    const { addTreeMarkerInfo, onClose, map, onMapClick, clearLatLng, onAddMapFeature } = props;
-    const latLng = addTreeMarkerInfo.latLng;
+    const { onClose, map, onMapClick, clearLatLng, onAddMapFeature, markerRef } = props;
+    const latLng = markerRef?.getLatLng() ?? {lat: null, lng: null};
     const [stepNumber, setStepNumber] = useState(1);
     const [ fieldGroups, setFieldGroups ] = useState(null);
 
@@ -203,7 +204,16 @@ export function AddTreeSidebar(props) {
         onClose();
     }
 
+    const lonLatToWebMercator = (lon, lat) => {
+        var originShift = (2.0 * Math.PI * (6378137.0 / 2.0)) / 180.0;
+        return {
+            x: originShift * lon,
+            y: originShift * (Math.log(Math.tan((90.0 + lat) * (Math.PI / 360.0)))) / (Math.PI / 180.0)
+        };
+    };
+
     const onComplete = () => {
+        const position = markerRef.getLatLng();
         const treeDataFormatted = {
             // fix the dates, because we don't want to fix them on the backend yet
             ...Object.keys(treeData).reduce((obj, key) => {
@@ -213,11 +223,7 @@ export function AddTreeSidebar(props) {
                     : value;
                 return obj
             }, treeData),
-            "plot.geom": {
-                "y": latLng.lat,
-                "x": latLng.lng,
-                "srid": 4326
-            },
+            "plot.geom": lonLatToWebMercator(position.lng, position.lat),
             // species for the server is just the ID
             "tree.species": treeData["tree.species"]?.id,
             "is_empty_site": isEmptyTreePit

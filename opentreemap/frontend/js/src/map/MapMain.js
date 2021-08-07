@@ -27,7 +27,7 @@ export default class MapMain extends Component {
             isAuthenticated: window.django.user.is_authenticated,
             addTreeMarkerInfo: {
                 show: false,
-                latLng: { lat: null, lng: null }
+                latLng: { lat: null, lng: null },
             },
             popupInfo: {
                 ids: null,
@@ -40,7 +40,8 @@ export default class MapMain extends Component {
             },
             sidebarInfo: null,
             benefits: null,
-            geoRevHash: config.instance.geoRevHash
+            geoRevHash: config.instance.geoRevHash,
+            markerRef: null
         };
         this.setShowAddTree = this.setShowAddTree.bind(this);
         this.setShowEcobenefits = this.setShowEcobenefits.bind(this);
@@ -68,6 +69,7 @@ export default class MapMain extends Component {
     setShowAddTree(value) {
         this.setState({
             showAddTree: value,
+            markerRef: null,
             addTreeMarkerInfo: {
                 show: false,
                 latLng: { lat: null, lng: null }
@@ -90,6 +92,7 @@ export default class MapMain extends Component {
     setShowEcobenefits(event) {
         this.setState({
             showAddTree: false,
+            markerRef: null,
             addTreeMarkerInfo: {
                 show: false,
                 latLng: { lat: null, lng: null }
@@ -190,6 +193,9 @@ export default class MapMain extends Component {
                             }
                         });
                     }}
+                    updateMarkerRef={markerRef => {
+                        this.setState({markerRef: markerRef});
+                    }}
                     />
             );
         }
@@ -207,7 +213,8 @@ export default class MapMain extends Component {
             addTreeMarkerInfo,
             addSelectedMarkerInfo,
             geoRevHash,
-            isAuthenticated
+            isAuthenticated,
+            markerRef
         } = this.state;
 
         const utfEventHandlers = {
@@ -220,6 +227,7 @@ export default class MapMain extends Component {
             ? <AddTreeSidebar
                     onClose={() => this.setShowAddTree(false)}
                     addTreeMarkerInfo={addTreeMarkerInfo}
+                    markerRef={markerRef}
                     clearLatLng={() => this.setState({
                         addTreeMarkerInfo: {
                             show: false,
@@ -328,7 +336,7 @@ function MapEventContainer(props) {
 
 
 function AddTreeMarker(props) {
-    const { latLng, updateLatLng } = props;
+    const { latLng, updateLatLng, updateMarkerRef } = props;
     const [position, setPosition] = useState(latLng)
     const markerRef = useRef(null)
 
@@ -346,9 +354,14 @@ function AddTreeMarker(props) {
                 const latLng = e.target.getLatLng()
                 setPosition(latLng);
                 updateLatLng(latLng['lat'], latLng['lng']);
+                updateMarkerRef(marker);
             }
         }
     };
+
+    useEffect(() => {
+        updateMarkerRef(markerRef.current);
+    }, []);
 
     return (
         <Marker
