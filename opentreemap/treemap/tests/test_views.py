@@ -680,12 +680,13 @@ class PlotUpdateTest(OTMTestCase):
                   'plot.readonly': False,
                   'tree.udf:Test choice': ''}
 
-        created_plot, __ = update_map_feature(update, self.user, plot)
+        with self.assertRaises(ValidationError):
+            created_plot, __ = update_map_feature(update, self.user, plot)
 
-        created_plot_update = Plot.objects.get(pk=created_plot.pk)
-        self.assertIsNone(created_plot_update.current_tree())
+            created_plot_update = Plot.objects.get(pk=created_plot.pk)
+            self.assertIsNone(created_plot_update.current_tree())
 
-        created_plot_update.delete_with_user(self.user)
+            created_plot_update.delete_with_user(self.user)
 
     def test_does_create_tree_when_one_tree_field_is_non_empty(self):
         plot = Plot(instance=self.instance)
@@ -1704,6 +1705,7 @@ class SpeciesViewTests(ViewTestCase):
             js_species = self.species_json[i]
             js_species['id'] = species.id
             js_species['common_name'] = species.common_name
+            js_species['is_common'] = None
             js_species['scientific_name'] = species.scientific_name
             js_species['value'] = species.display_name
             js_species['genus'] = species.genus
@@ -1712,12 +1714,24 @@ class SpeciesViewTests(ViewTestCase):
             js_species['other_part_of_name'] = species.other_part_of_name
 
     def test_get_species_list(self):
-        self.assertEqual(species_list(make_request(), self.instance),
+        species = species_list(make_request(), self.instance)
+
+        # cannot compare tokens yet
+        tokens_request = [s.pop('tokens') for s in species]
+        tokens_json = [s.pop('tokens') for s in self.species_json]
+
+        self.assertEqual(species,
                          self.species_json)
 
     def test_get_species_list_max_items(self):
+        species = species_list(make_request({'max_items': 3}), self.instance)
+
+        # cannot compare tokens yet
+        tokens_request = [s.pop('tokens') for s in species]
+        tokens_json = [s.pop('tokens') for s in self.species_json[:3]]
+
         self.assertEqual(
-            species_list(make_request({'max_items': 3}), self.instance),
+            species,
             self.species_json[:3])
 
 

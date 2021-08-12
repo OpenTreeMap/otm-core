@@ -386,7 +386,8 @@ def update_map_feature(request_dict, user, feature):
             rev_updates.append('eco_rev')
 
     is_empty_site = request_dict.pop('is_empty_site', False)
-    check_required_fields(request_dict, feature, tree, is_empty_site)
+    if not feature.id:
+        check_required_fields(request_dict, feature, tree, is_empty_site)
 
     if feature.fields_were_updated():
         errors.update(save_and_return_errors(feature, user))
