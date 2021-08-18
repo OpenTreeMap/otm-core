@@ -94,6 +94,7 @@ def get_reports_data(request, instance, data_set, aggregation_level, include_use
         'species': get_species_count,
         'condition': get_tree_conditions,
         'diameter': get_tree_diameters,
+        'ecobenefits': get_ecobenefits,
         'ecobenefits_by_user': get_ecobenefits_by_user
     }
     if data_set in data_set_funcs:

@@ -42,7 +42,7 @@ export function BoundaryTileLayer(props) {
     // Min zoom level for detail layers
     const MIN_ZOOM_OPTION = {minZoom: 15};
 
-    const FEATURE_LAYER_OPTION = {zIndex: 5};
+    const FEATURE_LAYER_OPTION = {zIndex: 7};
 
     const ref = useRef(null);
     const options = _.extend(layerOptions || {}, MAX_ZOOM_OPTION, FEATURE_LAYER_OPTION);
