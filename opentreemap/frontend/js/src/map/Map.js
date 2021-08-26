@@ -9,7 +9,7 @@ import { createSignature } from '../common/util/ApiRequest';
 import axios from 'axios';
 import config from 'treemap/lib/config';
 import { BoundaryTileLayer } from './Layers';
-import { PlotUtfTileLayer } from './Layers';
+import { PlotTileLayer, PlotUtfTileLayer } from './Layers';
 import { TreePopup } from './TreePopup';
 import { VectorTileLayer } from '../common/util/VectorTileLayer';
 
@@ -155,6 +155,9 @@ export default class Map extends Component {
                     </LayersControl.Overlay>
                     <LayersControl.Overlay name='SIDs'>
                         <BoundaryTileLayer tilerArgs={{'category': 'SID'}} layerOptions={{'category': 'SID'}}/>
+                    </LayersControl.Overlay>
+                    <LayersControl.Overlay name='Conditions'>
+                        <PlotTileLayer tilerArgs={{'showTreeCondition': true}} geoRevHash={geoRevHash}/>
                     </LayersControl.Overlay>
                 </LayersControl>
                 {this.props.children}
