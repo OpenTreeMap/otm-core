@@ -1,7 +1,7 @@
 import React, { Component, useEffect } from 'react';
 import L from 'leaflet';
 import { Container, Col, Row } from 'react-bootstrap';
-import { LayersControl, LayerGroup, MapContainer, TileLayer, ImageOverlay, Marker, Overlay, Popup, useMapEvents, useMap, WMSTileLayer } from "react-leaflet";
+import { LayersControl, LayerGroup, MapContainer, TileLayer, ImageOverlay, MapControl, Marker, Overlay, Popup, useMapEvents, useMap, WMSTileLayer } from "react-leaflet";
 import { ImageMapLayer, BasemapLayer, TiledMapLayer } from 'react-esri-leaflet';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { BingLayer } from '../util/bing/Bing';
@@ -156,10 +156,11 @@ export default class Map extends Component {
                     <LayersControl.Overlay name='SIDs'>
                         <BoundaryTileLayer tilerArgs={{'category': 'SID'}} layerOptions={{'category': 'SID'}}/>
                     </LayersControl.Overlay>
-                    <LayersControl.Overlay name='Conditions'>
+                    <LayersControl.Overlay name='Tree Conditions'>
                         <PlotTileLayer tilerArgs={{'showTreeCondition': true}} geoRevHash={geoRevHash}/>
                     </LayersControl.Overlay>
                 </LayersControl>
+                <Legend />
                 {this.props.children}
                 {popup}
             </MapContainer>
@@ -168,12 +169,38 @@ export default class Map extends Component {
     }
 }
 
-function MapClickContainer(props) {
-    const map = useMapEvents({
-        click: props.onClick
+function Legend(props) {
+    const map = useMap();
+    const legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        var labels = [
+            '<strong>Plot Colors</strong>',
+            '<i class="circle" style="background:#8BAA3C"></i> Healthy',
+            '<i class="circle" style="background:#8B1002"></i> Unhealthy',
+            '<i class="circle" style="background:#303031"></i> Dead',
+        ];
+        div.innerHTML = labels.join('<br>');
+        return div;
+    };
+
+    // only show this legend for the Tree Conditions layer
+    useMapEvents({
+        overlayadd: (e) => {
+            if (e.name == "Tree Conditions") {
+                map.addControl(legend);
+            }
+        },
+        overlayremove: (e) => {
+            if (e.name == "Tree Conditions") {
+                map.removeControl(legend);
+            }
+        },
     });
+
     return null;
 }
+
 
 function LocateControl(props) {
     const map = useMap();
