@@ -30,7 +30,7 @@ This project requires several environment variables, to provide API keys for sev
 ROLLBAR_SERVER_SIDE_ACCESS_TOKEN=....
 GOOGLE_MAPS_KEY=...
 ```
-`ROLLBAR_SERVER_SIDE_ACCESS_TOKEN` is a token for [Rollbar](rollbar.com).
+`ROLLBAR_SERVER_SIDE_ACCESS_TOKEN` is a token for [Rollbar](https://rollbar.com).
 `GOOGLE_MAPS_KEY` is a browser key for the Google Maps Javascript API, [which can be obtained here](https://developers.google.com/maps/documentation/javascript/get-api-key).
 
 ## Other Repositories
