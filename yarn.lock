@@ -1805,8 +1805,7 @@ leaflet-pip@~1.0.0:
   dependencies:
     geojson-utils "~1.1.0"
 
-"leaflet.gridlayer.googlemutant @~0.4.3":
-  name leaflet.gridlayer.googlemutant
+leaflet.gridlayer.googlemutant@~0.4.3:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/leaflet.gridlayer.googlemutant/-/leaflet.gridlayer.googlemutant-0.4.4.tgz#64bad7d091df5fc150b6efb0cbd67474f8ba531c"
 
@@ -2086,9 +2085,9 @@ mocha@~1.14.0:
     jade "0.26.3"
     mkdirp "0.3.5"
 
-moment@2.19.3:
-  version "2.19.3"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.19.3.tgz#bdb99d270d6d7fda78cc0fbace855e27fe7da69f"
+moment@2.29.2:
+  version "2.29.2"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.2.tgz#00910c60b20843bcba52d37d58c628b47b1f20e4"
 
 ms@0.6.2:
   version "0.6.2"
