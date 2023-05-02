@@ -1,0 +1,26 @@
+name: CI to trigger otm-cluster app image build
+
+on: push
+
+jobs:
+  ci:
+    name: Trigger otm-cluster app image build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone otm-cluster
+        run: |
+          mkdir -p ./src 
+          cd ./src
+          git clone https://${{ secrets.ACCESS_TOKEN }}@github.com/OpenTreeMap/otm-cluster.git
+
+      - name: Generate commit-sha.txt
+        run: |
+          echo "${GITHUB_REF##*/}-${GITHUB_SHA:0:7}" > src/otm-cluster/build/otm-app/commit-sha.txt
+
+      - name: Commit an push files
+        run: |
+          cd src/otm-cluster
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Trigger app build"
+          git push
