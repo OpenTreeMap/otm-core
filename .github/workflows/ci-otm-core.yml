@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "${GITHUB_REF##*/}-${GITHUB_SHA:0:7}" > src/otm-cluster/build/otm-app/commit-sha.txt
 
-      - name: Commit an push files
+      - name: Commit and push files
         run: |
           cd src/otm-cluster
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
